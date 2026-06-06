@@ -65,14 +65,18 @@ export function PatientList({ patients, selectedId, featuredId, statusFilter, on
         )}
         {groups.map((g) => (
           <li key={g.status}>
-            <div className="roster-section">
-              {STATUS[g.status as PatientStatus].label} · {g.patients.length}
+            <div className={`roster-section section-${g.status}`}>
+              <span className={`roster-section-pip ${g.status}`} aria-hidden />
+              <span className="roster-section-label">
+                {STATUS[g.status as PatientStatus].label}
+              </span>
+              <span className="roster-section-count num">{g.patients.length}</span>
             </div>
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {g.patients.map((p) => (
                 <li
                   key={p.id}
-                  className={`patient-row ${p.id === selectedId ? "selected" : ""}`}
+                  className={`patient-row row-${p.status} ${p.id === selectedId ? "selected" : ""}`}
                   onClick={() => onSelect(p.id)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -88,7 +92,7 @@ export function PatientList({ patients, selectedId, featuredId, statusFilter, on
                   <div className="patient-row-body">
                     <div className="patient-name">
                       {p.name}
-                      {p.id === featuredId && <span className="you-tag">You</span>}
+                      {p.id === featuredId && <span className="you-tag">Demo</span>}
                       {p.fhir_id != null && (
                         <span className="fhir-tag" title="Real patient record from FHIR / MongoDB">
                           FHIR

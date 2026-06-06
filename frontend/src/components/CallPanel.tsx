@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
+import { CallConversation } from "./CallConversation";
 
-export function CallPanel({ patient }: { patient: Patient }) {
+export function CallPanel({
+  patient,
+  onPatientUpdate,
+}: {
+  patient: Patient;
+  onPatientUpdate?: (patient: Patient) => void;
+}) {
   const [toNumber, setToNumber] = useState(patient.phone_number);
   const [questions, setQuestions] = useState<string[]>([]);
+  const [greeting, setGreeting] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState("");
   const [schedules, setSchedules] = useState<ScheduledCall[]>([]);
   const [history, setHistory] = useState<CallRecord[]>([]);
 
@@ -14,6 +23,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [openCallId, setOpenCallId] = useState<number | null>(null);
 
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
@@ -21,6 +31,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
     setToNumber(patient.phone_number);
     setStatus(null);
     setError(null);
+    setOpenCallId(null);
     Promise.all([
       api.getCallConfig(patient.id),
       api.listSchedules(patient.id),
@@ -29,6 +40,8 @@ export function CallPanel({ patient }: { patient: Patient }) {
       .then(([config, sched, hist]) => {
         if (cancelled) return;
         setQuestions(config.questions);
+        setGreeting(config.greeting ?? "");
+        setSystemPrompt(config.system_prompt ?? "");
         setSchedules(sched);
         setHistory(hist);
       })
@@ -62,15 +75,37 @@ export function CallPanel({ patient }: { patient: Patient }) {
     }
   }
 
-  async function handleSaveQuestions() {
+  async function handleSaveNumber() {
+    setBusy(true);
+    setStatus(null);
+    setError(null);
+    try {
+      const updated = await api.updatePatientPhone(patient.id, toNumber);
+      setToNumber(updated.phone_number);
+      onPatientUpdate?.(updated);
+      setStatus("Phone number saved.");
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSaveConfig() {
     setBusy(true);
     setStatus(null);
     setError(null);
     try {
       const cleaned = questions.map((q) => q.trim()).filter(Boolean);
-      const config = await api.saveCallConfig(patient.id, { questions: cleaned, greeting: null });
+      const config = await api.saveCallConfig(patient.id, {
+        questions: cleaned,
+        greeting: greeting.trim() || null,
+        system_prompt: systemPrompt.trim() || null,
+      });
       setQuestions(config.questions);
-      setStatus("Questions saved.");
+      setGreeting(config.greeting ?? "");
+      setSystemPrompt(config.system_prompt ?? "");
+      setStatus("Call settings saved.");
     } catch (e) {
       setError(String(e));
     } finally {
@@ -134,6 +169,14 @@ export function CallPanel({ patient }: { patient: Patient }) {
             placeholder="+852..."
           />
         </label>
+        <button
+          className="btn btn-ghost"
+          onClick={handleSaveNumber}
+          disabled={busy || !toNumber.trim()}
+          title="Save this number as the patient's check-in number"
+        >
+          Save
+        </button>
         <button className="btn btn-call" onClick={handleCallNow} disabled={busy}>
           <PhoneIcon small /> Call now
         </button>
@@ -165,8 +208,34 @@ export function CallPanel({ patient }: { patient: Patient }) {
             </button>
           </div>
         ))}
-        <button className="btn btn-ghost" onClick={handleSaveQuestions} disabled={busy} style={{ marginTop: 4 }}>
-          Save questions
+
+        <label className="field" style={{ marginTop: 12 }}>
+          <span className="field-label">Greeting (opening line)</span>
+          <input
+            className="input"
+            value={greeting}
+            onChange={(e) => setGreeting(e.target.value)}
+            placeholder="e.g. Good morning, this is your daily check-in."
+          />
+        </label>
+
+        <label className="field" style={{ marginTop: 10 }}>
+          <span className="field-label">Agent system prompt</span>
+          <textarea
+            className="input"
+            rows={5}
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            placeholder="Override the agent's instructions for this patient (tone, focus, what to watch for)."
+          />
+        </label>
+        <p className="muted" style={{ fontSize: 12, margin: "2px 0 0" }}>
+          Greeting and system prompt require the matching overrides to be enabled in the
+          agent's Security settings on ElevenLabs.
+        </p>
+
+        <button className="btn btn-ghost" onClick={handleSaveConfig} disabled={busy} style={{ marginTop: 8 }}>
+          Save call settings
         </button>
       </div>
 
@@ -220,16 +289,49 @@ export function CallPanel({ patient }: { patient: Patient }) {
           </p>
         ) : (
           <ul className="schedule-list">
-            {history.slice(0, 5).map((r) => (
-              <li key={r.id} className="schedule-item">
-                <span className="num">
-                  {new Date(r.triggered_at).toLocaleString()} · {r.kind}
-                </span>
-                <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
-                  {r.status}
-                </span>
-              </li>
-            ))}
+            {history.slice(0, 5).map((r) => {
+              const hasConversation = Boolean(r.conversation_id);
+              const open = openCallId === r.id;
+              return (
+                <li key={r.id} className="call-history-item">
+                  <div
+                    className={`schedule-item ${hasConversation ? "call-history-row" : ""}`}
+                    role={hasConversation ? "button" : undefined}
+                    tabIndex={hasConversation ? 0 : undefined}
+                    onClick={
+                      hasConversation
+                        ? () => setOpenCallId(open ? null : r.id)
+                        : undefined
+                    }
+                    onKeyDown={
+                      hasConversation
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setOpenCallId(open ? null : r.id);
+                            }
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className="num">
+                      {hasConversation && (
+                        <span className={`disclosure ${open ? "on" : ""}`} aria-hidden>
+                          ▸
+                        </span>
+                      )}
+                      {new Date(r.triggered_at).toLocaleString()} · {r.kind}
+                    </span>
+                    <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
+                      {r.status}
+                    </span>
+                  </div>
+                  {open && hasConversation && (
+                    <CallConversation patientId={patient.id} callId={r.id} />
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

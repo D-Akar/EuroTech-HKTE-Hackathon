@@ -25,6 +25,28 @@ class Settings:
     mongodb_uri: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     mongodb_db: str = os.getenv("MONGODB_DB", "careloop")
     fhir_collection: str = os.getenv("FHIR_COLLECTION", "fhir_patients")
+    # Dashboard-edited phone numbers, keyed by patient slot id. Overlaid on startup
+    # (after the FHIR overlay) so an edited number survives restarts. See
+    # app/patient_overrides.py.
+    phone_overrides_collection: str = os.getenv(
+        "PHONE_OVERRIDES_COLLECTION", "patient_phone_overrides"
+    )
+    # Placed/attempted check-in calls, keyed by record id. Persisted so the call
+    # history (shown under a patient's check-in data) survives restarts. See
+    # app/call_store.py.
+    call_history_collection: str = os.getenv(
+        "CALL_HISTORY_COLLECTION", "patient_call_history"
+    )
+    # Uploaded FHIR care plans, keyed by patient slot id. Persisted so an uploaded
+    # care plan survives restarts. See app/care_plan_store.py.
+    care_plans_collection: str = os.getenv(
+        "CARE_PLANS_COLLECTION", "patient_care_plans"
+    )
+    # Check-ins derived from completed AI calls, keyed by conversation id. Persisted
+    # so a call-derived check-in survives restarts. See app/checkin_store.py.
+    checkins_collection: str = os.getenv(
+        "CHECKINS_COLLECTION", "patient_checkins"
+    )
     # Markdown file listing the patient UUIDs to surface as real data on the dashboard.
     featured_patients_file: str = os.getenv(
         "FEATURED_PATIENTS_FILE", str(_REPO_ROOT / "featured_patients.md")
@@ -63,9 +85,16 @@ class Settings:
     elevenlabs_outbound_url: str = (
         "https://api.eu.residency.elevenlabs.io/v1/convai/twilio/outbound-call"
     )
+    # Conversation-detail endpoint (same residency base); {id} filled per call.
+    elevenlabs_conversations_url: str = (
+        "https://api.eu.residency.elevenlabs.io/v1/convai/conversations"
+    )
 
     # API key for ElevenLabs server-tool callbacks into this service.
     elevenlabs_tool_api_key: str = os.getenv("ELEVENLABS_TOOL_API_KEY", "")
+
+    # Nurse on call — dialled when a patient is escalated to urgent.
+    nurse_phone_number: str = os.getenv("NURSE_PHONE_NUMBER", "")
 
     @property
     def is_configured(self) -> bool:

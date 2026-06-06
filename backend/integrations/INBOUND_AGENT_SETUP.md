@@ -52,6 +52,22 @@ match for the caller, greet them politely and continue without personal details.
 The tool returns the full patient record; `context_summary` is the
 ready-to-speak narrative the agent should rely on.
 
+## 3b. First message
+
+Unlike the outbound agent, the inbound agent has **no patient context at connect
+time** — it must call `get_patient_context` first. So the **"First message"**
+field should be a generic, name-free holding greeting (or left blank so the agent
+speaks only after the tool returns). If you set one, keep it neutral:
+
+```
+Hello, thank you for calling CareLoop. One moment while I pull up your details.
+```
+
+Do **not** put `{{patient_name}}` in the inbound first message — the caller's name
+isn't known until the tool resolves their phone number. The personalised,
+by-name greeting happens in the system prompt *after* the tool call, using
+`context_summary`.
+
 ## Verify end to end
 
 1. Run the backend (`uvicorn app.main:app --reload`) and expose it publicly.

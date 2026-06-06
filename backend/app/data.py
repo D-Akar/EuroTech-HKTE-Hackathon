@@ -49,6 +49,10 @@ _SEED: list[tuple[str, int, PatientStatus, str, str]] = [
     ("Vera Stankovic", 85, PatientStatus.attention, "Harbour Care Collective", "Wan Chai"),
 ]
 
+# Synthetic seed numbers all share this prefix. They are NOT dialable — a real
+# call must never be placed to one (see telephony.place_call guard).
+PLACEHOLDER_PHONE_PREFIX = "+1000000"
+
 PATIENTS: list[Patient] = [
     Patient(
         id=i + 1,
@@ -57,10 +61,15 @@ PATIENTS: list[Patient] = [
         status=status,
         practice=practice,
         district=district,
-        phone_number=f"+1000000{i + 1:04d}",
+        phone_number=f"{PLACEHOLDER_PHONE_PREFIX}{i + 1:04d}",
     )
     for i, (name, age, status, practice, district) in enumerate(_SEED)
 ]
+
+
+def is_placeholder_phone(number: str | None) -> bool:
+    """True if the number is one of the synthetic seed numbers (not dialable)."""
+    return bool(number) and _normalize_phone(number).startswith(PLACEHOLDER_PHONE_PREFIX)
 
 
 # Mood / pain / wearable ranges keyed by status, so seeded numbers match the patient flag.

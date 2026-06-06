@@ -76,6 +76,7 @@ export interface CallConfig {
   patient_id: number;
   questions: string[];
   greeting: string | null;
+  system_prompt: string | null;
 }
 
 export interface ScheduledCall {
@@ -97,6 +98,54 @@ export interface CallRecord {
   conversation_id: string | null;
   call_sid: string | null;
   error: string | null;
+}
+
+// --- Real-time clinical escalation -------------------------------------------
+
+export interface EscalationRecord {
+  id: number;
+  patient_id: number;
+  patient_name: string;
+  reason: string;
+  source: string;
+  previous_status: PatientStatus;
+  status: PatientStatus;
+  triggered_at: string; // ISO datetime
+  nurse_call: CallRecord | null;
+}
+
+// SSE payload pushed on the `patient_status` event when a patient is escalated.
+export interface PatientStatusEvent {
+  patient_id: number;
+  status: PatientStatus;
+  previous_status: PatientStatus;
+  reason: string;
+  source: string;
+  at: string;
+}
+
+export interface ConversationTurn {
+  role: "user" | "agent";
+  message: string | null;
+  time_in_call_secs: number | null;
+}
+
+export interface ConversationDataPoint {
+  id: string;
+  value: string | number | boolean | null;
+  rationale: string | null;
+}
+
+export interface ConversationDetail {
+  conversation_id: string;
+  status: string; // initiated | in-progress | processing | done | failed
+  ready: boolean;
+  transcript_summary: string | null;
+  call_successful: string | null; // success | failure | unknown
+  call_duration_secs: number | null;
+  started_at: string | null;
+  transcript: ConversationTurn[];
+  data_collection: ConversationDataPoint[];
 }
 
 // --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----

@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, HTTPException
 
-from .. import data, fhir_source
-from ..models import MedicalProfile, Patient
+from .. import data, fhir_source, patient_overrides
+from ..models import MedicalProfile, Patient, PhoneUpdate
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
@@ -18,6 +18,24 @@ def get_patient(patient_id: int) -> Patient:
     patient = data.get_patient(patient_id)
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
+    return patient
+
+
+@router.put("/{patient_id}/phone", response_model=Patient)
+def update_patient_phone(patient_id: int, body: PhoneUpdate) -> Patient:
+    """Set the patient's check-in phone number.
+
+    Persisted to MongoDB (best-effort) and applied to the live patient, so every
+    later 'Call now' and scheduled call dials the saved number without re-typing.
+    """
+    patient = data.get_patient(patient_id)
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    try:
+        cleaned = patient_overrides.set_phone(patient_id, body.phone_number)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid phone number")
+    patient.phone_number = cleaned
     return patient
 
 

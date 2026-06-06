@@ -14,6 +14,8 @@ from .routers import (
     calls,
     care_plans,
     checkins,
+    escalations,
+    events,
     integrations,
     live,
     meta,
@@ -64,6 +66,8 @@ app.include_router(calls.router)
 app.include_router(reports.router)
 app.include_router(care_plans.router)
 app.include_router(integrations.router)
+app.include_router(escalations.router)
+app.include_router(events.router)
 
 
 @app.get("/health", tags=["meta"])

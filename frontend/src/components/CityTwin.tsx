@@ -1,9 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Html, Instance, Instances, OrbitControls } from "@react-three/drei";
+import { GoogleCityTwin } from "./GoogleCityTwin";
+import {
+  ContactShadows,
+  Html,
+  Instance,
+  Instances,
+  OrbitControls,
+  useTexture,
+} from "@react-three/drei";
 import * as THREE from "three";
 import type { Patient } from "../types";
-import { DISTRICTS, MAP, placePatient, STATUS, toWorld } from "../city";
+import { DISTRICTS, MAP, placePatient, STATUS } from "../city";
 
 // Height of the land slabs above the harbour; everything sits on top of this.
 const LAND_TOP = 0.42;
@@ -46,118 +54,63 @@ function useGlowTexture() {
 }
 
 // -----------------------------------------------------------------------------
-// Terrain — two landmasses split by Victoria Harbour, plus the southern hills.
+// Ground — real Hong Kong satellite imagery (Esri World Imagery) draped on the
+// model tile. The harbour, coastlines and green hills all come from the photo;
+// the 3D massing model and patient markers sit on top, like a physical city model.
 // -----------------------------------------------------------------------------
-const LAND_COLOR = "#dee4ea";
-const HILL_COLOR = "#cdd6cf";
-const WATER_COLOR = "#a7cfd2";
-const BASE_COLOR = "#c6ccd4";
+const SAT_URL = "/hk-satellite.jpg";
+const BASE_COLOR = "#161d29"; // deep tray beneath the floating satellite tile
 
-// Coastlines traced from the printed map, in normalized (nx, ny) map coords.
-// Kowloon is the northern mass; Hong Kong Island the southern one. The gap
-// between their facing coasts is Victoria Harbour — the water "running through".
-const KOWLOON: [number, number][] = [
-  [0.0, 0.0], [1.0, 0.0], [1.0, 0.4],
-  [0.9, 0.4], [0.82, 0.44], [0.74, 0.4], [0.66, 0.34], [0.6, 0.33],
-  [0.56, 0.4], [0.5, 0.45], [0.44, 0.5], [0.39, 0.55], // Tsim Sha Tsui tip
-  [0.35, 0.52], [0.31, 0.45], [0.26, 0.41], [0.2, 0.4], [0.16, 0.43],
-  [0.14, 0.36], [0.1, 0.3], [0.06, 0.22], [0.07, 0.12], [0.02, 0.07], [0.0, 0.05],
-];
-
-const ISLAND: [number, number][] = [
-  [0.0, 0.66], [0.07, 0.61], [0.14, 0.585], [0.22, 0.585], [0.3, 0.59],
-  [0.37, 0.605], [0.44, 0.59], [0.52, 0.59], [0.57, 0.605], // Causeway Bay shelter
-  [0.64, 0.57], [0.72, 0.53], [0.82, 0.49], [0.9, 0.5], [1.0, 0.55],
-  [1.0, 1.0], [0.0, 1.0],
-];
-
-// Small peaks. The island's hilly spine sits along the very bottom edge; a few
-// modest hills rise behind north-east Kowloon (top right). Nothing in the middle,
-// where the urban districts are.
-const HILLS: [number, number, number, number][] = [
-  // nx, ny, radius, height
-  // Bottom edge — the island's peaks (small)
-  [0.2, 0.95, 1.1, 0.9], [0.35, 0.97, 1.2, 1.0], [0.5, 0.96, 1.0, 0.85],
-  [0.64, 0.97, 1.1, 0.95], [0.78, 0.95, 1.2, 1.0], [0.9, 0.93, 1.0, 0.8],
-  // Top right — a small amount behind north-east Kowloon
-  [0.84, 0.09, 1.2, 1.0], [0.93, 0.15, 1.0, 0.85], [0.9, 0.04, 0.9, 0.7],
-];
-
-function landGeometry(points: [number, number][]) {
-  const shape = new THREE.Shape();
-  points.forEach(([nx, ny], i) => {
-    const { x, z } = toWorld(nx, ny);
-    // rotation-x = -PI/2 maps shape (sx, sy) -> world (sx, 0, -sy); we want world z, so sy = -z.
-    if (i === 0) shape.moveTo(x, -z);
-    else shape.lineTo(x, -z);
-  });
-  shape.closePath();
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: LAND_TOP,
-    bevelEnabled: true,
-    bevelThickness: 0.08,
-    bevelSize: 0.06,
-    bevelSegments: 1,
-  });
-  return geo;
-}
-
-function Terrain() {
-  const kowloon = useMemo(() => landGeometry(KOWLOON), []);
-  const island = useMemo(() => landGeometry(ISLAND), []);
-
-  // Kai Tak runway — a thin spit reaching into the eastern harbour.
-  const runway = useMemo(() => {
-    const a = toWorld(0.6, 0.29);
-    const b = toWorld(0.81, 0.44);
-    const dx = b.x - a.x;
-    const dz = b.z - a.z;
-    const len = Math.hypot(dx, dz);
-    return {
-      pos: [(a.x + b.x) / 2, LAND_TOP - 0.06, (a.z + b.z) / 2] as [number, number, number],
-      rotY: -Math.atan2(dz, dx),
-      len,
-    };
-  }, []);
+function SatelliteGround() {
+  const tex = useTexture(SAT_URL);
+  useMemo(() => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    tex.needsUpdate = true;
+  }, [tex]);
 
   return (
     <group>
-      {/* Model base tray — gives the rectangle a physical edge */}
-      <mesh position={[0, -0.18, 0]} receiveShadow>
-        <boxGeometry args={[MAP.w + 1.4, 0.5, MAP.d + 1.4]} />
-        <meshStandardMaterial color={BASE_COLOR} roughness={0.9} />
+      {/* Deep base tray — gives the floating tile a physical, model-like edge */}
+      <mesh position={[0, LAND_TOP - 0.3, 0]} receiveShadow>
+        <boxGeometry args={[MAP.w + 0.7, 0.6, MAP.d + 0.7]} />
+        <meshStandardMaterial color={BASE_COLOR} roughness={0.85} metalness={0.15} />
       </mesh>
 
-      {/* Harbour water — a rectangle the exact size of the map */}
-      <mesh rotation-x={-Math.PI / 2} position={[0, 0.12, 0]} receiveShadow>
+      {/* Hong Kong from above — Victoria Harbour runs across the middle, Kowloon
+          to the north, Hong Kong Island and the Peak's green hills to the south. */}
+      <mesh rotation-x={-Math.PI / 2} position={[0, LAND_TOP, 0]} receiveShadow>
         <planeGeometry args={[MAP.w, MAP.d]} />
-        <meshStandardMaterial color={WATER_COLOR} roughness={0.3} metalness={0.1} />
+        <meshBasicMaterial map={tex} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+// Plain gray ground — the "no satellite" fallback. Same floating model tray, but
+// a neutral matte surface instead of the satellite photo, so the city reads as a
+// clean schematic when the photoreal tiles are unavailable.
+const PLAIN_GROUND = "#c5cad2";
+const PLAIN_BG = "#dde1e7";
+const PLAIN_BASE = "#aab1bb"; // neutral tray edge for the schematic twin — no black frame
+
+function PlainGround() {
+  return (
+    <group>
+      {/* Shallow base tray — same physical edge, but neutral gray so the tile reads
+          as a clean schematic with no dark border. */}
+      <mesh position={[0, LAND_TOP - 0.3, 0]}>
+        <boxGeometry args={[MAP.w + 0.7, 0.6, MAP.d + 0.7]} />
+        <meshStandardMaterial color={PLAIN_BASE} roughness={0.9} metalness={0} />
       </mesh>
 
-      {/* Landmasses with real coastlines */}
-      <mesh geometry={kowloon} rotation-x={-Math.PI / 2} castShadow receiveShadow>
-        <meshStandardMaterial color={LAND_COLOR} roughness={0.92} />
+      {/* Flat neutral land tile — no imagery. Does NOT receive the directional
+          shadow map (that bands badly on a flat matte surface); building grounding
+          comes from ContactShadows, exactly like the satellite tile. */}
+      <mesh rotation-x={-Math.PI / 2} position={[0, LAND_TOP, 0]}>
+        <planeGeometry args={[MAP.w, MAP.d]} />
+        <meshStandardMaterial color={PLAIN_GROUND} roughness={0.95} metalness={0} />
       </mesh>
-      <mesh geometry={island} rotation-x={-Math.PI / 2} castShadow receiveShadow>
-        <meshStandardMaterial color={LAND_COLOR} roughness={0.92} />
-      </mesh>
-
-      {/* Kai Tak runway */}
-      <mesh position={runway.pos} rotation-y={runway.rotY} castShadow receiveShadow>
-        <boxGeometry args={[runway.len, 0.3, 0.7]} />
-        <meshStandardMaterial color={LAND_COLOR} roughness={0.92} />
-      </mesh>
-
-      {/* Topographic hills */}
-      {HILLS.map(([nx, ny, r, h], i) => {
-        const { x, z } = toWorld(nx, ny);
-        return (
-          <mesh key={i} position={[x, LAND_TOP - 0.05 + h / 2, z]} castShadow receiveShadow>
-            <coneGeometry args={[r, h, 20]} />
-            <meshStandardMaterial color={HILL_COLOR} roughness={1} />
-          </mesh>
-        );
-      })}
     </group>
   );
 }
@@ -174,7 +127,7 @@ interface Building {
 function useBuildings(): Building[] {
   return useMemo(() => {
     const out: Building[] = [];
-    const base = new THREE.Color("#c3d0df");
+    const base = new THREE.Color("#eef2f7");
     let seed = 7;
     const rand = () => {
       seed = (seed * 16807) % 2147483647;
@@ -208,7 +161,7 @@ function Buildings() {
   return (
     <Instances limit={buildings.length} castShadow receiveShadow>
       <boxGeometry />
-      <meshStandardMaterial roughness={0.8} metalness={0.04} />
+      <meshStandardMaterial roughness={0.52} metalness={0.16} />
       {buildings.map((b, i) => (
         <Instance key={i} position={b.position} scale={b.scale} color={b.color} />
       ))}
@@ -393,11 +346,12 @@ interface SceneProps {
   selectedId: number | null;
   statusFilter: Set<string> | null;
   paused: boolean;
+  ground: "satellite" | "plain";
   onSelect: (id: number) => void;
   onHover: (p: Patient | null) => void;
 }
 
-function Scene({ patients, selectedId, statusFilter, paused, onSelect, onHover }: SceneProps) {
+function Scene({ patients, selectedId, statusFilter, paused, ground, onSelect, onHover }: SceneProps) {
   const reduced = usePrefersReducedMotion();
   const glow = useGlowTexture();
   const controls = useRef<any>(null);
@@ -409,25 +363,32 @@ function Scene({ patients, selectedId, statusFilter, paused, onSelect, onHover }
     return sel ? new THREE.Vector3(sel.x, sel.y + LAND_TOP + 1, sel.z) : null;
   }, [placed, selectedId]);
 
+  const bg = ground === "plain" ? PLAIN_BG : "#e6eef6";
+
   return (
     <>
-      <color attach="background" args={["#eef3f7"]} />
-      <fog attach="fog" args={["#e7eef3", 34, 74]} />
+      <color attach="background" args={[bg]} />
+      <fog attach="fog" args={[bg, 42, 92]} />
 
-      <hemisphereLight args={["#ffffff", "#aebccb", 0.9]} />
-      <ambientLight intensity={0.35} />
+      <hemisphereLight args={["#ffffff", "#9fb0c2", 0.75]} />
+      <ambientLight intensity={0.4} />
       <directionalLight
-        position={[14, 22, 12]}
-        intensity={1.15}
+        position={[14, 24, 12]}
+        intensity={1.0}
+        color="#fff3e2"
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-26}
         shadow-camera-right={26}
         shadow-camera-top={26}
         shadow-camera-bottom={-26}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.04}
       />
 
-      <Terrain />
+      <Suspense fallback={null}>
+        {ground === "plain" ? <PlainGround /> : <SatelliteGround />}
+      </Suspense>
       <Buildings />
 
       {placed.map((p) => {
@@ -447,12 +408,12 @@ function Scene({ patients, selectedId, statusFilter, paused, onSelect, onHover }
       })}
 
       <ContactShadows
-        position={[0, LAND_TOP + 0.02, 0]}
+        position={[0, LAND_TOP + 0.015, 0]}
         scale={MAP.w + 6}
         far={14}
-        blur={2.8}
-        opacity={0.3}
-        color="#46586d"
+        blur={2.6}
+        opacity={0.4}
+        color="#0e1622"
       />
 
       <OrbitControls
@@ -483,7 +444,56 @@ interface CityTwinProps {
   onSelect: (id: number) => void;
 }
 
-export function CityTwin({ patients, selectedId, statusFilter, onSelect }: CityTwinProps) {
+// Public entry point. When a Google Maps API key is present we render the
+// photorealistic 3D Tiles globe of Hong Kong; otherwise we fall back to the
+// stylized gray schematic twin (no satellite imagery). The error boundary
+// guarantees the stage still shows the city even if the tiles fail to load
+// (bad key, Map Tiles API not enabled, offline), instead of blanking the stage.
+const GOOGLE_MAPS_API_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? "").trim();
+
+class TilesErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error("Photorealistic 3D tiles failed — falling back to the gray schematic twin.", error);
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+export function CityTwin(props: CityTwinProps) {
+  // Flips to the gray schematic twin if the photoreal tiles fail at runtime (bad
+  // key, Map Tiles API not enabled, offline) — a 403 is an async fetch error the
+  // error boundary can't see, so GoogleCityTwin reports it via onError.
+  const [tilesFailed, setTilesFailed] = useState(false);
+  const handleTilesError = useCallback(() => setTilesFailed(true), []);
+
+  if (!GOOGLE_MAPS_API_KEY || tilesFailed) {
+    return <StylizedCityTwin {...props} ground="plain" />;
+  }
+  return (
+    <TilesErrorBoundary fallback={<StylizedCityTwin {...props} ground="plain" />}>
+      <GoogleCityTwin {...props} apiKey={GOOGLE_MAPS_API_KEY} onError={handleTilesError} />
+    </TilesErrorBoundary>
+  );
+}
+
+function StylizedCityTwin({
+  patients,
+  selectedId,
+  statusFilter,
+  onSelect,
+  ground,
+}: CityTwinProps & { ground: "satellite" | "plain" }) {
   const [hovered, setHovered] = useState<Patient | null>(null);
 
   return (
@@ -499,6 +509,7 @@ export function CityTwin({ patients, selectedId, statusFilter, onSelect }: CityT
         selectedId={selectedId}
         statusFilter={statusFilter}
         paused={hovered !== null}
+        ground={ground}
         onSelect={onSelect}
         onHover={setHovered}
       />

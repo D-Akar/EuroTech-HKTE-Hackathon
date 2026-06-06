@@ -6,7 +6,57 @@
    ============================================================================= */
 
 :root {
-  /* Cool-tinted neutrals (hue ~235, never pure white/black) */
+  /* Deep-space neutrals (hue ~256) — mission-control night, never pure black */
+  --bg: oklch(0.165 0.018 256);
+  --surface: oklch(0.215 0.02 256);
+  --surface-raised: oklch(0.255 0.022 256);
+  --surface-sunken: oklch(0.185 0.018 256);
+  --border: oklch(0.34 0.02 256);
+  --border-strong: oklch(0.46 0.025 256);
+
+  --text: oklch(0.96 0.008 230);
+  --text-soft: oklch(0.82 0.014 232);
+  --muted: oklch(0.66 0.018 238);
+  --faint: oklch(0.54 0.02 242);
+
+  /* Brand accent — luminous HUD cyan, used for action + selection + glow */
+  --accent: oklch(0.8 0.13 212);
+  --accent-strong: oklch(0.87 0.12 206);
+  --accent-soft: oklch(0.3 0.06 220);
+  --accent-ring: oklch(0.8 0.13 212 / 0.4);
+
+  /* Status — luminous signals on dark; *-soft is a dark translucent tint */
+  --status-stable: oklch(0.8 0.15 165);
+  --status-stable-soft: oklch(0.33 0.06 165);
+  --status-attention: oklch(0.84 0.15 88);
+  --status-attention-soft: oklch(0.35 0.07 82);
+  --status-urgent: oklch(0.7 0.2 26);
+  --status-urgent-soft: oklch(0.34 0.1 28);
+
+  /* Twin stage — deep space behind/around the lit Earth */
+  --sky-top: oklch(0.21 0.026 256);
+  --sky-bottom: oklch(0.115 0.02 258);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow: 0 6px 22px -8px oklch(0 0 0 / 0.55);
+  --shadow-lg: 0 24px 60px -20px oklch(0 0 0 / 0.7);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint */
+
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
+
+  color-scheme: dark;
+}
+
+/* Light "operations room" theme — calm near-white daylight chrome.
+   Activated by data-theme="light" on <html>; dark is the default. */
+:root[data-theme="light"] {
   --bg: oklch(0.971 0.006 235);
   --surface: oklch(0.992 0.004 235);
   --surface-raised: oklch(0.998 0.003 235);
@@ -19,13 +69,11 @@
   --muted: oklch(0.56 0.018 256);
   --faint: oklch(0.68 0.014 256);
 
-  /* Brand accent — confident teal-cyan, used for action + selection only */
   --accent: oklch(0.6 0.13 222);
   --accent-strong: oklch(0.52 0.14 224);
   --accent-soft: oklch(0.95 0.03 222);
   --accent-ring: oklch(0.7 0.12 222 / 0.45);
 
-  /* Status (matches the hex in city.ts; paired everywhere with glyph + shape) */
   --status-stable: oklch(0.68 0.12 168);
   --status-stable-soft: oklch(0.95 0.04 168);
   --status-attention: oklch(0.76 0.13 80);
@@ -33,23 +81,12 @@
   --status-urgent: oklch(0.62 0.18 28);
   --status-urgent-soft: oklch(0.95 0.05 30);
 
-  /* The twin sky — a soft daylight wash so the model reads as lit-from-above */
   --sky-top: oklch(0.97 0.018 230);
   --sky-bottom: oklch(0.9 0.03 220);
-
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
 
   --shadow-sm: 0 1px 2px oklch(0.4 0.04 256 / 0.06);
   --shadow: 0 4px 16px -6px oklch(0.4 0.04 256 / 0.12);
   --shadow-lg: 0 18px 50px -18px oklch(0.35 0.05 256 / 0.28);
-
-  --ease: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint */
-
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
 
   color-scheme: light;
 }
@@ -1096,6 +1133,307 @@ button {
 }
 
 /* =============================================================================
+   Care plan — sibling card to the call panel in the check-in tab
+   ============================================================================= */
+
+.care-plan-panel {
+  margin: 16px 0 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 16px 18px;
+}
+
+.care-plan-sub {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+/* Attached state — calm confirmation, the resting case */
+.care-plan-current {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 13px 14px;
+  background: var(--status-stable-soft);
+  border: 1px solid oklch(0.86 0.06 168);
+  border-radius: var(--radius);
+}
+
+.care-plan-current-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+}
+
+.care-plan-current-head > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: oklch(0.5 0.12 168);
+}
+
+.care-plan-title {
+  font-size: 14px;
+  font-weight: 620;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.care-plan-counts {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+
+.care-plan-status {
+  margin-left: auto;
+  flex-shrink: 0;
+  text-transform: capitalize;
+}
+
+/* Empty state — the uploader */
+.care-plan-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.care-plan-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 22px 16px;
+  text-align: center;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.16s var(--ease), background 0.16s var(--ease),
+    color 0.16s var(--ease);
+}
+.care-plan-drop:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.care-plan-drop:focus-within {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.care-plan-drop > svg {
+  color: var(--accent);
+}
+.care-plan-drop-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.care-plan-drop-hint {
+  font-size: 12.5px;
+}
+/* The native file input is fully replaced by the styled label. */
+.care-plan-drop input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.care-plan-paste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.care-plan-paste textarea {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.care-plan-paste-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.care-plan-paste-toggle {
+  align-self: center;
+}
+
+/* Quiet text button — no chrome until interacted with */
+.link-btn {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--accent-strong);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.16s var(--ease);
+}
+.link-btn:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.link-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.link-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  text-decoration: none;
+}
+
+/* =============================================================================
+   Call conversation — expandable post-call detail in the history list
+   ============================================================================= */
+
+.call-history-item {
+  border-bottom: 1px solid var(--border);
+}
+.call-history-item:last-child {
+  border-bottom: none;
+}
+.call-history-item .schedule-item {
+  border-bottom: none;
+}
+
+.call-history-row {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.16s var(--ease);
+}
+.call-history-row:hover {
+  background: var(--surface-raised);
+}
+.call-history-row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.disclosure {
+  display: inline-block;
+  width: 1em;
+  margin-right: 4px;
+  color: var(--faint);
+  transition: transform 0.16s var(--ease);
+}
+.disclosure.on {
+  transform: rotate(90deg);
+}
+
+.conv-detail {
+  padding: 4px 2px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.conv-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.conv-duration {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.conv-summary {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+.conv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.conv-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.conv-chip-label {
+  color: var(--muted);
+}
+.conv-chip-value {
+  color: var(--text);
+  font-weight: 600;
+}
+/* The follow-up flag is the one thing a coordinator must not miss. */
+.conv-chip-flag {
+  background: var(--status-attention-soft);
+  border-color: oklch(0.82 0.08 80);
+}
+.conv-chip-flag .conv-chip-value {
+  color: oklch(0.42 0.12 60);
+}
+
+.conv-followup-reason {
+  margin: 0;
+  font-size: 13px;
+  color: oklch(0.42 0.12 60);
+}
+
+.conv-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 10px 12px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.conv-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.conv-turn-role {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.conv-turn-agent .conv-turn-msg {
+  color: var(--text-soft);
+}
+.conv-turn-user .conv-turn-msg {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* =============================================================================
    States — loading, empty, error
    ============================================================================= */
 
@@ -1682,4 +2020,425 @@ button {
   font-size: 11.5px;
   color: var(--faint);
   margin-top: 2px;
+}
+
+/* =============================================================================
+   Dark mission-control layer
+   The tokens above are flipped dark; this section adds command-center texture:
+   a deep-space stage, glassy HUD panels with cyan glow, monospace telemetry,
+   and luminous status text. The lit Google Earth twin is the bright centerpiece
+   framed by dark, precise chrome (à la an orbital ops console).
+   ============================================================================= */
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(125% 80% at 50% -12%, oklch(0.24 0.035 248), transparent 58%),
+    radial-gradient(100% 70% at 88% 6%, oklch(0.22 0.05 200 / 0.5), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* --- Monospace telemetry: technical labels + numeric readouts --------------- */
+.roster-title h2,
+.roster-section,
+.section-label,
+.vital-label,
+.live-tile-label,
+.field-label,
+.convo-label,
+.detail-tab,
+.legend,
+.stage-hint,
+.source-pill,
+.escalation-title,
+.call-panel-head h3 {
+  font-family: var(--mono);
+}
+.roster-title h2,
+.roster-section,
+.section-label {
+  letter-spacing: 0.13em;
+}
+.clock,
+.watch-count,
+.num,
+.vital-value,
+.roster-count,
+.reading-vals,
+.trend-avg {
+  font-family: var(--mono);
+}
+
+/* --- Layered glass chrome (dark only) -------------------------------------- */
+:root[data-theme="dark"] .command-bar {
+  background: oklch(0.165 0.02 256 / 0.82);
+  backdrop-filter: blur(16px) saturate(1.1);
+  border-bottom-color: oklch(0.62 0.08 215 / 0.22);
+  box-shadow: 0 1px 0 oklch(0.75 0.12 215 / 0.07), 0 10px 30px -22px black;
+}
+:root[data-theme="dark"] .roster {
+  background: oklch(0.185 0.018 256 / 0.66);
+  backdrop-filter: blur(12px);
+  border-right-color: oklch(0.6 0.07 218 / 0.16);
+}
+:root[data-theme="dark"] .detail {
+  background: oklch(0.17 0.02 256 / 0.9);
+  backdrop-filter: blur(22px) saturate(1.1);
+  border-left-color: oklch(0.62 0.08 218 / 0.24);
+}
+
+/* --- Stage: deep space + glowing HUD overlay cards (dark only) -------------- */
+:root[data-theme="dark"] .stage {
+  background: radial-gradient(135% 105% at 50% 0%, var(--sky-top), var(--sky-bottom));
+}
+:root[data-theme="dark"] .stage-title,
+:root[data-theme="dark"] .legend,
+:root[data-theme="dark"] .stage-hint,
+:root[data-theme="dark"] .banner-error {
+  background: oklch(0.15 0.022 256 / 0.6);
+  backdrop-filter: blur(13px) saturate(1.15);
+  border-color: oklch(0.72 0.1 215 / 0.22);
+  box-shadow:
+    inset 0 0 0 1px oklch(0.85 0.1 215 / 0.05),
+    0 0 26px -8px oklch(0.7 0.13 215 / 0.28),
+    0 12px 34px -18px black;
+}
+:root[data-theme="dark"] .stage-title h2 {
+  color: var(--text);
+}
+:root[data-theme="dark"] .stage-title p,
+:root[data-theme="dark"] .legend-item,
+:root[data-theme="dark"] .stage-hint {
+  color: var(--text-soft);
+}
+
+/* --- Luminous status text on dark soft chips (contrast fix, dark only) ------ */
+:root[data-theme="dark"] .badge.stable,
+:root[data-theme="dark"] .tag-ok,
+:root[data-theme="dark"] .call-status,
+:root[data-theme="dark"] .source-pill.live,
+:root[data-theme="dark"] .event-chip.ok,
+:root[data-theme="dark"] .escalation-result.ok {
+  color: var(--status-stable);
+}
+:root[data-theme="dark"] .badge.attention,
+:root[data-theme="dark"] .convo-chip.warm,
+:root[data-theme="dark"] .event-chip.warn {
+  color: var(--status-attention);
+}
+:root[data-theme="dark"] .badge.urgent,
+:root[data-theme="dark"] .convo-chip.hot,
+:root[data-theme="dark"] .tag-missed,
+:root[data-theme="dark"] .call-error,
+:root[data-theme="dark"] .escalation-title,
+:root[data-theme="dark"] .escalation-result.error,
+:root[data-theme="dark"] .banner-error {
+  color: var(--status-urgent);
+}
+:root[data-theme="dark"] .banner-error {
+  border-color: oklch(0.7 0.16 28 / 0.5);
+}
+:root[data-theme="dark"] .btn-remove:hover {
+  color: var(--status-urgent);
+  background: var(--status-urgent-soft);
+}
+
+/* --- Status pips + legend swatches: glowing signals (dark only) ------------- */
+:root[data-theme="dark"] .status-pip {
+  color: oklch(0.16 0.02 250);
+}
+:root[data-theme="dark"] .status-pip.urgent {
+  color: white;
+  box-shadow: 0 0 13px 0 oklch(0.7 0.2 26 / 0.8);
+}
+:root[data-theme="dark"] .status-pip.stable {
+  box-shadow: 0 0 12px -1px oklch(0.8 0.15 165 / 0.7);
+}
+:root[data-theme="dark"] .status-pip.attention {
+  box-shadow: 0 0 12px -1px oklch(0.84 0.15 88 / 0.7);
+}
+:root[data-theme="dark"] .legend-swatch.stable {
+  box-shadow: 0 0 9px -1px var(--status-stable);
+}
+:root[data-theme="dark"] .legend-swatch.attention {
+  box-shadow: 0 0 9px -1px var(--status-attention);
+}
+:root[data-theme="dark"] .legend-swatch.urgent {
+  box-shadow: 0 0 9px -1px var(--status-urgent);
+}
+
+/* --- Selected roster row: cyan HUD highlight (dark only) -------------------- */
+:root[data-theme="dark"] .patient-row.selected {
+  background: oklch(0.3 0.06 220 / 0.45);
+  border-color: oklch(0.72 0.12 215 / 0.5);
+  box-shadow:
+    inset 0 0 0 1px oklch(0.72 0.12 215 / 0.15),
+    0 0 20px -8px var(--accent);
+}
+
+/* --- Buttons: dark text on luminous cyan, soft action glow (dark only) ------ */
+:root[data-theme="dark"] .btn {
+  color: oklch(0.16 0.02 240);
+  font-weight: 650;
+}
+:root[data-theme="dark"] .btn:hover {
+  box-shadow: 0 0 20px -6px var(--accent), var(--shadow-sm);
+}
+:root[data-theme="dark"] .btn-call {
+  color: white;
+}
+
+/* --- In-scene marker tooltip: HUD glass ------------------------------------ */
+.marker-tip {
+  background: oklch(0.13 0.02 256 / 0.9);
+  border: 1px solid oklch(0.72 0.1 215 / 0.32);
+  font-family: var(--mono);
+  box-shadow: 0 0 22px -6px oklch(0.7 0.13 215 / 0.45), var(--shadow);
+}
+.marker-tip .tip-status {
+  opacity: 0.78;
+}
+
+/* --- Brand mark glow (dark only) ------------------------------------------- */
+:root[data-theme="dark"] .brand-mark {
+  box-shadow: 0 0 0 1px oklch(0.7 0.12 215 / 0.4), 0 0 18px -4px var(--accent);
+}
+
+/* --- Theme toggle (sun / moon), works in both palettes --------------------- */
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease),
+    border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+.theme-toggle:hover {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+.theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+:root[data-theme="dark"] .theme-toggle:hover {
+  box-shadow: 0 0 16px -5px var(--accent);
+}
+
+/* =============================================================================
+   Command bar + roster polish — hierarchy, depth, and a designed triage readout
+   ============================================================================= */
+
+/* --- Command bar: a deliberate console header ------------------------------ */
+.command-bar {
+  gap: 18px;
+}
+:root[data-theme="light"] .command-bar {
+  background: linear-gradient(180deg, oklch(0.996 0.003 235), oklch(0.975 0.006 235));
+  box-shadow: 0 1px 0 var(--border), 0 8px 22px -18px oklch(0.4 0.06 256 / 0.35);
+}
+.brand-mark {
+  width: 29px;
+  height: 29px;
+  border-radius: 9px;
+}
+.brand-sub {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+/* Triage readout: one segmented control, internal dividers, prominent counts */
+.watch-strip {
+  gap: 0;
+  padding: 4px;
+  border-radius: 12px;
+}
+.watch-chip {
+  border-radius: 8px;
+  padding: 6px 13px;
+  position: relative;
+}
+.watch-chip + .watch-chip::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 24%;
+  bottom: 24%;
+  width: 1px;
+  background: var(--border);
+}
+.watch-chip[aria-pressed="true"]::before,
+.watch-chip[aria-pressed="true"] + .watch-chip::before {
+  opacity: 0;
+}
+.watch-dot {
+  width: 8px;
+  height: 8px;
+}
+.watch-chip .watch-count {
+  font-size: 14px;
+  font-family: var(--mono);
+}
+.watch-chip[aria-pressed="true"] {
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--border);
+}
+:root[data-theme="dark"] .watch-chip[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px oklch(0.7 0.1 215 / 0.25), 0 0 14px -8px var(--accent);
+}
+
+/* Group the right-hand controls; divider before the clock */
+.clock {
+  margin-left: 2px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.demo-chip,
+.theme-toggle {
+  height: 34px;
+}
+.demo-chip {
+  border-radius: 9px;
+}
+
+/* --- Roster: head, sections, rows ------------------------------------------ */
+.roster-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+/* Section header: status pip + label + colored count pill, with a fading rule */
+.roster-section {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 18px 10px 9px;
+}
+.roster-section-pip {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+}
+.roster-section-pip.stable {
+  background: var(--status-stable);
+  border-radius: 50%;
+}
+.roster-section-pip.attention {
+  background: var(--status-attention);
+  border-radius: 2px;
+}
+.roster-section-pip.urgent {
+  background: var(--status-urgent);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+.roster-section-label {
+  flex-shrink: 0;
+}
+.roster-section::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+  margin: 0 2px;
+}
+.roster-section-count {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 19px;
+  padding: 0 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.section-urgent .roster-section-count {
+  color: var(--status-urgent);
+  background: var(--status-urgent-soft);
+  border-color: transparent;
+}
+.section-attention .roster-section-count {
+  color: var(--status-attention);
+  background: var(--status-attention-soft);
+  border-color: transparent;
+}
+.section-stable .roster-section-count {
+  color: var(--status-stable);
+  background: var(--status-stable-soft);
+  border-color: transparent;
+}
+:root[data-theme="light"] .section-urgent .roster-section-count {
+  color: oklch(0.48 0.16 28);
+}
+:root[data-theme="light"] .section-attention .roster-section-count {
+  color: oklch(0.46 0.11 75);
+}
+:root[data-theme="light"] .section-stable .roster-section-count {
+  color: oklch(0.42 0.1 168);
+}
+
+/* Patient rows: hover lift + a left status accent that grows in ------------- */
+.patient-row {
+  position: relative;
+  padding: 11px 12px;
+}
+.patient-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  /* Always-on status accent so the rail reads triage at a glance, dimmed at
+     rest and lit up on hover/selection. */
+  background: var(--row-accent, var(--border-strong));
+  opacity: 0.5;
+  transition: opacity 0.16s var(--ease), width 0.16s var(--ease), box-shadow 0.16s var(--ease);
+}
+.row-stable {
+  --row-accent: var(--status-stable);
+}
+.row-attention {
+  --row-accent: var(--status-attention);
+}
+.row-urgent {
+  --row-accent: var(--status-urgent);
+}
+.patient-row:hover::before {
+  opacity: 0.9;
+  width: 4px;
+}
+.patient-row.selected::before {
+  opacity: 1;
+  width: 4px;
+}
+:root[data-theme="dark"] .patient-row.selected::before {
+  box-shadow: 0 0 12px 0 var(--row-accent, var(--accent));
+}
+:root[data-theme="dark"] .row-urgent::before {
+  opacity: 0.7;
+}
+.patient-name {
+  font-weight: 620;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+.patient-row-sub {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
 }

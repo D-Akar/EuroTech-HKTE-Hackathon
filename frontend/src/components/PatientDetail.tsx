@@ -21,11 +21,12 @@ interface Props {
   featuredId: number | null;
   live: LiveVitals | null;
   liveLoading: boolean;
+  onPatientUpdate?: (patient: Patient) => void;
 }
 
 type DetailTab = "checkins" | "device" | "patient";
 
-export function PatientDetail({ patient, onClose, featuredId, live, liveLoading }: Props) {
+export function PatientDetail({ patient, onClose, featuredId, live, liveLoading, onPatientUpdate }: Props) {
   const isFeatured = featuredId != null && patient.id === featuredId;
 
   const [tab, setTab] = useState<DetailTab>("checkins");
@@ -102,7 +103,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading 
             </div>
             <div className="detail-tags">
               <StatusBadge status={patient.status} />
-              {isFeatured && <span className="you-tag">You · live device</span>}
+              {isFeatured && <span className="you-tag">Demo · live device</span>}
               {isFhirBacked && <span className="fhir-tag">Real record · FHIR</span>}
               <a
                 className="report-link"
@@ -153,7 +154,8 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading 
         {tab === "checkins" ? (
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
-            <CallPanel patient={patient} />
+            <CallPanel patient={patient} onPatientUpdate={onPatientUpdate} />
+            <CarePlanPanel patient={patient} />
           </>
         ) : tab === "patient" ? (
           <>

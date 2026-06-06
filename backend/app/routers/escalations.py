@@ -12,6 +12,7 @@ In-memory, like the rest of the wireframe — escalation history resets on resta
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from itertools import count
 
@@ -21,6 +22,8 @@ from .. import data, events
 from ..config import settings
 from ..models import EscalationRecord, EscalationRequest, Patient, PatientStatus
 from ..services import telephony
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["escalations"])
 
@@ -80,6 +83,15 @@ async def perform_escalation(
                 target,
                 _nurse_briefing(patient, reason),
                 kind="instant",
+            )
+        else:
+            # No number configured -> the dial is skipped silently otherwise, which
+            # looks identical to a successful escalation. Make it diagnosable.
+            logger.warning(
+                "escalation for patient=%s flipped to urgent but NO nurse was dialed: "
+                "no NURSE_PHONE_NUMBER set (and no nurse_number passed). Set "
+                "NURSE_PHONE_NUMBER in backend/.env to alert the on-call nurse.",
+                patient.id,
             )
 
     record = EscalationRecord(

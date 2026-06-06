@@ -107,6 +107,32 @@ class CallRecord(BaseModel):
     error: str | None = None
 
 
+# --- Real-time clinical escalation -------------------------------------------
+
+
+class EscalationRequest(BaseModel):
+    """Trigger body: urgent information surfaced (e.g. during a phone call)."""
+
+    reason: str  # what was learned that makes this urgent
+    source: str = "phone_call"  # where the urgent info came from
+    notify_nurse: bool = True  # place an outbound alert call to a nurse
+    nurse_number: str | None = None  # overrides the configured nurse line
+
+
+class EscalationRecord(BaseModel):
+    """The outcome of an escalation: status flip + the nurse alert call."""
+
+    id: int
+    patient_id: int
+    patient_name: str
+    reason: str
+    source: str
+    previous_status: PatientStatus
+    status: PatientStatus  # always ``urgent`` after escalation
+    triggered_at: datetime
+    nurse_call: CallRecord | None = None  # None when notify_nurse is False / no line
+
+
 # --- ElevenLabs server-tool integration --------------------------------------
 
 

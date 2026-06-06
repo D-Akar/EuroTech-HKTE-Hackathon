@@ -38,6 +38,9 @@ class Settings:
     # API key for ElevenLabs server-tool callbacks into this service.
     elevenlabs_tool_api_key: str = os.getenv("ELEVENLABS_TOOL_API_KEY", "")
 
+    # Nurse on call — dialled when a patient is escalated to urgent.
+    nurse_phone_number: str = os.getenv("NURSE_PHONE_NUMBER", "")
+
     @property
     def is_configured(self) -> bool:
         """True when the minimum needed to place a call is present."""

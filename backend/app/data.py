@@ -203,6 +203,14 @@ def get_patient_by_phone(phone_number: str) -> Patient | None:
     )
 
 
+def get_patient_by_subject(display: str) -> Patient | None:
+    """Match a FHIR CarePlan.subject.display against a patient name."""
+    if not display:
+        return None
+    target = display.strip().casefold()
+    return next((p for p in PATIENTS if p.name.strip().casefold() == target), None)
+
+
 def get_checkins(patient_id: int) -> list[CheckIn]:
     return [c for c in CHECKINS if c.patient_id == patient_id]
 

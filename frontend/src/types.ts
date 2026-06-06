@@ -153,3 +153,30 @@ export interface Meta {
   featured_patient_id: number;
   live_data: boolean;
 }
+
+export interface CarePlanGoal {
+  description: string;
+  target: string | null;
+}
+
+export interface CarePlanActivity {
+  description: string;
+  status: string | null;
+  scheduled: string | null;
+}
+
+export interface CarePlanContext {
+  title: string | null;
+  status: string | null;
+  intent: string | null;
+  description: string | null;
+  categories: string[];
+  subject_display: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  addresses: string[];
+  goals: CarePlanGoal[];
+  activities: CarePlanActivity[];
+  notes: string[];
+  rendered_text: string;
+}

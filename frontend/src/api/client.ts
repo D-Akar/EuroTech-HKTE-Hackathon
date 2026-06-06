@@ -2,6 +2,7 @@ import type {
   Alert,
   CallConfig,
   CallRecord,
+  CarePlanContext,
   CheckIn,
   LiveVitals,
   MedicalProfile,
@@ -31,6 +32,25 @@ async function sendJSON<T>(
     method,
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    let detail = `${resp.status} ${resp.statusText}`;
+    try {
+      const data = await resp.json();
+      if (data?.detail) detail = data.detail;
+    } catch {
+      /* keep status text */
+    }
+    throw new Error(detail);
+  }
+  return resp.json() as Promise<T>;
+}
+
+async function sendText<T>(path: string, text: string): Promise<T> {
+  const resp = await fetch(`${BASE_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: text,
   });
   if (!resp.ok) {
     let detail = `${resp.status} ${resp.statusText}`;
@@ -94,5 +114,17 @@ export const api = {
     sendJSON<ScheduledCall>(
       "DELETE",
       `/patients/${patientId}/calls/schedules/${scheduleId}`,
+    ),
+
+  // --- Care plans ---
+  uploadCarePlan: (patientId: number, document: string) =>
+    sendText<CarePlanContext>(`/patients/${patientId}/care-plan`, document),
+  getCarePlan: (patientId: number) =>
+    getJSON<CarePlanContext>(`/patients/${patientId}/care-plan`),
+  deleteCarePlan: (patientId: number) =>
+    fetch(`${BASE_URL}/patients/${patientId}/care-plan`, { method: "DELETE" }).then(
+      (r) => {
+        if (!r.ok && r.status !== 404) throw new Error(`${r.status} ${r.statusText}`);
+      },
     ),
 };

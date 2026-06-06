@@ -10,6 +10,7 @@ import type {
   WearableReading,
 } from "../types";
 import { CallPanel } from "./CallPanel";
+import { CarePlanPanel } from "./CarePlanPanel";
 import { CheckInPanel } from "./CheckInPanel";
 import { DevicePanel } from "./DevicePanel";
 import { StatusBadge } from "./StatusBadge";

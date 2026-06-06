@@ -7,7 +7,7 @@ The platform runs **two** ElevenLabs Conversational AI agents:
 | **Outbound** | We dial the patient on the daily schedule (`telephony.place_call`) | Pushed at dial time as dynamic variables (`{{patient_name}}`, `{{recent_summary}}`, `{{questions}}`) | `ELEVENLABS_AGENT_ID` |
 | **Inbound** | The patient calls *us* back to chat | Pulled at call start via the `get_patient_context` server tool | `ELEVENLABS_INBOUND_AGENT_ID` |
 
-This guide covers the **inbound** agent. The backend never dials it — ElevenLabs
+This guide covers the **inbound** agent. The backend never dials it - ElevenLabs
 answers the inbound number and runs the agent. The backend's only role inbound is
 serving the `get_patient_context` tool endpoint.
 
@@ -30,7 +30,7 @@ serving the `get_patient_context` tool endpoint.
 3. Set the `X-API-Key` request header to your `ELEVENLABS_TOOL_API_KEY` value.
 4. The `phone_number` query parameter is bound to the **system dynamic variable**
    `system__caller_id` (the caller's number, populated automatically on voice
-   calls). The LLM does not fill it — the caller's real number is always passed to
+   calls). The LLM does not fill it - the caller's real number is always passed to
    `data.get_patient_by_phone()`, which accepts E.164 with or without the `+`.
 
 ## 3. System-prompt snippet
@@ -55,7 +55,7 @@ ready-to-speak narrative the agent should rely on.
 ## 3b. First message
 
 Unlike the outbound agent, the inbound agent has **no patient context at connect
-time** — it must call `get_patient_context` first. So the **"First message"**
+time** - it must call `get_patient_context` first. So the **"First message"**
 field should be a generic, name-free holding greeting (or left blank so the agent
 speaks only after the tool returns). If you set one, keep it neutral:
 
@@ -63,7 +63,7 @@ speaks only after the tool returns). If you set one, keep it neutral:
 Hello, thank you for calling CareLoop. One moment while I pull up your details.
 ```
 
-Do **not** put `{{patient_name}}` in the inbound first message — the caller's name
+Do **not** put `{{patient_name}}` in the inbound first message - the caller's name
 isn't known until the tool resolves their phone number. The personalised,
 by-name greeting happens in the system prompt *after* the tool call, using
 `context_summary`.

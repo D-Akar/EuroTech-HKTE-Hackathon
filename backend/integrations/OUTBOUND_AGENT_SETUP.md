@@ -9,7 +9,7 @@ The platform runs **two** ElevenLabs Conversational AI agents:
 
 This guide covers the **outbound** agent. The backend dials it via
 `telephony.place_call`, which POSTs to the ElevenLabs outbound call API with the
-per-patient context injected as **dynamic variables** — see
+per-patient context injected as **dynamic variables** - see
 `build_dynamic_variables()` in `backend/app/services/telephony.py`. The agent's
 prompt (configured in the ElevenLabs dashboard) must reference those variables.
 
@@ -25,12 +25,12 @@ prompt (configured in the ElevenLabs dashboard) must reference those variables.
 
 ## 2. Dynamic variables
 
-The backend pushes these at dial time — no server tool is required for the
+The backend pushes these at dial time - no server tool is required for the
 outbound agent. Reference them directly in the prompt with `{{...}}`:
 
 | Variable | Contents |
 |----------|----------|
-| `{{patient_id}}` | Opaque patient identifier. **Not for the prompt** — it is the value the `escalate_emergency` tool sends back so the backend knows which patient to escalate. |
+| `{{patient_id}}` | Opaque patient identifier. **Not for the prompt** - it is the value the `escalate_emergency` tool sends back so the backend knows which patient to escalate. |
 | `{{patient_name}}` | Patient's name |
 | `{{patient_age}}` | Patient's age |
 | `{{recent_summary}}` | Last 3 phone check-ins + latest wearable reading |
@@ -58,29 +58,29 @@ Greet {{patient_name}} by name and briefly, warmly acknowledge their recent
 check-ins or wearable trends from the context above. Then START by asking the
 FIRST question in the list, and work through the remaining questions IN ORDER,
 one at a time, listening fully to each answer before moving on. These questions
-are tailored to this patient today — make sure every one of them gets asked
+are tailored to this patient today - make sure every one of them gets asked
 before you wrap up.
 
 Stay conversational, not robotic. You are NOT limited to reading the list:
-- If the patient brings up something relevant — a symptom, a worry, how they
-  slept, a medication issue — FIRST respond to what they raised: acknowledge it,
+- If the patient brings up something relevant - a symptom, a worry, how they
+  slept, a medication issue - FIRST respond to what they raised: acknowledge it,
   ask a natural follow-up, and let them finish. THEN return to the questions
   where you left off.
 - If their answer already covers a later question on the list, don't ask it
-  again robotically — acknowledge it and move to the next one still outstanding.
+  again robotically - acknowledge it and move to the next one still outstanding.
 - Keep a mental note of which questions you have and haven't covered, so a
   tangent never causes you to skip one.
 
 Once you have been through all the questions, do NOT end the call. Ask the
 patient warmly whether there is anything else they would like to talk about or
-any questions they have for you — about how they have been feeling, their
+any questions they have for you - about how they have been feeling, their
 medication, sleep, or anything else on their mind. Answer simply and
 reassuringly. Keep inviting follow-ups ("Is there anything else I can help
 with?") until the patient signals they are done, then thank them and close the
 call kindly.
 
 If a question would require clinical judgement or a diagnosis, do not give
-medical advice — reassure them and say their care practice will follow up.
+medical advice - reassure them and say their care practice will follow up.
 ```
 
 Two key behaviours this snippet enforces:
@@ -90,7 +90,7 @@ Two key behaviours this snippet enforces:
   is the highest-priority symptom follow-up), so the agent should open with it
   rather than improvising its own.
 - **Flexible, not hard-coded.** The agent must respond to whatever the patient
-  raises first, then come back to the remaining questions — it is not a rigid
+  raises first, then come back to the remaining questions - it is not a rigid
   script reader. The *"do NOT end the call"* line after the questions keeps the
   floor open for the patient, mirroring the inbound agent's "let them lead the
   conversation" guidance in [`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md).
@@ -114,7 +114,7 @@ Hi {{patient_name}}, this is your CareLoop companion checking in. Is now a good 
 
 Keep it short and end on an open question so the patient starts talking. The
 deeper context (`{{recent_summary}}`, the `{{questions}}`) is handled by the
-system prompt once the conversation is underway — don't cram it into the first
+system prompt once the conversation is underway - don't cram it into the first
 message.
 
 ## (Optional) Let the outbound agent answer data questions
@@ -122,9 +122,9 @@ message.
 The outbound agent only receives `{{recent_summary}}`, so it can only speak to
 what is in that summary. If you want it to answer richer questions during the
 open-floor phase (e.g. "what was my heart rate last Tuesday?"), attach the same
-`get_patient_context` server tool used by the inbound agent — see
+`get_patient_context` server tool used by the inbound agent - see
 [`elevenlabs-get_patient_context.tool.json`](./elevenlabs-get_patient_context.tool.json)
-and step 2 of [`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md) — and add:
+and step 2 of [`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md) - and add:
 
 ```
 If the patient asks about their health history or readings and the answer is not
@@ -137,7 +137,7 @@ answering.
 This lets the agent raise an urgent clinical escalation **mid-call** when the
 patient reports an emergency. Calling it flips the patient to **URGENT** on every
 dashboard in real time (over SSE) and places an immediate alert call to the
-on-call nurse — the same path as the dashboard's manual escalate button, behind
+on-call nurse - the same path as the dashboard's manual escalate button, behind
 `POST /integrations/elevenlabs/escalate`.
 
 ### Attach the tool
@@ -147,14 +147,14 @@ on-call nurse — the same path as the dashboard's manual escalate button, behin
 2. Set the tool `url` to your public host:
    `https://<your-public-host>/integrations/elevenlabs/escalate`
    (use a tunnel such as ngrok against port 8000 when developing locally).
-3. Set the `X-API-Key` request header to your `ELEVENLABS_TOOL_API_KEY` value —
+3. Set the `X-API-Key` request header to your `ELEVENLABS_TOOL_API_KEY` value -
    the **same** key as the `get_patient_context` tool.
 4. The request body has two fields:
-   - `patient_id` — bound to the **dynamic variable** `{{patient_id}}` (injected
+   - `patient_id` - bound to the **dynamic variable** `{{patient_id}}` (injected
      at dial time; the LLM must **not** fill or ask for it).
-   - `reason` — filled by the LLM with what the patient just reported.
+   - `reason` - filled by the LLM with what the patient just reported.
 
-### When the agent should call it — trigger conditions
+### When the agent should call it - trigger conditions
 
 Be explicit in the prompt, because the cost of a false negative (missing a real
 emergency) and a false positive (a nurse scrambled for nothing) are both high.
@@ -184,7 +184,7 @@ How to respond, IN THIS ORDER:
 
 CRITICAL: Saying "I am escalating this" or "a nurse has been alerted" WITHOUT
 actually calling the `escalate_emergency` tool is a critical failure. Your words
-alone do nothing — only the tool call alerts the nurse and flips the patient's
+alone do nothing - only the tool call alerts the nurse and flips the patient's
 status. Never tell the patient a nurse has been alerted unless you have actually
 called the tool in this turn. Speaking about escalating is NOT escalating.
 
@@ -195,11 +195,11 @@ genuine doubt about severity, escalate.
 ```
 
 Place this block **after** the check-in instructions but make clear it overrides
-them — escalation interrupts the normal flow. The `{{patient_id}}` plumbing is
+them - escalation interrupts the normal flow. The `{{patient_id}}` plumbing is
 invisible to the patient; the agent never speaks or requests it.
 
 > **If the agent describes escalating but no request reaches your backend**
-> (check `http://localhost:4040`), the prompt is not the problem — the tool is
+> (check `http://localhost:4040`), the prompt is not the problem - the tool is
 > almost certainly **not attached to this agent**. A model cannot call a tool it
 > doesn't have, so it narrates the action instead. Open the agent → **Tools** and
 > confirm `escalate_emergency` is in the list before blaming the wording.

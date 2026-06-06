@@ -279,7 +279,7 @@ def _clinical_context(
         flow.append(Paragraph(f"<b>Chronic conditions:</b> {items}", styles["body"]))
     if profile.active_medications:
         items = ", ".join(
-            f"{m.name}{f' — {m.frequency}' if m.frequency else ''}"
+            f"{m.name}{f' - {m.frequency}' if m.frequency else ''}"
             for m in profile.active_medications
         )
         flow.append(Paragraph(f"<b>Active medications:</b> {items}", styles["body"]))
@@ -374,7 +374,7 @@ def build_report_pdf(
     flow += _header(patient, styles)
     flow += _snapshot(summary, alerts, styles)
 
-    flow.append(Paragraph("Health trends — recent window", styles["section"]))
+    flow.append(Paragraph("Health trends - recent window", styles["section"]))
     flow.append(Paragraph(summary.status_narrative, styles["body"]))
     flow.append(Spacer(1, 6))
     if summary.trends:

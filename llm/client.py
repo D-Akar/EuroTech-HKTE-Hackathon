@@ -7,7 +7,7 @@ Usage:
     obj  = client.chat_json([...msgs...])  # parse a JSON object out of the reply
 
 The *instruction* prompt is pulled from a Markdown file (see config.PROMPT_FILE).
-Edit that .md to change behaviour — no code change needed.
+Edit that .md to change behaviour - no code change needed.
 """
 from __future__ import annotations
 
@@ -129,6 +129,6 @@ class VLLMClient:
             return False
 
 
-# Provider-neutral alias — the client speaks OpenAI Chat Completions to either
+# Provider-neutral alias - the client speaks OpenAI Chat Completions to either
 # the Gemini API (Gemma 4) or a local vLLM server, per config.LLM_PROVIDER.
 LLMClient = VLLMClient

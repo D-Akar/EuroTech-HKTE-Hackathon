@@ -14,7 +14,7 @@ is changed by editing text, not code.
 ```
 llm/
   config.py                       backend / model / prompt-path settings (env-overridable)
-  client.py                       LLMClient — load_prompt(), chat(), chat_json()
+  client.py                       LLMClient - load_prompt(), chat(), chat_json()
   fix_chronic_conditions.py       MAIN task: drop garbage + inject HK/Asia diseases
   clean_chronic_conditions.py     legacy: drop-only cleanup (keep/drop report)
   serve_vllm.sh                   launch a local vLLM server (tuned for 8 GB GPU)
@@ -26,7 +26,7 @@ llm/
 ../chronic_conditions_inject_prompt.md  HK/Asia catalogue prompt (editable)
 ```
 
-## Quickstart — Gemma 4 (default)
+## Quickstart - Gemma 4 (default)
 
 ```bash
 conda activate qwen-vllm                       # has the `openai` SDK installed
@@ -52,8 +52,8 @@ To use the bigger hosted Gemma 4: `GEMINI_MODEL=gemma-4-31b-it python -m llm.fix
    `--reclassify` to re-run it.
 2. **Inject replacements.** The model curates a catalogue of chronic diseases common
    in **Hong Kong / Asia** (cached in `hk_asia_chronic_catalog.json`; `--rebuild-catalog`
-   to refresh). Python then samples it randomly — weighted by prevalence — so each
-   affected patient ends up with 2–3 genuine chronic conditions. Genuine conditions
+   to refresh). Python then samples it randomly - weighted by prevalence - so each
+   affected patient ends up with 2-3 genuine chronic conditions. Genuine conditions
    already present are kept; the random draw is reproducible via `--seed`.
 
 Useful flags:
@@ -76,7 +76,7 @@ Undo with `python -m llm.fix_chronic_conditions --restore`.
 
 > The dashboard reads patient data from **MongoDB**, not these files directly. To
 > surface the cleaned conditions, re-import: `python -m scripts.import_fhir_to_mongo`
-> (from `backend/`). That overwrites Mongo — keep the backup JSON if you want the
+> (from `backend/`). That overwrites Mongo - keep the backup JSON if you want the
 > originals.
 
 ## Local vLLM backend (alternative)

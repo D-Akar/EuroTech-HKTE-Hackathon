@@ -4,7 +4,7 @@
 `POST /regenerate` re-runs the generation for that one patient using the same
 pipeline as the offline batch (recent check-ins + FHIR conditions + worsening-symptom
 guide), persists it, and returns the fresh set. Regeneration calls the LLM, so it is
-a normal sync handler — FastAPI runs it in a threadpool and the call may take a few
+a normal sync handler - FastAPI runs it in a threadpool and the call may take a few
 seconds.
 """
 
@@ -33,7 +33,7 @@ def regenerate_questions(patient_id: int) -> PatientQuestions:
     try:
         return question_gen.generate_for_patient(patient)
     except RuntimeError as e:
-        # LLM backend not usable (no key / openai missing) — a configuration issue.
+        # LLM backend not usable (no key / openai missing) - a configuration issue.
         raise HTTPException(status_code=503, detail=str(e))
-    except Exception as e:  # noqa: BLE001 — surface a clean error to the dashboard
+    except Exception as e:  # noqa: BLE001 - surface a clean error to the dashboard
         raise HTTPException(status_code=502, detail=f"Question generation failed: {e}")

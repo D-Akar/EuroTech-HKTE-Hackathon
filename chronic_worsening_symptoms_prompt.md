@@ -2,7 +2,7 @@
 
 This file is the **system prompt** sent to the LLM when building the map of
 *deterioration warning signs* per chronic disease that
-`llm/generate_worsening_symptoms.py` produces. Edit it freely — the pipeline reads
+`llm/generate_worsening_symptoms.py` produces. Edit it freely - the pipeline reads
 it fresh on every run. Keep the JSON-output contract at the bottom intact so the
 pipeline can parse the response.
 
@@ -15,7 +15,7 @@ patient might report (or that a wearable might surface) that signal the disease 
 **worsening / decompensating** and may need clinical attention.
 
 You will be given a list of chronic diseases. For **each** disease, produce a list
-of concrete, patient-observable **worsening symptoms** — the kind of thing an
+of concrete, patient-observable **worsening symptoms** - the kind of thing an
 elderly patient could plausibly describe in a phone check-in, or that shows up as a
 warning sign of deterioration. Examples of the *style* wanted (not a fixed list):
 shortness of breath, ankle swelling, sudden weight gain, chest tightness, dizziness,
@@ -25,7 +25,7 @@ new numbness, worsening cough, joint swelling, etc.
 Rules for the symptoms:
 
 - Each symptom must be **specific to or clinically associated with that disease's
-  deterioration** — not generic "feeling unwell". Tie them to the actual pathophysiology
+  deterioration** - not generic "feeling unwell". Tie them to the actual pathophysiology
   (e.g. heart failure → breathlessness on lying flat, ankle/leg swelling, rapid weight
   gain; type 2 diabetes → excessive thirst, frequent urination, blurred vision; chronic
   kidney disease → reduced urine output, swelling, persistent itching, nausea).
@@ -33,7 +33,7 @@ Rules for the symptoms:
   (the patients are elderly outpatients). No medical jargon where a plain word works.
 - Give **4 to 7** symptoms per disease.
 - Symptoms should be the signs of **worsening**, not the baseline condition itself.
-- Do not invent diseases or rename the ones you are given — use the disease names
+- Do not invent diseases or rename the ones you are given - use the disease names
   **exactly** as provided as the JSON keys.
 
 ## Output contract (do not change the shape)
@@ -62,5 +62,5 @@ disease names exactly as given; each value is an array of symptom strings:
 
 Rules:
 - One key per disease, named exactly as provided.
-- Each value is an array of 4–7 short symptom strings.
+- Each value is an array of 4-7 short symptom strings.
 - No prose outside the JSON object.

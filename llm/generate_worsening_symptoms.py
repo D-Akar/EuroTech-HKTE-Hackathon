@@ -2,7 +2,7 @@
 
 For each chronic disease in the model-curated HK/Asia catalogue
 (`llm/hk_asia_chronic_catalog.json`), ask the model (Gemma 4 via the Gemini API by
-default — see `config.py`) for the patient-observable symptoms that signal the
+default - see `config.py`) for the patient-observable symptoms that signal the
 disease is **worsening / decompensating**. The result is a simple JSON object:
 
     { "<disease name>": ["<symptom>", "<symptom>", ...], ... }
@@ -12,7 +12,7 @@ chronic conditions, the platform knows which warning signs to listen for.
 
 Run from the repo root (with `GEMINI_API_KEY` set for the Gemma backend):
 
-    # dry run — print the dataset, do not write
+    # dry run - print the dataset, do not write
     python -m llm.generate_worsening_symptoms
 
     # write it to disk
@@ -124,7 +124,7 @@ def generate(names: list[str], *, offline: bool, batch_size: int = 6) -> dict[st
         )
         try:
             obj = client.chat_json(user)
-        except Exception as e:  # noqa: BLE001 — one bad batch shouldn't sink the run
+        except Exception as e:  # noqa: BLE001 - one bad batch shouldn't sink the run
             print(f"    ! batch failed ({e}); leaving these blank")
             for n in batch:
                 result[n] = []
@@ -174,7 +174,7 @@ def main() -> None:
         )
         print(f"\nWrote {args.out}")
     else:
-        print("\nDry run — nothing written. Re-run with --apply to save.")
+        print("\nDry run - nothing written. Re-run with --apply to save.")
 
 
 if __name__ == "__main__":

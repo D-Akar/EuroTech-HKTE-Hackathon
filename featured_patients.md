@@ -1,4 +1,4 @@
-# Featured patients — real FHIR data
+# Featured patients - real FHIR data
 
 List the MongoDB patient `_id`s (the patient UUIDs) you want shown as **real data**
 on the dashboard, one per `-` bullet below. Each id is bound, top to bottom, to a
@@ -8,11 +8,11 @@ medical profile pulled from MongoDB; every other patient stays mock.
 
 Notes:
 - The database must be running and populated (`docker compose up`) for this to take
-  effect, and the backend reads this file at startup — restart it after editing.
+  effect, and the backend reads this file at startup - restart it after editing.
 - Ids not found in Mongo are skipped (that slot stays mock). Lines starting with `#`
   and anything that isn't a UUID are ignored.
 - There are 30 dashboard slots; one is the live Garmin patient (skipped here), so the
-  29 remaining slots are all bound from the list below — no patient stays mock.
+  29 remaining slots are all bound from the list below - no patient stays mock.
 - Find ids with:
   `docker exec careloop-mongo mongosh careloop --quiet --eval 'db.fhir_patients.find({}, {_id:1}).limit(10).forEach(d => print(d._id))'`
 

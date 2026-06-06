@@ -147,7 +147,7 @@ def _headline(trends: list[Trend], alerts: list[dict] | None) -> str:
     """The single "what matters right now" line that opens the report."""
     critical = [a for a in (alerts or []) if a.get("severity") == "critical"]
     if critical:
-        return f"{critical[0].get('message', 'Critical alert')} — needs attention."
+        return f"{critical[0].get('message', 'Critical alert')} - needs attention."
 
     worsening = [t.label.lower() for t in trends if t.direction == "worsening"]
     improving = [t.label.lower() for t in trends if t.direction == "improving"]
@@ -184,7 +184,7 @@ def _snapshot_vitals(
 def _careplan_progress(trends: list[Trend], alerts: list[dict] | None) -> str:
     """A transparent heuristic read of whether monitoring supports the care-plan goals.
 
-    Not a clinical determination — it weighs how the monitored metrics are moving and
+    Not a clinical determination - it weighs how the monitored metrics are moving and
     whether any vital crossed a critical threshold.
     """
     critical = [a for a in (alerts or []) if a.get("severity") == "critical"]

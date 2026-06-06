@@ -1,8 +1,8 @@
-# HONESTY.md — what's real vs. what's mocked
+# HONESTY.md - what's real vs. what's mocked
 
 This document is for the hackathon jury and our partners, to be read alongside our pitch
 materials. We believe a prototype is more credible when it's honest about its own
-boundaries — so rather than blur the line, we draw it clearly here.
+boundaries - so rather than blur the line, we draw it clearly here.
 
 The short version: **the product engine is real and working end to end.** Real outbound AI
 voice calls, a voice agent that receives each patient's full clinical context, live
@@ -10,7 +10,7 @@ mid-call escalation that recolors the clinician dashboard in real time, real wea
 real FHIR ingestion into long-term storage, LLM-generated questions, and PDF clinical
 reports all run today. What is *synthetic* is some of the patient **data content** (we can't
 demo on real patients), and what is *not yet built* is the **external regulatory
-integration** (eHRSS, PDPO controls) — which, importantly, no third party can build yet
+integration** (eHRSS, PDPO controls) - which, importantly, no third party can build yet
 because it's gated behind a HK government accreditation scheme (see
 `docs/hk-ehealth-market.md`).
 
@@ -18,10 +18,10 @@ Nothing in our pitch should outrun what's recorded here. If a claim elsewhere is
 by a ✅ below, treat it as roadmap.
 
 Legend:
-- ✅ **Real** — works end to end against real services/infrastructure.
-- 🟡 **Partial** — real and working, with a stated limit (e.g. in-memory persistence).
-- 🧪 **Synthetic data** — the mechanism is real; the patient *data* is generated/seeded.
-- ⛔ **Roadmap** — described in our vision docs, not yet in code.
+- ✅ **Real** - works end to end against real services/infrastructure.
+- 🟡 **Partial** - real and working, with a stated limit (e.g. in-memory persistence).
+- 🧪 **Synthetic data** - the mechanism is real; the patient *data* is generated/seeded.
+- ⛔ **Roadmap** - described in our vision docs, not yet in code.
 
 Last reviewed: 2026-06-07.
 
@@ -32,7 +32,7 @@ Last reviewed: 2026-06-07.
 | Capability | Status | Reality |
 | --- | --- | --- |
 | **Outbound AI voice check-in calls** | ✅ Real | Real calls placed via the ElevenLabs + Twilio integration on the EU data-residency endpoint. |
-| **Clinical context handed to the voice agent** | ✅ Real | A secured (API-key) server-tool callback assembles each patient's full context — demographics, active alerts, check-in history, wearable readings, configured questions, and their **FHIR-ingested CarePlan + profile from long-term (MongoDB) storage** — and serves it to the agent at call time. |
+| **Clinical context handed to the voice agent** | ✅ Real | A secured (API-key) server-tool callback assembles each patient's full context - demographics, active alerts, check-in history, wearable readings, configured questions, and their **FHIR-ingested CarePlan + profile from long-term (MongoDB) storage** - and serves it to the agent at call time. |
 | **Live mid-call escalation** | ✅ Real | The agent can flag a patient mid-conversation; the backend flips them to *urgent*, **recolors every open clinician dashboard in real time over Server-Sent Events**, and places a nurse-alert call. |
 | **Call transcript + extracted check-in data** | ✅ Real | After a call, the transcript and structured check-in data are pulled back on demand from ElevenLabs and shown in the dashboard. |
 | **Call scheduling (one-off + recurring)** | 🟡 Real, in-memory | A real APScheduler engine places scheduled and daily check-in calls; the schedule/history store is in-memory and resets on backend restart. |
@@ -53,7 +53,7 @@ Last reviewed: 2026-06-07.
 ## 🧪 Where the data is synthetic (mechanisms are real)
 
 - **The 555 FHIR patient records are Synthea-generated** (a standard open-source
-  synthetic-patient generator), not real patients — we can't and shouldn't demo on real
+  synthetic-patient generator), not real patients - we can't and shouldn't demo on real
   clinical data. The ingestion, storage, overlay, and call-context pipelines that process
   them are all real.
 - **Most dashboard patients are seeded demo profiles.** One patient runs on real Garmin
@@ -62,7 +62,7 @@ Last reviewed: 2026-06-07.
 - **A committed synthetic Garmin fallback** lets a fresh setup show wearable data even
   without the live Garmin login present; the live export is real, the fallback is labelled
   synthetic.
-- **Wearable readings aren't yet emitted as FHIR `Observation` resources** — they flow
+- **Wearable readings aren't yet emitted as FHIR `Observation` resources** - they flow
   through our own data shape today. Mapping them to LOINC-coded FHIR Observations is a
   near-term roadmap step.
 
@@ -73,7 +73,7 @@ Last reviewed: 2026-06-07.
 These appear in `PROJECT.md` / `PRODUCT.md` as the product vision. We flag them so they're
 never mistaken for working features:
 
-- **Live eHRSS / eHealth integration via HL7 FHIR R4.** No eHRSS integration code today —
+- **Live eHRSS / eHealth integration via HL7 FHIR R4.** No eHRSS integration code today -
   and, crucially, **no third party can connect to eHRSS at present**: the pathway is gated
   behind a HK government accreditation scheme. Our honest position is *FHIR-native and
   accreditation-ready*, not *integrated*. Full background and engagement plan:
@@ -100,8 +100,8 @@ In the spirit of fair competition, our disclosure on reused code and external co
 
 - **Developer familiarity with infrastructure (Derin Akar).** Our integrations with
   **Twilio** and **ElevenLabs** draw on Derin Akar's prior experience setting up that same
-  infrastructure. That experience informed *how* we wired things up — it sped up
-  configuration and helped us avoid dead ends — but **all of the actual code and
+  infrastructure. That experience informed *how* we wired things up - it sped up
+  configuration and helped us avoid dead ends - but **all of the actual code and
   connections in this repository were written from zero for this hackathon. No code or
   content from any prior project was directly copied in.**
 - **Third-party services and open data.** We use standard third-party platforms (ElevenLabs,

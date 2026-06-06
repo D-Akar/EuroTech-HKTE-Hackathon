@@ -1,47 +1,59 @@
 # Elderly Care Platform
 
+> Built for the [EuroTech x Hong Kong Talent Engage Hackathon](https://www.hkengage.gov.hk/en/events/eurotech-x-hkte-hackathon), HealthTech track.
+
 A two-way platform connecting outpatient elderly-care practices with their patients.
 Patients receive **daily phone-call check-ins** about their health; combined with
 **wearable health data**, this is surfaced to practices as a **health timeline** per
 patient.
 
-> This repo is currently an early scaffold: a React dashboard and a FastAPI backend
-> serving mostly mock data, plus a MongoDB store (Docker) holding processed FHIR patient
-> records. See `docs/superpowers/specs/` for the design.
+> A React dashboard and a FastAPI backend, plus a MongoDB store (Docker) holding
+> processed FHIR patient records. Real wearable + telephony integrations sit alongside
+> synthetic seed data for the roster.
 >
-> **What's real vs. mocked:** see [`HONESTY.md`](HONESTY.md) — a candid, living map of
+> **What's real vs. mocked:** see [`HONESTY.md`](HONESTY.md) - a candid, living map of
 > which capabilities work end to end, which are synthetic/seed data, and which are
 > vision-doc claims not yet built. Check it before making any external claim.
+
+## Screenshots
+
+| Live care map | Check-in data |
+| --- | --- |
+| ![Live care twin map](docs/screenshots/overview.png) | ![Phone check-in history](docs/screenshots/checkin-data.png) |
+
+| Device data | Patient record (FHIR) |
+| --- | --- |
+| ![Live wearable vitals](docs/screenshots/device-data.png) | ![FHIR medical profile](docs/screenshots/patient-data.png) |
 
 ## Hong Kong eHealth context
 
 The target market is the Hong Kong government (healthcare track). The strategic opening:
 HK's **eHRSS / eHealth+** system is strong on public-hospital data but **>99% of its
-records come from public providers** — the private/outpatient edge and
+records come from public providers** - the private/outpatient edge and
 patient-generated/wearable data barely feed in, a gap the government has publicly named and
 is **funding** (eHealth+ Connectivity Support & Accreditation Schemes). HL7 **FHIR is
 eHealth's stated direction** ("Advancing from HL7 to FHIR", 2021) but **not yet mandated**,
-and eHRSS connection is **gated behind government accreditation** — so no third party can
+and eHRSS connection is **gated behind government accreditation** - so no third party can
 integrate today.
 
 Our honest position is therefore **"the on-ramp before the highway opens"**: build FHIR
-R4–native and accreditation-ready now, integrate when the spec opens. Full market brief,
+R4-native and accreditation-ready now, integrate when the spec opens. Full market brief,
 funding vehicles, policy hooks, and the build roadmap: **[`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md)**.
 
 ## Structure
 
 ```
-backend/    FastAPI wireframe — patients, check-ins, wearable readings (in-memory mock data)
+backend/    FastAPI wireframe - patients, check-ins, wearable readings (in-memory mock data)
             backend/scripts/   FHIR preprocessing + MongoDB import scripts
 frontend/   React + Vite + TypeScript dashboard
 docker/     Dockerfiles for the MongoDB store and the one-shot FHIR importer
-data/       data/fhir_processed/ — 555 processed FHIR patient records (JSON)
-docs/       Design specs
+data/       data/fhir_processed/ - 555 processed FHIR patient records (JSON)
+docs/       Market brief + dashboard screenshots
 ```
 
 ## Running it
 
-The app has **two halves that run at the same time**, so you need **two terminals** —
+The app has **two halves that run at the same time**, so you need **two terminals** -
 one for the backend, one for the frontend.
 
 > **Windows / PowerShell note:** PowerShell 5.1 does not support `&&` to chain commands.
@@ -85,23 +97,23 @@ npm run dev
 If `node_modules` does not exist yet (fresh clone), run `npm install` once first.
 
 Open http://localhost:5173. The dashboard expects the backend on port 8000 (override
-with `VITE_API_URL` — see `frontend/.env.example`).
+with `VITE_API_URL` - see `frontend/.env.example`).
 
 ### Common gotchas
 
-- **`The token '&&' is not a valid statement separator`** — you're on PowerShell 5.1;
+- **`The token '&&' is not a valid statement separator`** - you're on PowerShell 5.1;
   run the commands on separate lines instead of joining with `&&`.
-- **`Unable to copy ...venvlauncher.exe to ...python.exe`** — the `.venv` already exists
+- **`Unable to copy ...venvlauncher.exe to ...python.exe`** - the `.venv` already exists
   and was locked (a running server, editor, or antivirus). Don't recreate it; just
   activate it. To rebuild from scratch, close everything using it, then
   `Remove-Item -Recurse -Force .venv` and recreate.
-- **Bare `python` opens the Microsoft Store** — the `python` command can resolve to a
+- **Bare `python` opens the Microsoft Store** - the `python` command can resolve to a
   Store stub. Prefer the `py` launcher (`py -3.14 ...`) for venv creation.
 
 ## Patient data store (MongoDB)
 
 Processed **FHIR patient records** live in MongoDB, run via Docker Compose. A single
-`docker compose up` starts the database **and** loads the records — no manual import step.
+`docker compose up` starts the database **and** loads the records - no manual import step.
 
 > **Fresh clone / new machine:** the uncompressed records are gitignored; the repo ships
 > them as `data/fhir_processed.tar.gz`. Extract it in place **before** the first
@@ -111,7 +123,7 @@ Processed **FHIR patient records** live in MongoDB, run via Docker Compose. A si
 > tar -xzf data/fhir_processed.tar.gz -C data    # -> data/fhir_processed/*.json (555 records)
 > ```
 >
-> (No `mkdir` needed — `data/` already exists from the clone.) To repack after changing
+> (No `mkdir` needed - `data/` already exists from the clone.) To repack after changing
 > records: `tar -czf data/fhir_processed.tar.gz -C data fhir_processed`.
 
 ```bash
@@ -122,10 +134,10 @@ docker compose down -v          # stop AND wipe the database
 
 Two services in `docker-compose.yml`:
 
-- **`mongo`** — `mongo:7` (built from `docker/mongo/Dockerfile`), published on
+- **`mongo`** - `mongo:7` (built from `docker/mongo/Dockerfile`), published on
   `localhost:27017`, with a healthcheck. Data persists in the named volume
   `careloop-mongo-data`, so records survive restarts.
-- **`importer`** — a one-shot job (`docker/importer/Dockerfile`) that waits for Mongo's
+- **`importer`** - a one-shot job (`docker/importer/Dockerfile`) that waits for Mongo's
   healthcheck, then runs `backend/scripts/import_fhir_to_mongo.py` and exits. It upserts
   by `_id`, so it's idempotent and re-runs harmlessly on every `up`.
 
@@ -173,7 +185,7 @@ records to **real data** by listing their MongoDB `_id`s in **`featured_patients
 ```
 
 On startup the backend (`app/fhir_source.py`) reads that file, queries Mongo for those
-ids, and binds each — top to bottom — to a dashboard patient slot: the first id becomes
+ids, and binds each - top to bottom - to a dashboard patient slot: the first id becomes
 patient 1, the second patient 2, and so on (skipping the live Garmin patient). Those
 slots show the **real name, age, and a medical profile** (chronic conditions, active
 medications, allergies) pulled from FHIR; every other patient stays mock. The detail
@@ -181,7 +193,7 @@ panel marks them with a "Real record · FHIR" tag and a Medical profile section,
 `GET /patients/{id}/profile`.
 
 This is **best-effort**: if Mongo is down, the file is empty, or an id isn't found, that
-slot just stays mock — the dashboard never breaks. The file is read **at startup**, so
+slot just stays mock - the dashboard never breaks. The file is read **at startup**, so
 restart the backend after editing it. Override its location with `FEATURED_PATIENTS_FILE`.
 
 ## API endpoints
@@ -196,11 +208,18 @@ restart the backend after editing it. Override its location with `FEATURED_PATIE
 | GET    | `/patients/{id}/wearables`        | Wearable readings (daily)       |
 | GET    | `/patients/{id}/vitals`           | Rich Garmin vitals (stress, SpO2, etc.) |
 | POST   | `/patients/{id}/calls/trigger`    | Place an instant check-in call  |
+| POST   | `/patients/{id}/calls/screening`  | Place a cognitive-screening call (3-word recall + orientation) |
+| POST   | `/patients/{id}/calls/emergency`  | Wearable-triggered emergency call (patient → nurse fallback) |
 | GET    | `/patients/{id}/calls`            | Call history                    |
+| GET    | `/patients/{id}/calls/{cid}/conversation` | Transcript + extracted check-in data for a call |
+| GET    | `/patients/{id}/calls/{cid}/audio` | Download the call recording (mp3) |
 | GET/PUT| `/patients/{id}/calls/config`     | Read/update the questions asked  |
+| GET/POST| `/patients/{id}/questions`       | Get / regenerate tailored questions (Gemma) |
 | POST   | `/patients/{id}/calls/schedules`  | Schedule a call (one-off/daily) |
 | GET    | `/patients/{id}/calls/schedules`  | List upcoming schedules         |
 | DELETE | `/patients/{id}/calls/schedules/{sid}` | Cancel a schedule          |
+| GET    | `/patients/{id}/summary`          | Vitals summary statistics       |
+| GET    | `/patients/{id}/live`             | Current live vitals + escalation status |
 
 ## Real Garmin wearable data (patient 5)
 
@@ -236,7 +255,7 @@ Blood pressure is not included: Garmin watches have no blood-pressure sensor.
 
 ## Outbound check-in calls (ElevenLabs + Twilio)
 
-Practices can trigger an **AI voice check-in call** to a patient — instantly ("Call now"),
+Practices can trigger an **AI voice check-in call** to a patient - instantly ("Call now"),
 once at a chosen time, or repeating daily. Each call carries the patient's recent context
 (last few check-ins + latest wearable reading) and the practice's configured questions.
 Calls are placed via the ElevenLabs Twilio integration on the **EU data-residency**
@@ -267,6 +286,6 @@ pytest
 
 Practices entity, authentication, a real database, write endpoints, and real
 telephony / wearable-device integrations. The FHIR/eHRSS integration, PDPO/encryption,
-and Cantonese-AI claims from `PROJECT.md` are **roadmap, not current capability** — see
+and Cantonese-AI claims from `PROJECT.md` are **roadmap, not current capability** - see
 [`HONESTY.md`](HONESTY.md) for the full real-vs-mocked breakdown and
 [`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md) for the eHRSS engagement plan.

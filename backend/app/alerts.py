@@ -80,8 +80,8 @@ def worst_severity(alert_list: list[dict]) -> Optional[str]:
 # blood-oxygen drop on a resting elderly patient is the signal that turns the map
 # marker red and prompts a check-in call. Tuned low so light exertion during a
 # live demo (real BLE watch data) reliably crosses the urgent line.
-HR_LIVE_URGENT = 100     # bpm
-HR_LIVE_ELEVATED = 85    # bpm
+HR_LIVE_URGENT = 85      # bpm - crosses into urgent (red) at/above this
+HR_LIVE_ELEVATED = 75    # bpm - needs-attention band is 75-84; stable below 75
 SPO2_WATCH = 94          # %
 
 _STATUS_BY_SEVERITY = {"critical": "urgent", "warning": "attention", "info": "stable"}

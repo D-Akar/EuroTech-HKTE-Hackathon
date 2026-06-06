@@ -80,7 +80,7 @@ def extract_lotuscare_context(fhir_bundle_path):
                 med_name = resource.get("medicationCodeableConcept", {}).get("text") or resource.get("medicationCodeableConcept", {}).get("coding", [{}])[0].get("display")
 
                 if status == "stopped":
-                    # Discontinued medication — kept for long-term/history context.
+                    # Discontinued medication - kept for long-term/history context.
                     authored = resource.get("authoredOn")
                     compact_data["past_medications"].append({
                         "name": med_name,

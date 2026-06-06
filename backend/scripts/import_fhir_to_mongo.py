@@ -2,7 +2,7 @@
 
 Each JSON file in the source directory is a single patient record whose top-level
 ``_id`` is the patient UUID (matching the filename). Records are upserted by ``_id``
-so re-running the importer is idempotent — no duplicates, latest file wins.
+so re-running the importer is idempotent - no duplicates, latest file wins.
 
 The collection's primary key is ``_id``, which MongoDB always indexes, so lookups by
 patient UUID are O(log n) without any extra index.

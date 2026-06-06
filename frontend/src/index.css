@@ -2825,7 +2825,7 @@ textarea.input::placeholder {
   letter-spacing: 0.01em;
 }
 
-/* Questions to ask — LLM-generated, tailored check-in questions */
+/* Questions to ask - LLM-generated, tailored check-in questions */
 .qpanel {
   margin-top: 24px;
 }

@@ -7,34 +7,34 @@ Guidance for working in this repo. See `README.md` for the product overview and
 
 A two-way platform connecting outpatient elderly-care practices with their patients:
 daily phone-call check-ins + wearable health data, surfaced to practices as a per-patient
-health timeline. **Currently an early scaffold** — React dashboard + FastAPI backend
+health timeline. **Currently an early scaffold** - React dashboard + FastAPI backend
 serving mostly in-memory mock data, plus a MongoDB store (run via Docker Compose) holding
 processed FHIR patient records. No auth or write endpoints yet.
 
 ## Layout
 
 ```
-backend/    FastAPI app — app/main.py (routes), app/models.py, app/data.py (mock data)
+backend/    FastAPI app - app/main.py (routes), app/models.py, app/data.py (mock data)
             scripts/  preprocess_fhir.py + import_fhir_to_mongo.py
 frontend/   React + Vite + TypeScript dashboard
 docker/     Dockerfiles: docker/mongo (mongo:7), docker/importer (FHIR import job)
-data/       data/fhir_processed/ — 555 FHIR patient records (JSON), imported into Mongo
+data/       data/fhir_processed/ - 555 FHIR patient records (JSON), imported into Mongo
 docs/       Design specs
 ```
 
 ## Environment
 
 - **OS:** Windows 11, **shell:** Windows PowerShell 5.1.
-  - No `&&` chaining — run commands on separate lines or use `;`.
+  - No `&&` chaining - run commands on separate lines or use `;`.
   - No `python -m venv ... && activate` one-liners.
 - **Python:** 3.14 via the `py` launcher (`py -3.14`). Bare `python` may resolve to the
-  Microsoft Store stub — avoid it for venv creation.
+  Microsoft Store stub - avoid it for venv creation.
 - **Node:** v24, npm 11.
 
 ## Running the app
 
 Two halves, two terminals, both must run at once. The `.venv` and `node_modules` are
-**already installed** — don't recreate them.
+**already installed** - don't recreate them.
 
 **Backend (port 8000):**
 ```powershell
@@ -54,10 +54,10 @@ Dashboard: http://localhost:5173 · API docs: http://localhost:8000/docs
 ## MongoDB (patient records)
 
 Run from the repo root via Docker Compose. `docker compose up` starts MongoDB **and**
-auto-loads the FHIR records via the one-shot `importer` service — no manual import step.
+auto-loads the FHIR records via the one-shot `importer` service - no manual import step.
 
 **Auto-started by the backend:** on `uvicorn` startup `app/infra.py` runs `docker compose
-up -d`, waits for Mongo to accept connections, then applies the FHIR overlays — so the
+up -d`, waits for Mongo to accept connections, then applies the FHIR overlays - so the
 featured patients show real data without a manual `docker compose up` or a backend
 restart. Best-effort: no Docker / Mongo down → the app still boots on mock data. Disable
 with `CARELOOP_AUTOSTART_MONGO=0` (tunables: `CARELOOP_MONGO_AUTOSTART_TIMEOUT`,
@@ -98,7 +98,7 @@ pytest
 
 - **`'&&' is not a valid statement separator`** → PowerShell 5.1; split the line.
 - **`Unable to copy ...venvlauncher.exe`** → the `.venv` already exists and is locked.
-  Don't recreate it — just activate. To rebuild: stop everything using it, then
+  Don't recreate it - just activate. To rebuild: stop everything using it, then
   `Remove-Item -Recurse -Force .venv` and `py -3.14 -m venv .venv`.
 - **`Activate.ps1 cannot be loaded`** → `Set-ExecutionPolicy -Scope Process -Bypass` once
   per terminal, or call the venv directly: `.venv\Scripts\python.exe -m uvicorn app.main:app --reload`.

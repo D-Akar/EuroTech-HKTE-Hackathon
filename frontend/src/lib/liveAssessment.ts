@@ -3,8 +3,8 @@ import type { Alert, AlertSeverity, LiveVitals, PatientStatus } from "../types";
 // Mirrors backend app/alerts.py so simulated demo readings escalate exactly the way
 // real live readings do. Keep these thresholds in sync with the backend.
 export const LIVE_THRESHOLDS = {
-  hrUrgent: 100,
-  hrElevated: 85,
+  hrUrgent: 85,
+  hrElevated: 75,
   hrLow: 50,
   spo2Low: 90,
   spo2Watch: 94,

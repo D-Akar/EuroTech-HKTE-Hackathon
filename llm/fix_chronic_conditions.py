@@ -11,7 +11,7 @@ does the full fix in one pass:
    common in **Hong Kong / Asia** is sampled randomly so each affected patient ends
    up with INJECT_MIN..INJECT_MAX (default 2-3) genuine chronic conditions.
 
-The LLM (Gemma 4 via the Gemini API by default — see `config.py`) does the two
+The LLM (Gemma 4 via the Gemini API by default - see `config.py`) does the two
 judgement calls: classifying the noisy labels and curating the HK/Asia catalogue.
 The random assignment itself is done in Python and is reproducible with `--seed`.
 
@@ -22,7 +22,7 @@ unless one already exists; `--restore` writes that backup back into the files.
 
 Run from the repo root (with `GEMINI_API_KEY` set for the Gemma backend):
 
-    # 1. dry run — preview drops + injected diseases, write the catalogue + report
+    # 1. dry run - preview drops + injected diseases, write the catalogue + report
     python -m llm.fix_chronic_conditions
 
     # 2. apply in place (snapshots originals to the backup first)
@@ -130,7 +130,7 @@ def build_catalog(*, catalog_path: Path, offline: bool, rebuild: bool) -> list[d
         if c.get("name")
     ]
     if not conditions:
-        print("  model returned no usable conditions — using the fallback catalogue.")
+        print("  model returned no usable conditions - using the fallback catalogue.")
         conditions = FALLBACK_CATALOG
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
     catalog_path.write_text(
@@ -204,7 +204,7 @@ def fix_patient(
 
 
 # --------------------------------------------------------------------------
-# Backup / restore (data/fhir_processed is gitignored — provide our own undo)
+# Backup / restore (data/fhir_processed is gitignored - provide our own undo)
 # --------------------------------------------------------------------------
 def snapshot_originals(files: list[Path], backup_path: Path) -> None:
     """Save each patient's current chronic_conditions, keyed by _id, once."""
@@ -221,7 +221,7 @@ def snapshot_originals(files: list[Path], backup_path: Path) -> None:
 
 def restore_originals(files: list[Path], backup_path: Path) -> None:
     if not backup_path.exists():
-        sys.exit(f"No backup at {backup_path} — nothing to restore.")
+        sys.exit(f"No backup at {backup_path} - nothing to restore.")
     snapshot = json.loads(backup_path.read_text(encoding="utf-8"))
     restored = 0
     for f in files:
@@ -310,7 +310,7 @@ def main() -> None:
     verb = "Updated" if args.apply else "Would update"
     print(f"\n{verb} {files_changed} patient files.")
     if not args.apply:
-        print("Dry run — no files changed. Re-run with --apply to write.")
+        print("Dry run - no files changed. Re-run with --apply to write.")
     else:
         print(f"Undo with: python -m llm.fix_chronic_conditions --restore  (backup: {args.backup})")
 

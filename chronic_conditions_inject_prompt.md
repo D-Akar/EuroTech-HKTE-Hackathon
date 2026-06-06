@@ -2,7 +2,7 @@
 
 This file is the **system prompt** sent to the LLM when building the catalogue of
 chronic diseases that `llm/fix_chronic_conditions.py` randomly assigns to patients.
-Edit it freely — the pipeline reads it fresh on every catalogue build. Keep the
+Edit it freely - the pipeline reads it fresh on every catalogue build. Keep the
 JSON-output contract at the bottom intact so the pipeline can parse the response.
 
 ---
@@ -40,7 +40,7 @@ common). The pipeline uses these as random-sampling weights, so the common disea
 (hypertension, type 2 diabetes, hyperlipidaemia, osteoarthritis) should carry the
 largest weights.
 
-Return **20–35** distinct conditions.
+Return **20-35** distinct conditions.
 
 ## Output contract (do not change the shape)
 

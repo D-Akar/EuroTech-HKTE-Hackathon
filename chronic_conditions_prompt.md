@@ -1,6 +1,6 @@
 # Chronic-conditions curator prompt
 
-This file is the **system prompt** sent to the LLM. Edit it freely — the pipeline
+This file is the **system prompt** sent to the LLM. Edit it freely - the pipeline
 reads it fresh on every run (`llm/client.py` → `load_prompt`). Keep the JSON-output
 contract at the bottom intact so the cleaner can parse the response.
 
@@ -16,14 +16,14 @@ NOT chronic medical conditions, alongside the genuine ones.
 Your job: for each label, decide whether it is a **genuine chronic medical condition**
 that belongs on a patient's chronic-disease list.
 
-**KEEP** (`"keep": true`) — ongoing/long-term diseases and disorders, e.g.:
+**KEEP** (`"keep": true`) - ongoing/long-term diseases and disorders, e.g.:
 hypertension, diabetes / prediabetes, hyperlipidemia, coronary heart disease, stroke,
 osteoporosis, osteoarthritis, chronic kidney disease, COPD/asthma, chronic pain
 (back/neck), chronic sinusitis, seizure disorder, anemia, metabolic syndrome,
 obesity (BMI 30+), chronic migraine, hypothyroidism, depression/anxiety as ongoing
 diagnoses, etc.
 
-**DROP** (`"keep": false`) — anything that is not a chronic disease, including:
+**DROP** (`"keep": false`) - anything that is not a chronic disease, including:
 - Social determinants: employment status (full/part-time, unemployed, not in labor
   force), education level, housing, transport problems, social isolation, limited
   social contact, refugee/immigration status, criminal record, victim of abuse,
@@ -38,17 +38,17 @@ When unsure whether something is a *chronic* disease, prefer **DROP** for clearl
 social/lifestyle/administrative items, and **KEEP** only if it is a recognizable
 medical diagnosis with chronic character.
 
-**Important — do NOT be fooled by the "(finding)" suffix.** A trailing
+**Important - do NOT be fooled by the "(finding)" suffix.** A trailing
 "(finding)" does not make something social or lifestyle. Several genuine chronic
 medical diagnoses are coded that way and MUST be kept:
-- **Obesity / BMI findings** — `Body mass index 30+ - obesity`,
+- **Obesity / BMI findings** - `Body mass index 30+ - obesity`,
   `Body mass index 40+ - severely obese`, etc. → **KEEP** (chronic metabolic condition).
-- **Chronic pain conditions** — `Chronic low back pain`, `Chronic neck pain`, and
+- **Chronic pain conditions** - `Chronic low back pain`, `Chronic neck pain`, and
   any "Chronic <site> pain" → **KEEP** (chronic pain disorder).
-- **Ongoing mental-health diagnoses** — `Severe anxiety (panic)`, depression,
+- **Ongoing mental-health diagnoses** - `Severe anxiety (panic)`, depression,
   and `Attention deficit disorder` / ADHD → **KEEP** (chronic condition).
 The social-determinant DROP rule applies to employment, education, housing,
-transport, social contact, legal/abuse, and substance-*behavior* findings — NOT to
+transport, social contact, legal/abuse, and substance-*behavior* findings - NOT to
 the medical diagnoses above.
 
 ## Output contract (do not change the shape)

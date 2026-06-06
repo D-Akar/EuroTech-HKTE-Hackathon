@@ -6,14 +6,14 @@ inputs: the last few days of phone check-ins, the patient's chronic conditions (
 their MongoDB FHIR record), and the worsening-symptom guide
 (``llm/worsening_symptoms.json``).
 
-This is a thin wrapper around the backend service ``app.services.question_gen`` — the
-same code the live "regenerate" button uses — so the offline batch and the dashboard
+This is a thin wrapper around the backend service ``app.services.question_gen`` - the
+same code the live "regenerate" button uses - so the offline batch and the dashboard
 stay in lockstep. Results are written to ``llm/patient_questions.json`` keyed by FHIR id.
 
 Run from the repo root with an interpreter that has ``openai`` + ``pymongo`` +
 ``pydantic``, with the Gemma key available (e.g. via ``backend/.env``), and MongoDB up:
 
-    # dry run — print the questions, do not write
+    # dry run - print the questions, do not write
     python -m llm.generate_patient_questions --limit 3
 
     # generate for every featured patient and write the dataset
@@ -78,7 +78,7 @@ def main() -> None:
         print(f"=== {patient.name} (slot {patient.id}, {fhir_id}) ===")
         try:
             pq = question_gen.generate_for_patient(patient, client=client, persist=args.apply)
-        except Exception as e:  # noqa: BLE001 — one bad patient shouldn't sink the batch
+        except Exception as e:  # noqa: BLE001 - one bad patient shouldn't sink the batch
             print(f"  ! generation failed ({e})\n")
             continue
         print(f"  conditions: {', '.join(pq.chronic_conditions) or '(none)'}")
@@ -95,7 +95,7 @@ def main() -> None:
     if args.apply:
         print(f"Wrote {question_gen.QUESTIONS_FILE}")
     else:
-        print("Dry run — nothing written. Re-run with --apply to save.")
+        print("Dry run - nothing written. Re-run with --apply to save.")
 
 
 if __name__ == "__main__":

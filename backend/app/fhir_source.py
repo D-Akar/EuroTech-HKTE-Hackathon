@@ -25,7 +25,7 @@ _MAX_PAST_MEDICATIONS = 15
 _MAX_RECENT_PROCEDURES = 20
 
 # Featured patients are shown as an elderly-care cohort, so every bound slot gets a
-# random age in this range — many Synthea records are far younger than the elderly
+# random age in this range - many Synthea records are far younger than the elderly
 # outpatients this platform serves.
 _MIN_AGE = 65
 _MAX_AGE = 92

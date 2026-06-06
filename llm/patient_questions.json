@@ -895,5 +895,32 @@
         "related_symptom": null
       }
     ]
+  },
+  "slot-18": {
+    "fhir_id": null,
+    "patient_slot": 18,
+    "patient_name": "Frances Adeyemi",
+    "age": 82,
+    "chronic_conditions": [],
+    "questions": [
+      {
+        "text": "You mentioned that your back pain has been getting worse lately. Is it feeling any better or worse today?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": "Back pain"
+      },
+      {
+        "text": "A few days ago you mentioned feeling a bit unsteady. Have you felt any more wobbly or confused since then?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": "Unsteady/Confused"
+      },
+      {
+        "text": "How have you been sleeping over the last night or two?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
   }
 }

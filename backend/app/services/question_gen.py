@@ -1,9 +1,9 @@
 """Generate & store personalised daily check-in questions for the voice agent.
 
 Single source of truth for per-patient question generation. It builds the context
-the model needs — the last few days of phone check-ins, the patient's chronic
+the model needs - the last few days of phone check-ins, the patient's chronic
 conditions (from their MongoDB FHIR record), and the worsening-symptom guide
-(``llm/worsening_symptoms.json``) narrowed to those conditions — then asks the LLM
+(``llm/worsening_symptoms.json``) narrowed to those conditions - then asks the LLM
 (Gemma 4 via the ``llm/`` package) to cross-reference them into 3 diverse, tailored
 questions. Results are cached in ``llm/patient_questions.json``, keyed by FHIR id.
 
@@ -120,7 +120,7 @@ def patient_conditions(patient_id: int) -> list[str]:
 
 
 # --------------------------------------------------------------------------
-# LLM client (lazy — only needed when actually generating)
+# LLM client (lazy - only needed when actually generating)
 # --------------------------------------------------------------------------
 def _llm_client():
     """Construct the Gemma client, raising a clear error if it isn't usable."""
@@ -136,7 +136,7 @@ def _llm_client():
         ) from e
     if llm_config.LLM_PROVIDER != "vllm" and not llm_config.GEMINI_API_KEY:
         raise RuntimeError(
-            "No GEMINI_API_KEY configured — set it in backend/.env to generate questions."
+            "No GEMINI_API_KEY configured - set it in backend/.env to generate questions."
         )
     return LLMClient(prompt_file=PROMPT_FILE)
 

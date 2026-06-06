@@ -2,9 +2,9 @@
 
 Two backends are supported, selected with ``LLM_PROVIDER``:
 
-* ``gemini`` (default) — Google's **Gemma 4** served through the Gemini API's
+* ``gemini`` (default) - Google's **Gemma 4** served through the Gemini API's
   OpenAI-compatible endpoint. Needs ``GEMINI_API_KEY`` (or ``GOOGLE_API_KEY``).
-* ``vllm`` — a local vLLM OpenAI-compatible server (e.g. Qwen via
+* ``vllm`` - a local vLLM OpenAI-compatible server (e.g. Qwen via
   ``serve_vllm.sh``). No key required.
 
 Both speak the OpenAI Chat Completions API, so the same ``client.py`` drives
@@ -48,7 +48,7 @@ VLLM_MODEL = os.getenv("VLLM_MODEL", "Qwen/Qwen2.5-7B-Instruct-AWQ")
 def active_backend() -> dict:
     """Resolve (base_url, api_key, model, merge_system) for the active provider.
 
-    ``merge_system`` folds the system prompt into the user turn — Gemma served
+    ``merge_system`` folds the system prompt into the user turn - Gemma served
     through the Gemini API does not always accept a separate ``system`` role, so
     we inline it there to stay robust.
     """

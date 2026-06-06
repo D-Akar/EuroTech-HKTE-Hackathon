@@ -74,7 +74,7 @@ def resolve_questions(patient_id: int, override: list[str] | None = None) -> lis
                 texts = [q.text for q in generated.questions if q.text]
                 if texts:
                     return texts
-        except Exception:  # noqa: BLE001 — never let this block a call
+        except Exception:  # noqa: BLE001 - never let this block a call
             logger.warning(
                 "resolve_questions: falling back to config for patient %s", patient_id,
                 exc_info=True,

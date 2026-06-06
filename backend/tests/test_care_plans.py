@@ -259,7 +259,7 @@ def _unique_named_patient():
 
     Subject-matching is by display name, so the target must be unique to be
     deterministic. We read the *live* ``data.PATIENTS`` because the FHIR overlay
-    mutates that global (renaming seed patients) whenever Mongo is reachable —
+    mutates that global (renaming seed patients) whenever Mongo is reachable -
     so a hardcoded seed name like "Margaret Holloway" breaks locally with the
     Docker DB up while still passing on CI without it. Deriving the name keeps
     the test correct in both environments.

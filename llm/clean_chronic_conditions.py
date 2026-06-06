@@ -82,7 +82,7 @@ def classify(names: list[str], client: VLLMClient, batch_size: int) -> dict[str,
     # Safety net: any label the model dropped from its reply is kept (conservative).
     missing = [n for n in names if n not in decisions]
     for n in missing:
-        decisions[n] = {"keep": True, "reason": "MISSING from model reply — kept by default"}
+        decisions[n] = {"keep": True, "reason": "MISSING from model reply - kept by default"}
     if missing:
         print(f"  warning: {len(missing)} label(s) missing from replies, kept by default")
     return decisions
@@ -172,7 +172,7 @@ def main() -> None:
     )
     print(f"\nWould DROP {len(dropped)} distinct labels (count = patients affected):")
     for n in dropped:
-        print(f"  {counts[n]:4d}  {n}   — {decisions[n]['reason']}")
+        print(f"  {counts[n]:4d}  {n}   - {decisions[n]['reason']}")
 
     # 4. apply / dry-run
     result = apply_cleanup(files, decisions, apply=args.apply)
@@ -182,7 +182,7 @@ def main() -> None:
         f"{result['files_changed']} files."
     )
     if not args.apply:
-        print("\nDry run — no files changed. Re-run with --apply to write.")
+        print("\nDry run - no files changed. Re-run with --apply to write.")
 
 
 if __name__ == "__main__":

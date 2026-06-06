@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { GeneratedQuestion, PatientQuestions } from "../types";
 
-// "Questions to ask" — the LLM-generated, patient-tailored questions the voice
+// "Questions to ask" - the LLM-generated, patient-tailored questions the voice
 // agent should raise on the next check-in call. Generated offline from the
 // patient's recent check-ins, their chronic conditions, and the worsening-symptom
 // guide; can be regenerated on demand with the button.

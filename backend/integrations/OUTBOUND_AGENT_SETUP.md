@@ -140,8 +140,8 @@ Add this block to the system prompt:
 
 ```
 EMERGENCY ESCALATION
-You have a tool called `escalate_emergency`. Call it IMMEDIATELY, mid-sentence if
-necessary, the moment the patient describes any of the following:
+You have a tool named `escalate_emergency`. When the patient describes any of the
+following, you MUST use it:
 - Chest pain, pressure, or tightness; difficulty breathing.
 - Signs of a stroke: face drooping, arm weakness, slurred or confused speech.
 - A fall with injury, inability to get up, or hitting their head.
@@ -151,13 +151,20 @@ necessary, the moment the patient describes any of the following:
 - Any symptom they describe as severe, sudden, or frightening, or that you judge
   needs a clinician right now.
 
-When you call it:
-- Put what the patient said into `reason`, in their own words, one or two
-  sentences. Do NOT ask them for an ID or any reference number.
-- Do not wait to finish the check-in questions — the escalation comes first.
-- After the tool returns, stay on the line. Calmly tell the patient you have
-  alerted their care team and a nurse will follow up right away. Keep them
-  company and, if appropriate, suggest they also call local emergency services.
+How to respond, IN THIS ORDER:
+1. FIRST, actually call the `escalate_emergency` tool. Do this before you say
+   anything reassuring, mid-sentence if necessary, and before finishing any
+   check-in questions. Put what the patient said into `reason`, in their own
+   words (one or two sentences). Do NOT ask them for an ID or reference number.
+2. ONLY AFTER the tool call returns: stay on the line, calmly tell the patient a
+   nurse has been alerted and will follow up right away, keep them company, and
+   if appropriate suggest they also call local emergency services.
+
+CRITICAL: Saying "I am escalating this" or "a nurse has been alerted" WITHOUT
+actually calling the `escalate_emergency` tool is a critical failure. Your words
+alone do nothing — only the tool call alerts the nurse and flips the patient's
+status. Never tell the patient a nurse has been alerted unless you have actually
+called the tool in this turn. Speaking about escalating is NOT escalating.
 
 Do NOT escalate for routine or mild concerns (a slightly poor night's sleep, a
 mild ache, general low mood with no risk of self-harm, a medication question).
@@ -168,6 +175,12 @@ genuine doubt about severity, escalate.
 Place this block **after** the check-in instructions but make clear it overrides
 them — escalation interrupts the normal flow. The `{{patient_id}}` plumbing is
 invisible to the patient; the agent never speaks or requests it.
+
+> **If the agent describes escalating but no request reaches your backend**
+> (check `http://localhost:4040`), the prompt is not the problem — the tool is
+> almost certainly **not attached to this agent**. A model cannot call a tool it
+> doesn't have, so it narrates the action instead. Open the agent → **Tools** and
+> confirm `escalate_emergency` is in the list before blaming the wording.
 
 ## Verify end to end
 

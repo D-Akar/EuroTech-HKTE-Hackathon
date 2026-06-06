@@ -5,6 +5,31 @@
   "api_schema": {
     "url": "https://YOUR_PUBLIC_API_HOST/integrations/elevenlabs/escalate",
     "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "Escalation payload for the patient on this call.",
+      "required": true,
+      "properties": [
+        {
+          "id": "patient_id",
+          "type": "string",
+          "description": "Identifier of the patient on this call. Supplied automatically — do not invent or ask the patient for it.",
+          "required": true,
+          "value_type": "dynamic_variable",
+          "dynamic_variable": "patient_id"
+        },
+        {
+          "id": "reason",
+          "type": "string",
+          "description": "One or two sentences, in the patient's own terms, describing exactly what they reported that makes this urgent (e.g. 'Reports sudden crushing chest pain and shortness of breath for the last ten minutes').",
+          "required": true,
+          "value_type": "llm_prompt"
+        }
+      ]
+    },
     "request_headers": [
       {
         "type": "value",
@@ -12,22 +37,19 @@
         "value": "YOUR_ELEVENLABS_TOOL_API_KEY"
       }
     ],
-    "request_body_schema": {
-      "type": "object",
-      "required": ["patient_id", "reason"],
-      "properties": {
-        "patient_id": {
-          "type": "string",
-          "description": "Identifier of the patient on this call. Do not invent or ask for this — it is supplied automatically.",
-          "dynamic_variable": "patient_id"
-        },
-        "reason": {
-          "type": "string",
-          "description": "One or two sentences, in the patient's own terms, describing exactly what they reported that makes this urgent (e.g. 'Reports sudden crushing chest pain and shortness of breath for the last ten minutes')."
-        }
-      }
-    }
+    "content_type": "application/json",
+    "auth_connection": null
   },
   "response_timeout_secs": 20,
-  "tool_error_handling_mode": "summarized"
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "disable_interruptions": false,
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "tool_error_handling_mode": "auto",
+  "response_mocks": []
 }

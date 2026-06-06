@@ -5,20 +5,38 @@
   "api_schema": {
     "url": "https://YOUR_PUBLIC_API_HOST/integrations/elevenlabs/patient-context",
     "method": "GET",
-    "query_params_schema": {
-      "phone_number": {
+    "path_params_schema": [],
+    "query_params_schema": [
+      {
+        "id": "phone_number",
         "type": "string",
+        "description": "The caller's phone number. Supplied automatically from the call — do not ask the patient for it.",
+        "required": true,
+        "value_type": "dynamic_variable",
         "dynamic_variable": "system__caller_id"
       }
-    },
+    ],
+    "request_body_schema": null,
     "request_headers": [
       {
         "type": "value",
         "name": "X-API-Key",
         "value": "YOUR_ELEVENLABS_TOOL_API_KEY"
       }
-    ]
+    ],
+    "content_type": "application/json",
+    "auth_connection": null
   },
   "response_timeout_secs": 20,
-  "tool_error_handling_mode": "summarized"
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "disable_interruptions": false,
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "tool_error_handling_mode": "auto",
+  "response_mocks": []
 }

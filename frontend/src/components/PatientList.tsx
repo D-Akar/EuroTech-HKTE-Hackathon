@@ -41,7 +41,7 @@ export function PatientList({ patients, selectedId, featuredId, statusFilter, on
     <div className="roster">
       <div className="roster-head">
         <div className="roster-title">
-          <h2>Roster</h2>
+          <h2>Patients</h2>
           <span className="roster-count num">
             {total} of {patients.length}
           </span>

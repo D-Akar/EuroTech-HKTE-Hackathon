@@ -50,7 +50,7 @@
      Theme-aware so light + dark both read as real depth, not flat overlays. */
   --glass-bg: oklch(0.205 0.022 256 / 0.3);
   --glass-border: oklch(0.86 0.07 220 / 0.18);
-  --glass-blur: blur(26px) saturate(1.6);
+  --glass-blur: blur(40px) saturate(1.8);
   --glass-shadow: 0 22px 60px -22px oklch(0 0 0 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.08);
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint */
@@ -97,7 +97,7 @@
 
   --glass-bg: oklch(0.99 0.006 235 / 0.34);
   --glass-border: oklch(1 0 0 / 0.55);
-  --glass-blur: blur(28px) saturate(1.4);
+  --glass-blur: blur(40px) saturate(1.8);
   --glass-shadow: 0 20px 54px -22px oklch(0.4 0.05 256 / 0.26), inset 0 1px 0 oklch(1 0 0 / 0.6);
 
   color-scheme: light;
@@ -674,21 +674,70 @@ button {
 .command-bar,
 .roster-drawer,
 .detail {
-  --glass-bg: oklch(0.2 0.022 256 / 0.34);
-  --glass-border: oklch(1 0 0 / 0.16);
+  /* Dark-tinted vibrancy: low alpha so the map reads through, but a low lightness
+     floor keeps white text legible even over the bright sky/horizon band up top. */
+  --glass-bg: oklch(0.17 0.018 256 / 0.3);
+  --glass-border: oklch(1 0 0 / 0.18);
 
-  --text: oklch(0.98 0.004 230);
-  --text-soft: oklch(0.9 0.01 232);
-  --muted: oklch(0.82 0.015 235);
+  --text: oklch(0.99 0.003 230);
+  --text-soft: oklch(0.92 0.01 232);
+  --muted: oklch(0.83 0.015 235);
   --faint: oklch(0.72 0.02 238);
 
-  --surface: oklch(1 0 0 / 0.07);
-  --surface-raised: oklch(1 0 0 / 0.12);
-  --surface-sunken: oklch(1 0 0 / 0.06);
-  --border: oklch(1 0 0 / 0.14);
-  --border-strong: oklch(1 0 0 / 0.24);
+  --surface: oklch(1 0 0 / 0.06);
+  --surface-raised: oklch(1 0 0 / 0.1);
+  --surface-sunken: oklch(1 0 0 / 0.05);
+  --border: oklch(1 0 0 / 0.12);
+  --border-strong: oklch(1 0 0 / 0.22);
+
+  /* Selection reads as a translucent accent wash, never an opaque white tile. */
+  --accent-soft: oklch(0.72 0.14 222 / 0.22);
+  --accent: oklch(0.82 0.12 220);
+  --accent-strong: oklch(0.85 0.12 214);
+  --accent-ring: oklch(0.8 0.13 212 / 0.4);
 
   color: var(--text);
+}
+
+/* Status + accent text was tuned for light chips; on dark glass it goes muddy.
+   Lift each semantic chip to a luminous hue + faint same-color glass pill so
+   "Needs attention", "Stable", the active tab etc. read cleanly over the map. */
+.command-bar .badge.attention,
+.roster-drawer .badge.attention,
+.detail .badge.attention {
+  color: oklch(0.86 0.15 85);
+  background: oklch(0.84 0.15 85 / 0.14);
+  border-color: oklch(0.84 0.15 85 / 0.28);
+}
+.command-bar .badge.stable,
+.roster-drawer .badge.stable,
+.detail .badge.stable {
+  color: oklch(0.85 0.16 165);
+  background: oklch(0.82 0.16 165 / 0.14);
+  border-color: oklch(0.82 0.16 165 / 0.28);
+}
+.command-bar .badge.urgent,
+.roster-drawer .badge.urgent,
+.detail .badge.urgent {
+  color: oklch(0.82 0.18 24);
+  background: oklch(0.7 0.2 26 / 0.2);
+  border-color: oklch(0.7 0.2 26 / 0.34);
+}
+.detail .convo-chip.warm {
+  color: oklch(0.86 0.15 85);
+  background: oklch(0.84 0.15 85 / 0.14);
+}
+.detail .convo-chip.hot {
+  color: oklch(0.82 0.18 24);
+  background: oklch(0.7 0.2 26 / 0.18);
+}
+.detail .tag-ok {
+  color: oklch(0.85 0.16 165);
+  background: oklch(0.82 0.16 165 / 0.16);
+}
+.detail .tag-missed {
+  color: oklch(0.82 0.18 24);
+  background: oklch(0.7 0.2 26 / 0.18);
 }
 
 @keyframes panel-in {
@@ -2397,10 +2446,12 @@ button {
 
 /* --- In-scene marker tooltip: HUD glass ------------------------------------ */
 .marker-tip {
-  background: oklch(0.13 0.02 256 / 0.9);
-  border: 1px solid oklch(0.72 0.1 215 / 0.32);
+  background: oklch(0.17 0.018 256 / 0.34);
+  backdrop-filter: blur(14px) saturate(1.7);
+  -webkit-backdrop-filter: blur(14px) saturate(1.7);
+  border: 1px solid oklch(1 0 0 / 0.16);
   font-family: var(--mono);
-  box-shadow: 0 0 22px -6px oklch(0.7 0.13 215 / 0.45), var(--shadow);
+  box-shadow: 0 8px 24px -10px oklch(0 0 0 / 0.6), inset 0 1px 0 oklch(1 0 0 / 0.08);
 }
 .marker-tip .tip-status {
   opacity: 0.78;
@@ -2445,10 +2496,6 @@ button {
 /* --- Command bar: a deliberate console header ------------------------------ */
 .command-bar {
   gap: 18px;
-}
-:root[data-theme="light"] .command-bar {
-  background: linear-gradient(180deg, oklch(0.996 0.003 235), oklch(0.975 0.006 235));
-  box-shadow: 0 1px 0 var(--border), 0 8px 22px -18px oklch(0.4 0.06 256 / 0.35);
 }
 .brand-mark {
   width: 28px;

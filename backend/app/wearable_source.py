@@ -104,6 +104,16 @@ def is_real() -> bool:
     return _loaded_source in ("mongo", "real")
 
 
+def reload() -> None:
+    """Drop the cached samples so the next read reflects a fresh backfill.
+
+    Lets an operator run one Garmin pull before the demo and have the report/trends pick
+    it up without restarting the server. The daily rollup cache is cleared too.
+    """
+    _load.cache_clear()
+    _daily.cache_clear()
+
+
 def raw_samples(kind: str | None = None, limit: int | None = None) -> list[dict]:
     rows = _load()
     if kind:

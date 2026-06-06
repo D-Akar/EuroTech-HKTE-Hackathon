@@ -31,5 +31,9 @@ def patient_report_pdf(patient_id: int) -> Response:
     return Response(
         content=pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+            # Always hand back a freshly built report; never a browser-cached copy.
+            "Cache-Control": "no-store",
+        },
     )

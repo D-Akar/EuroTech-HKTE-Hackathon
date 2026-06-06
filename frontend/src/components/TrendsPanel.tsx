@@ -31,7 +31,6 @@ export function TrendsPanel({
             label="Resting HR"
             avg={`${summary.heart_rate.avg}`}
             unit="bpm"
-            range={`${summary.heart_rate.min}-${summary.heart_rate.max}`}
             values={series(wearables, (w) => w.heart_rate)}
           />
         )}
@@ -40,7 +39,6 @@ export function TrendsPanel({
             label="Sleep"
             avg={`${summary.sleep_hours.avg}`}
             unit="h"
-            range={`${summary.sleep_hours.min}-${summary.sleep_hours.max}`}
             values={series(wearables, (w) => w.sleep_hours)}
           />
         )}
@@ -49,7 +47,6 @@ export function TrendsPanel({
             label="Steps"
             avg={Math.round(summary.steps.avg).toLocaleString()}
             unit=""
-            range={`${Math.round(summary.steps.min).toLocaleString()}-${Math.round(summary.steps.max).toLocaleString()}`}
             values={series(wearables, (w) => w.steps)}
           />
         )}
@@ -64,13 +61,11 @@ function TrendRow({
   label,
   avg,
   unit,
-  range,
   values,
 }: {
   label: string;
   avg: string;
   unit: string;
-  range: string;
   values: number[];
 }) {
   return (
@@ -81,7 +76,6 @@ function TrendRow({
           {avg}
           {unit && <span className="trend-unit"> {unit}</span>}
         </span>
-        <span className="trend-range num">{range}</span>
       </div>
       <Sparkline values={values} label={label} />
     </div>

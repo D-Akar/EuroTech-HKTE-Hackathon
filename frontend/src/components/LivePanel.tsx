@@ -1,19 +1,37 @@
+import { useEffect, useState } from "react";
 import type { LiveSource, LiveVitals } from "../types";
 
 const SOURCE_META: Record<LiveSource, { label: string; cls: string; live: boolean }> = {
   live: { label: "Live", cls: "live", live: true },
+  ble: { label: "Watch live", cls: "live", live: true },
   demo: { label: "Simulated", cls: "demo", live: true },
   "export-fallback": { label: "Recent export", cls: "fallback", live: false },
   none: { label: "Offline", cls: "fallback", live: false },
 };
 
-const fmtTime = (at: string | null): string => {
-  if (!at) return "--";
-  const d = new Date(at);
-  return Number.isNaN(d.getTime())
-    ? "--"
-    : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-};
+// Re-render once a second so the "updated Ns ago" readout ticks up between polls.
+function useNow(active: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, [active]);
+  return now;
+}
+
+// Relative age of the freshest reading. Timezone-proof: it never shows a clock, so a
+// Hong Kong-stamped sample reads correctly no matter where the operator is.
+function ago(at: string | null, now: number): string {
+  if (!at) return "";
+  const ms = now - new Date(at).getTime();
+  if (!Number.isFinite(ms)) return "";
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+}
 
 interface Props {
   live: LiveVitals | null;
@@ -24,6 +42,9 @@ interface Props {
 }
 
 export function LivePanel({ live, loading, onEscalateCall, callBusy, callMessage }: Props) {
+  // Hook stays above the early returns so its call order is stable across renders.
+  const now = useNow(live?.source === "live" || live?.source === "ble");
+
   if (loading && !live) {
     return (
       <section className="live" aria-label="Live vitals">
@@ -43,7 +64,13 @@ export function LivePanel({ live, loading, onEscalateCall, callBusy, callMessage
 
   const src = SOURCE_META[live.source];
   const urgent = live.status === "urgent";
+  const isDemo = live.source === "demo";
   const syncedAt = live.heart_rate?.at ?? live.steps?.at ?? null;
+  const freshness = isDemo
+    ? "scripted ramp"
+    : live.source === "live" || live.source === "ble"
+      ? `updated ${ago(syncedAt, now)}`
+      : "last export";
   const criticalMsg =
     live.alerts.find((a) => a.severity === "critical")?.message ?? live.alerts[0]?.message;
 
@@ -55,8 +82,14 @@ export function LivePanel({ live, loading, onEscalateCall, callBusy, callMessage
           {src.live && <span className="source-dot" aria-hidden />}
           {src.label}
         </span>
-        <span className="live-synced num">synced {fmtTime(syncedAt)}</span>
+        <span className="live-synced num">{freshness}</span>
       </div>
+
+      {isDemo && (
+        <p className="live-sim-note" role="note">
+          Simulated exertion ramp for the stage demo. This is not live device data.
+        </p>
+      )}
 
       <div className="live-grid">
         <LiveTile

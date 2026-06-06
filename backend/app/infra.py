@@ -21,7 +21,7 @@ import shutil
 import subprocess
 import time
 
-from . import data, fhir_source, wearable_source
+from . import data, fhir_source, patient_overrides, wearable_source
 from .config import settings
 
 log = logging.getLogger("careloop.infra")
@@ -92,3 +92,8 @@ def ensure_mongo_and_overlays() -> None:
         log.info("Overlaid %d real FHIR patient(s) onto dashboard slots.", bound)
     else:
         log.info("No FHIR overlays applied — dashboard running on mock data.")
+
+    # Re-apply dashboard-edited phone numbers last, so they win over seed and FHIR.
+    applied = patient_overrides.apply(data.PATIENTS)
+    if applied:
+        log.info("Applied %d saved phone-number override(s).", applied)

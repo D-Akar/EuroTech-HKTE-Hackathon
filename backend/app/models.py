@@ -32,6 +32,12 @@ class Patient(BaseModel):
     fhir_id: str | None = None
 
 
+class PhoneUpdate(BaseModel):
+    """Request body to change a patient's check-in phone number."""
+
+    phone_number: str
+
+
 # --- Real FHIR medical profile (MongoDB-backed patients) ---------------------
 
 
@@ -104,7 +110,8 @@ class CallConfig(BaseModel):
 
     patient_id: int
     questions: list[str]  # the practice's questions for the agent to ask
-    greeting: str | None = None  # optional custom opening line
+    greeting: str | None = None  # optional custom opening line (first_message override)
+    system_prompt: str | None = None  # optional agent system-prompt override
 
 
 class ConfigUpdate(BaseModel):
@@ -112,6 +119,7 @@ class ConfigUpdate(BaseModel):
 
     questions: list[str]
     greeting: str | None = None
+    system_prompt: str | None = None
 
 
 class TriggerRequest(BaseModel):

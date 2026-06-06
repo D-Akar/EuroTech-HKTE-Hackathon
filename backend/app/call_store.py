@@ -39,8 +39,18 @@ def get_config(patient_id: int) -> CallConfig:
     return config
 
 
-def set_config(patient_id: int, questions: list[str], greeting: str | None) -> CallConfig:
-    config = CallConfig(patient_id=patient_id, questions=questions, greeting=greeting)
+def set_config(
+    patient_id: int,
+    questions: list[str],
+    greeting: str | None,
+    system_prompt: str | None = None,
+) -> CallConfig:
+    config = CallConfig(
+        patient_id=patient_id,
+        questions=questions,
+        greeting=greeting,
+        system_prompt=system_prompt,
+    )
     CALL_CONFIGS[patient_id] = config
     return config
 

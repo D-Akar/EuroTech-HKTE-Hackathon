@@ -69,7 +69,9 @@ def get_config(patient_id: int) -> CallConfig:
 @router.put("/config", response_model=CallConfig)
 def update_config(patient_id: int, body: ConfigUpdate) -> CallConfig:
     _require_patient(patient_id)
-    return call_store.set_config(patient_id, body.questions, body.greeting)
+    return call_store.set_config(
+        patient_id, body.questions, body.greeting, body.system_prompt
+    )
 
 
 @router.post("/schedules", response_model=ScheduledCall)

@@ -76,6 +76,7 @@ export interface CallConfig {
   patient_id: number;
   questions: string[];
   greeting: string | null;
+  system_prompt: string | null;
 }
 
 export interface ScheduledCall {

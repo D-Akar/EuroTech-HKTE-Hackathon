@@ -3,9 +3,17 @@ import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
 
-export function CallPanel({ patient }: { patient: Patient }) {
+export function CallPanel({
+  patient,
+  onPatientUpdate,
+}: {
+  patient: Patient;
+  onPatientUpdate?: (patient: Patient) => void;
+}) {
   const [toNumber, setToNumber] = useState(patient.phone_number);
   const [questions, setQuestions] = useState<string[]>([]);
+  const [greeting, setGreeting] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState("");
   const [schedules, setSchedules] = useState<ScheduledCall[]>([]);
   const [history, setHistory] = useState<CallRecord[]>([]);
 
@@ -32,6 +40,8 @@ export function CallPanel({ patient }: { patient: Patient }) {
       .then(([config, sched, hist]) => {
         if (cancelled) return;
         setQuestions(config.questions);
+        setGreeting(config.greeting ?? "");
+        setSystemPrompt(config.system_prompt ?? "");
         setSchedules(sched);
         setHistory(hist);
       })
@@ -65,15 +75,37 @@ export function CallPanel({ patient }: { patient: Patient }) {
     }
   }
 
-  async function handleSaveQuestions() {
+  async function handleSaveNumber() {
+    setBusy(true);
+    setStatus(null);
+    setError(null);
+    try {
+      const updated = await api.updatePatientPhone(patient.id, toNumber);
+      setToNumber(updated.phone_number);
+      onPatientUpdate?.(updated);
+      setStatus("Phone number saved.");
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSaveConfig() {
     setBusy(true);
     setStatus(null);
     setError(null);
     try {
       const cleaned = questions.map((q) => q.trim()).filter(Boolean);
-      const config = await api.saveCallConfig(patient.id, { questions: cleaned, greeting: null });
+      const config = await api.saveCallConfig(patient.id, {
+        questions: cleaned,
+        greeting: greeting.trim() || null,
+        system_prompt: systemPrompt.trim() || null,
+      });
       setQuestions(config.questions);
-      setStatus("Questions saved.");
+      setGreeting(config.greeting ?? "");
+      setSystemPrompt(config.system_prompt ?? "");
+      setStatus("Call settings saved.");
     } catch (e) {
       setError(String(e));
     } finally {
@@ -137,6 +169,14 @@ export function CallPanel({ patient }: { patient: Patient }) {
             placeholder="+852..."
           />
         </label>
+        <button
+          className="btn btn-ghost"
+          onClick={handleSaveNumber}
+          disabled={busy || !toNumber.trim()}
+          title="Save this number as the patient's check-in number"
+        >
+          Save
+        </button>
         <button className="btn btn-call" onClick={handleCallNow} disabled={busy}>
           <PhoneIcon small /> Call now
         </button>
@@ -168,8 +208,34 @@ export function CallPanel({ patient }: { patient: Patient }) {
             </button>
           </div>
         ))}
-        <button className="btn btn-ghost" onClick={handleSaveQuestions} disabled={busy} style={{ marginTop: 4 }}>
-          Save questions
+
+        <label className="field" style={{ marginTop: 12 }}>
+          <span className="field-label">Greeting (opening line)</span>
+          <input
+            className="input"
+            value={greeting}
+            onChange={(e) => setGreeting(e.target.value)}
+            placeholder="e.g. Good morning, this is your daily check-in."
+          />
+        </label>
+
+        <label className="field" style={{ marginTop: 10 }}>
+          <span className="field-label">Agent system prompt</span>
+          <textarea
+            className="input"
+            rows={5}
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            placeholder="Override the agent's instructions for this patient (tone, focus, what to watch for)."
+          />
+        </label>
+        <p className="muted" style={{ fontSize: 12, margin: "2px 0 0" }}>
+          Greeting and system prompt require the matching overrides to be enabled in the
+          agent's Security settings on ElevenLabs.
+        </p>
+
+        <button className="btn btn-ghost" onClick={handleSaveConfig} disabled={busy} style={{ marginTop: 8 }}>
+          Save call settings
         </button>
       </div>
 

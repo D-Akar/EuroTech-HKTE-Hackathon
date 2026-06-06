@@ -143,8 +143,13 @@ export default function App() {
           <span className="brand-mark" aria-hidden>
             <CareloopMark />
           </span>
-          Careloop
-          <span className="brand-sub">Hong Kong care grid</span>
+          <span className="brand-text">
+            <span className="brand-name">Careloop</span>
+            <span className="brand-sub">
+              Elderly care · monitored live
+              <span className="brand-live" aria-hidden />
+            </span>
+          </span>
         </div>
 
         <div className="command-spacer" />

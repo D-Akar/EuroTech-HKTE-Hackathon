@@ -13,6 +13,7 @@ import { CallPanel } from "./CallPanel";
 import { CarePlanPanel } from "./CarePlanPanel";
 import { CheckInPanel } from "./CheckInPanel";
 import { DevicePanel } from "./DevicePanel";
+import { QuestionsPanel } from "./QuestionsPanel";
 import { ScreeningPanel } from "./ScreeningPanel";
 import { StatusBadge } from "./StatusBadge";
 
@@ -188,6 +189,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
         {tab === "checkins" ? (
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
+            <QuestionsPanel patientId={patient.id} />
             <CallPanel patient={patient} onPatientUpdate={onPatientUpdate} />
             <ScreeningPanel patient={patient} />
             <CarePlanPanel patient={patient} />

@@ -666,6 +666,31 @@ button {
   z-index: 16;
 }
 
+/* Smoked-glass content: panels float over a map that can be light OR dark, so the
+   chrome carries its own dark tint and lifts ALL text to white. Remapping the
+   shared text + surface tokens here (theme-independent) flips every descendant -
+   names, body copy, cards, chips, inputs - to light-on-translucent in one shot.
+   Semantic status pills (.tag-ok, .badge.urgent, ...) keep their explicit colors. */
+.command-bar,
+.roster-drawer,
+.detail {
+  --glass-bg: oklch(0.2 0.022 256 / 0.34);
+  --glass-border: oklch(1 0 0 / 0.16);
+
+  --text: oklch(0.98 0.004 230);
+  --text-soft: oklch(0.9 0.01 232);
+  --muted: oklch(0.82 0.015 235);
+  --faint: oklch(0.72 0.02 238);
+
+  --surface: oklch(1 0 0 / 0.07);
+  --surface-raised: oklch(1 0 0 / 0.12);
+  --surface-sunken: oklch(1 0 0 / 0.06);
+  --border: oklch(1 0 0 / 0.14);
+  --border-strong: oklch(1 0 0 / 0.24);
+
+  color: var(--text);
+}
+
 @keyframes panel-in {
   from {
     transform: translateX(18px);
@@ -2601,4 +2626,101 @@ button {
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: 0.01em;
+}
+
+/* Questions to ask — LLM-generated, tailored check-in questions */
+.qpanel {
+  margin-top: 24px;
+}
+.qpanel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.qpanel-regen {
+  flex-shrink: 0;
+}
+.qpanel-empty {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.qpanel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qpanel-item {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 13px 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+.qpanel-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-ring);
+  color: var(--accent-strong);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.qpanel-body {
+  min-width: 0;
+}
+.qpanel-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.qpanel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+.qpanel-cat {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--muted);
+}
+.qpanel-cat.cat-symptom_followup {
+  background: var(--status-urgent-soft);
+  color: oklch(0.5 0.16 28);
+}
+.qpanel-cat.cat-proactive_monitoring {
+  background: var(--accent-ring);
+  color: var(--accent-strong);
+}
+.qpanel-target {
+  font-size: 12px;
+  color: var(--faint);
+  font-style: italic;
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -31,10 +31,13 @@ async def _run_schedule(schedule_id: int) -> None:
     patient = data.get_patient(schedule.patient_id)
     if patient is None:
         return
+    # Re-resolve at fire time so a recurring daily call always asks the freshest
+    # personalised questions; falls back to config if none have been generated.
+    questions = telephony.resolve_questions(schedule.patient_id)
     await telephony.place_call(
         patient,
         to_number=patient.phone_number,
-        questions=schedule.questions,
+        questions=questions,
         kind="scheduled",
     )
     # A one-off has done its job; hide it from the upcoming list.

@@ -91,6 +91,26 @@ class CheckIn(BaseModel):
     notes: str
 
 
+class GeneratedQuestion(BaseModel):
+    """One LLM-generated check-in question, tailored to the patient."""
+
+    text: str  # the question the voice agent reads aloud
+    category: str | None = None  # symptom_followup | proactive_monitoring | wellbeing | adherence
+    related_condition: str | None = None  # chronic condition the question targets
+    related_symptom: str | None = None  # worsening sign the question probes
+
+
+class PatientQuestions(BaseModel):
+    """The set of tailored check-in questions for one patient."""
+
+    patient_id: int
+    fhir_id: str | None = None
+    patient_name: str | None = None
+    chronic_conditions: list[str] = []
+    questions: list[GeneratedQuestion] = []
+    generated: bool = False  # False => no generated set on record yet
+
+
 class WearableReading(BaseModel):
     """A point-in-time reading from a patient's wearable device."""
 

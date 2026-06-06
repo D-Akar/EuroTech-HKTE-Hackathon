@@ -500,7 +500,7 @@ function StylizedCityTwin({
     <Canvas
       shadows
       dpr={[1, 2]}
-      camera={{ position: [0, 21, 28], fov: 40 }}
+      camera={{ position: [0, 15, 20], fov: 40 }}
       gl={{ antialias: true }}
       onPointerMissed={() => setHovered(null)}
     >

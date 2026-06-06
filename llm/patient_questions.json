@@ -1,0 +1,899 @@
+{
+  "d8e3a701-d108-74ff-2ce3-156537276a14": {
+    "fhir_id": "d8e3a701-d108-74ff-2ce3-156537276a14",
+    "patient_slot": 1,
+    "patient_name": "Harland Price",
+    "age": 33,
+    "chronic_conditions": [
+      "Dementia",
+      "Type 2 diabetes mellitus"
+    ],
+    "questions": [
+      {
+        "text": "You mentioned going for a short walk a few days ago — have you been able to get out and move around much today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "Have you noticed yourself feeling more thirsty than usual lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Type 2 diabetes mellitus",
+        "related_symptom": "Excessive thirst"
+      },
+      {
+        "text": "Have you had any trouble with your sleep or felt more confused than usual recently?",
+        "category": "proactive_monitoring",
+        "related_condition": "Dementia",
+        "related_symptom": "Changes in sleep patterns"
+      }
+    ]
+  },
+  "4ca722b8-631c-fc54-1145-8d2c4d66809f": {
+    "fhir_id": "4ca722b8-631c-fc54-1145-8d2c4d66809f",
+    "patient_slot": 2,
+    "patient_name": "Dona Purdy",
+    "age": 61,
+    "chronic_conditions": [
+      "Hypertension",
+      "Prediabetes",
+      "Chronic sinusitis (disorder)"
+    ],
+    "questions": [
+      {
+        "text": "A couple of days ago you mentioned feeling a bit short of breath — are you still feeling that way today?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": "short of breath"
+      },
+      {
+        "text": "Have you had any headaches or sinus pressure lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic sinusitis (disorder)",
+        "related_symptom": null
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "9acc871f-b577-5530-b8ad-fa95b58cea25": {
+    "fhir_id": "9acc871f-b577-5530-b8ad-fa95b58cea25",
+    "patient_slot": 3,
+    "patient_name": "Lavinia Heaney",
+    "age": 41,
+    "chronic_conditions": [
+      "Hypertension",
+      "Dyslipidaemia",
+      "Depression"
+    ],
+    "questions": [
+      {
+        "text": "You mentioned feeling quite low and having a poor appetite over the last few days — how are you feeling today?",
+        "category": "symptom_followup",
+        "related_condition": "Depression",
+        "related_symptom": "Significant changes in appetite"
+      },
+      {
+        "text": "Have you noticed any tightness in your chest or shortness of breath when you move around?",
+        "category": "proactive_monitoring",
+        "related_condition": "Dyslipidaemia",
+        "related_symptom": "Shortness of breath during activity"
+      },
+      {
+        "text": "How have you been getting around the house today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "bf113937-f532-94bb-66e1-9c7111f68207": {
+    "fhir_id": "bf113937-f532-94bb-66e1-9c7111f68207",
+    "patient_slot": 4,
+    "patient_name": "Shakira Haag",
+    "age": 43,
+    "chronic_conditions": [
+      "Chronic pain",
+      "Chronic intractable migraine without aura",
+      "Pulmonary emphysema (disorder)"
+    ],
+    "questions": [
+      {
+        "text": "It's great to hear you've been in good spirits and cooking again—how are you feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "Have you had any trouble breathing or felt short of breath at all today?",
+        "category": "proactive_monitoring",
+        "related_condition": "Pulmonary emphysema (disorder)",
+        "related_symptom": "short of breath"
+      },
+      {
+        "text": "Have you experienced any headaches or migraines since we last spoke?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic intractable migraine without aura",
+        "related_symptom": "headaches"
+      }
+    ]
+  },
+  "6a6a1b30-9966-bd68-e732-b7ce2c0b6ade": {
+    "fhir_id": "6a6a1b30-9966-bd68-e732-b7ce2c0b6ade",
+    "patient_slot": 5,
+    "patient_name": "Roberto Quiroz",
+    "age": 12,
+    "chronic_conditions": [],
+    "questions": [
+      {
+        "text": "You mentioned you've been going for short walks lately — have you been able to get out and move around much today?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "Have you been sleeping well over the last few days?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "34b1b3b3-73ce-1bc2-b26e-dce20c4f6cbc": {
+    "fhir_id": "34b1b3b3-73ce-1bc2-b26e-dce20c4f6cbc",
+    "patient_slot": 6,
+    "patient_name": "Jerry Satterfield",
+    "age": 75,
+    "chronic_conditions": [
+      "Hypertension",
+      "Chronic sinusitis (disorder)",
+      "Neoplasm of prostate",
+      "Carcinoma in situ of prostate (disorder)"
+    ],
+    "questions": [
+      {
+        "text": "Yesterday you mentioned feeling a bit short of breath — have you felt that way again today?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": "short of breath"
+      },
+      {
+        "text": "Have you been feeling any more tired or worn out than usual lately?",
+        "category": "proactive_monitoring",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "d00d8a67-a23f-6fda-d97d-2a6391685500": {
+    "fhir_id": "d00d8a67-a23f-6fda-d97d-2a6391685500",
+    "patient_slot": 8,
+    "patient_name": "Andera Lindgren",
+    "age": 11,
+    "chronic_conditions": [
+      "Perennial allergic rhinitis",
+      "Cataract",
+      "Chronic kidney disease"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any swelling in your ankles or legs lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic kidney disease",
+        "related_symptom": "Swelling in ankles or legs"
+      },
+      {
+        "text": "Have you had any trouble seeing clearly or noticed any extra blurriness in your eyes?",
+        "category": "proactive_monitoring",
+        "related_condition": "Cataract",
+        "related_symptom": "Increasing cloudiness or blurriness"
+      },
+      {
+        "text": "How has your appetite been lately?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "1f629a95-5a68-0aec-b3ce-32d2beee7da9": {
+    "fhir_id": "1f629a95-5a68-0aec-b3ce-32d2beee7da9",
+    "patient_slot": 9,
+    "patient_name": "Robin Reichel",
+    "age": 87,
+    "chronic_conditions": [
+      "Hypertension",
+      "Chronic obstructive bronchitis (disorder)",
+      "Prediabetes",
+      "Anemia (disorder)",
+      "Fibromyalgia (disorder)"
+    ],
+    "questions": [
+      {
+        "text": "You mentioned your pain has been getting worse lately — how are you feeling in that regard today?",
+        "category": "symptom_followup",
+        "related_condition": "Fibromyalgia (disorder)",
+        "related_symptom": "Pain"
+      },
+      {
+        "text": "Have you felt any more confusion or unsteadiness since we last spoke?",
+        "category": "symptom_followup",
+        "related_condition": "Anemia (disorder)",
+        "related_symptom": "Confusion or unsteadiness"
+      },
+      {
+        "text": "How have you been sleeping over the last night or two?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "407ef75b-0a9c-ec23-60e5-c90ba86e27af": {
+    "fhir_id": "407ef75b-0a9c-ec23-60e5-c90ba86e27af",
+    "patient_slot": 10,
+    "patient_name": "Brice Stark",
+    "age": 73,
+    "chronic_conditions": [
+      "Hypertension",
+      "Prediabetes",
+      "Anemia (disorder)",
+      "Hyperlipidemia"
+    ],
+    "questions": [
+      {
+        "text": "Have you felt any unusual tiredness or weakness lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Anemia (disorder)",
+        "related_symptom": "Fatigue or weakness"
+      },
+      {
+        "text": "Have you noticed any changes in your vision or any headaches recently?",
+        "category": "proactive_monitoring",
+        "related_condition": "Hypertension",
+        "related_symptom": "Headaches or vision changes"
+      },
+      {
+        "text": "How has your appetite been over the last few days?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "2c098b38-279d-88b3-d553-e87b56eb1b04": {
+    "fhir_id": "2c098b38-279d-88b3-d553-e87b56eb1b04",
+    "patient_slot": 11,
+    "patient_name": "Marcela Almonte",
+    "age": 31,
+    "chronic_conditions": [
+      "Chronic pain",
+      "Essential hypertension"
+    ],
+    "questions": [
+      {
+        "text": "This morning you mentioned feeling a bit short of breath — are you still feeling that way now?",
+        "category": "symptom_followup",
+        "related_condition": "Essential hypertension",
+        "related_symptom": "Shortness of breath"
+      },
+      {
+        "text": "Have you noticed any changes in your vision, like things looking a bit blurry?",
+        "category": "proactive_monitoring",
+        "related_condition": "Essential hypertension",
+        "related_symptom": "Blurred vision"
+      },
+      {
+        "text": "How has your appetite been today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "c99968ac-6782-9ae2-aab2-98277ae5a8e8": {
+    "fhir_id": "c99968ac-6782-9ae2-aab2-98277ae5a8e8",
+    "patient_slot": 12,
+    "patient_name": "Kayleen Spencer",
+    "age": 48,
+    "chronic_conditions": [
+      "Hyperlipidemia",
+      "Dyslipidaemia",
+      "COPD"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any more coughing or wheezing lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "COPD",
+        "related_symptom": "Coughing more frequently"
+      },
+      {
+        "text": "Have you felt any tightness in your chest when you are moving around?",
+        "category": "proactive_monitoring",
+        "related_condition": "Dyslipidaemia",
+        "related_symptom": "Chest tightness"
+      },
+      {
+        "text": "How has your appetite been lately?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "7d28d76a-9ac8-67b4-3c88-0a75be3d0851": {
+    "fhir_id": "7d28d76a-9ac8-67b4-3c88-0a75be3d0851",
+    "patient_slot": 13,
+    "patient_name": "Erna Robel",
+    "age": 57,
+    "chronic_conditions": [
+      "Primary fibromyalgia syndrome",
+      "Dementia"
+    ],
+    "questions": [
+      {
+        "text": "Have you had any trouble with your sleep or felt more confused than usual lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Dementia",
+        "related_symptom": "Changes in sleep patterns or increased confusion"
+      },
+      {
+        "text": "Have you noticed any new or increased pain in your body today?",
+        "category": "proactive_monitoring",
+        "related_condition": "Primary fibromyalgia syndrome",
+        "related_symptom": "Pain"
+      },
+      {
+        "text": "How has your appetite been over the last day or so?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "78a50f0f-cce6-17f0-cc9f-bd605ce78292": {
+    "fhir_id": "78a50f0f-cce6-17f0-cc9f-bd605ce78292",
+    "patient_slot": 14,
+    "patient_name": "Mardell Legros",
+    "age": 41,
+    "chronic_conditions": [
+      "Prediabetes",
+      "COPD"
+    ],
+    "questions": [
+      {
+        "text": "Yesterday you mentioned feeling a bit short of breath — has that feeling stayed the same or gotten any worse today?",
+        "category": "symptom_followup",
+        "related_condition": "COPD",
+        "related_symptom": "Increased shortness of breath"
+      },
+      {
+        "text": "Have you noticed any new coughing or tightness in your chest lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "COPD",
+        "related_symptom": "Coughing more frequently or chest tightness"
+      },
+      {
+        "text": "How has your appetite been feeling since we last spoke?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "9ac43dbb-44d6-871e-b411-a1c18c61b55e": {
+    "fhir_id": "9ac43dbb-44d6-871e-b411-a1c18c61b55e",
+    "patient_slot": 18,
+    "patient_name": "Mohammad Mann",
+    "age": 83,
+    "chronic_conditions": [
+      "Hypertension",
+      "Prediabetes",
+      "Anemia (disorder)",
+      "Malignant tumor of colon"
+    ],
+    "questions": [
+      {
+        "text": "You mentioned having quite a bit of back pain over the last few days — how is that feeling today?",
+        "category": "symptom_followup",
+        "related_condition": "Malignant tumor of colon",
+        "related_symptom": "Back pain"
+      },
+      {
+        "text": "Have you been feeling any more unsteady on your feet or confused since we last spoke?",
+        "category": "proactive_monitoring",
+        "related_condition": "Anemia (disorder)",
+        "related_symptom": "Confusion or unsteadiness"
+      },
+      {
+        "text": "How have you been sleeping lately?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "a25e9984-9c96-bcd4-07f9-9f763e077366": {
+    "fhir_id": "a25e9984-9c96-bcd4-07f9-9f763e077366",
+    "patient_slot": 15,
+    "patient_name": "Kimbra Bogan",
+    "age": 43,
+    "chronic_conditions": [
+      "Chronic kidney disease",
+      "Dyslipidaemia",
+      "Benign prostatic hyperplasia"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any swelling in your ankles or legs lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic kidney disease",
+        "related_symptom": "Swelling in ankles or legs"
+      },
+      {
+        "text": "Have you had any chest tightness or shortness of breath when you are moving around?",
+        "category": "proactive_monitoring",
+        "related_condition": "Dyslipidaemia",
+        "related_symptom": "Chest tightness"
+      },
+      {
+        "text": "How has your appetite been over the last few days?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "da97668c-bf70-6c4d-3157-24aae70ed237": {
+    "fhir_id": "da97668c-bf70-6c4d-3157-24aae70ed237",
+    "patient_slot": 16,
+    "patient_name": "Talisha Parisian",
+    "age": 97,
+    "chronic_conditions": [
+      "Osteoarthritis of knee",
+      "Chronic pain",
+      "Chronic intractable migraine without aura",
+      "Alzheimer's disease (disorder)",
+      "Hyperlipidemia"
+    ],
+    "questions": [
+      {
+        "text": "It's wonderful to hear you've been cooking again—how have you been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "Have you had any headaches or migraines since we last spoke?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic intractable migraine without aura",
+        "related_symptom": "Migraine"
+      },
+      {
+        "text": "How has your knee pain been feeling today?",
+        "category": "proactive_monitoring",
+        "related_condition": "Osteoarthritis of knee",
+        "related_symptom": "Knee pain"
+      }
+    ]
+  },
+  "ff0e4d0e-6181-e36e-d817-64dbcaecb5d0": {
+    "fhir_id": "ff0e4d0e-6181-e36e-d817-64dbcaecb5d0",
+    "patient_slot": 17,
+    "patient_name": "Domingo Bashirian",
+    "age": 31,
+    "chronic_conditions": [
+      "Coronary Heart Disease",
+      "Myocardial Infarction",
+      "Cerebrovascular disease"
+    ],
+    "questions": [
+      {
+        "text": "Have you felt any chest pain or shortness of breath while you've been moving around today?",
+        "category": "proactive_monitoring",
+        "related_condition": "Coronary Heart Disease",
+        "related_symptom": "Chest pain or pressure, Shortness of breath during activity"
+      },
+      {
+        "text": "Have you noticed any sudden weakness or numbness in your arms or legs lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Cerebrovascular disease",
+        "related_symptom": "Sudden weakness on one side of the body, Sudden numbness or tingling"
+      },
+      {
+        "text": "It sounds like you've been in good spirits lately, but how has your appetite been?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "5136cc20-a63c-c7c8-00ae-fc5fa86be863": {
+    "fhir_id": "5136cc20-a63c-c7c8-00ae-fc5fa86be863",
+    "patient_slot": 19,
+    "patient_name": "Lavern O'Kon",
+    "age": 83,
+    "chronic_conditions": [
+      "Stroke",
+      "Hypothyroidism",
+      "Coronary heart disease"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any shortness of breath when you are moving around or doing activities?",
+        "category": "proactive_monitoring",
+        "related_condition": "Coronary heart disease",
+        "related_symptom": "Shortness of breath during activity"
+      },
+      {
+        "text": "Have you been feeling unusually tired or more lethargic than usual lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Hypothyroidism",
+        "related_symptom": "Extreme tiredness or lethargy"
+      },
+      {
+        "text": "How has your appetite been over the last few days?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "6f0b58f9-cb95-1fb3-5fef-cd914f9b4de3": {
+    "fhir_id": "6f0b58f9-cb95-1fb3-5fef-cd914f9b4de3",
+    "patient_slot": 20,
+    "patient_name": "Devon Bernhard",
+    "age": 45,
+    "chronic_conditions": [
+      "Hypertension",
+      "Chronic sinusitis (disorder)"
+    ],
+    "questions": [
+      {
+        "text": "Yesterday you mentioned having a mild headache — has that headache stayed the same or has it gone away?",
+        "category": "symptom_followup",
+        "related_condition": "Hypertension",
+        "related_symptom": "Headache"
+      },
+      {
+        "text": "Have you noticed any congestion or pressure in your face lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic sinusitis (disorder)",
+        "related_symptom": "Congestion or facial pressure"
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "8761af66-90ad-7f7d-2102-58b767495473": {
+    "fhir_id": "8761af66-90ad-7f7d-2102-58b767495473",
+    "patient_slot": 21,
+    "patient_name": "Jack Barton",
+    "age": 34,
+    "chronic_conditions": [
+      "Chronic gastritis",
+      "Chronic low back pain"
+    ],
+    "questions": [
+      {
+        "text": "You mentioned having a little bit of pain recently — has that pain stayed about the same or has it changed today?",
+        "category": "symptom_followup",
+        "related_condition": "Chronic low back pain",
+        "related_symptom": "Pain"
+      },
+      {
+        "text": "Have you noticed any numbness or tingling in your legs or feet lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Chronic low back pain",
+        "related_symptom": "Numbness or tingling in the legs or feet"
+      },
+      {
+        "text": "How has your appetite been over the last day or so?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "d7bb0340-9894-8bd0-056a-29efc5444fa0": {
+    "fhir_id": "d7bb0340-9894-8bd0-056a-29efc5444fa0",
+    "patient_slot": 22,
+    "patient_name": "Heath King",
+    "age": 26,
+    "chronic_conditions": [
+      "Non-alcoholic fatty liver disease",
+      "Benign prostatic hyperplasia",
+      "Cerebrovascular disease"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any new swelling in your belly or legs lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Non-alcoholic fatty liver disease",
+        "related_symptom": "Swelling in the belly, Swelling in the legs"
+      },
+      {
+        "text": "Have you had any trouble starting to urinate or noticed any changes in your urine stream?",
+        "category": "proactive_monitoring",
+        "related_condition": "Benign prostatic hyperplasia",
+        "related_symptom": "Difficulty starting to urinate, Very weak or slow urine stream"
+      },
+      {
+        "text": "How has your appetite been lately?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "3a4e4953-19cb-5a92-d896-cfeaa03f5ba8": {
+    "fhir_id": "3a4e4953-19cb-5a92-d896-cfeaa03f5ba8",
+    "patient_slot": 23,
+    "patient_name": "Sudie Rowe",
+    "age": 21,
+    "chronic_conditions": [
+      "Glaucoma",
+      "Asthma",
+      "Dementia"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any new tightness in your chest or more coughing lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Asthma",
+        "related_symptom": "Tightness in the chest, More frequent coughing"
+      },
+      {
+        "text": "Have you had any sudden changes in your vision or seen any halos around lights?",
+        "category": "proactive_monitoring",
+        "related_condition": "Glaucoma",
+        "related_symptom": "Sudden blurring of vision, Seeing halos around lights"
+      },
+      {
+        "text": "How have you been feeling overall today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "79b1d90a-0eaf-be78-9bbf-91c638626012": {
+    "fhir_id": "79b1d90a-0eaf-be78-9bbf-91c638626012",
+    "patient_slot": 24,
+    "patient_name": "Milagros Hills",
+    "age": 97,
+    "chronic_conditions": [
+      "Hypertension",
+      "Chronic intractable migraine without aura",
+      "Chronic pain",
+      "Alzheimer's disease (disorder)",
+      "Coronary Heart Disease"
+    ],
+    "questions": [
+      {
+        "text": "You mentioned having a mild headache a couple of days ago — has that headache stayed the same or has it changed at all today?",
+        "category": "symptom_followup",
+        "related_condition": "Chronic intractable migraine without aura",
+        "related_symptom": "Headache"
+      },
+      {
+        "text": "Have you felt any shortness of breath or chest pain while you've been moving around today?",
+        "category": "proactive_monitoring",
+        "related_condition": "Coronary Heart Disease",
+        "related_symptom": "Shortness of breath during activity"
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "a8c08d9f-a2ae-46c6-0371-f596ed13d1cf": {
+    "fhir_id": "a8c08d9f-a2ae-46c6-0371-f596ed13d1cf",
+    "patient_slot": 25,
+    "patient_name": "Parker Hauck",
+    "age": 99,
+    "chronic_conditions": [
+      "Hypertension",
+      "Osteoarthritis of knee",
+      "Prediabetes",
+      "Anemia (disorder)",
+      "Hyperlipidemia",
+      "Atrial Fibrillation",
+      "Alzheimer's disease (disorder)",
+      "Osteoporosis (disorder)",
+      "Stroke"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed your heart racing or feeling any irregular heartbeats today?",
+        "category": "proactive_monitoring",
+        "related_condition": "Atrial Fibrillation",
+        "related_symptom": "Heart racing or pounding, Skipped or irregular heartbeats"
+      },
+      {
+        "text": "Have you felt any dizziness or lightheadedness since we last spoke?",
+        "category": "proactive_monitoring",
+        "related_condition": "Atrial Fibrillation",
+        "related_symptom": "Dizziness or lightheadedness"
+      },
+      {
+        "text": "It sounds like you've been in good spirits lately, but how has your appetite been today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "355a3cad-a055-c14b-117e-47accfc708ca": {
+    "fhir_id": "355a3cad-a055-c14b-117e-47accfc708ca",
+    "patient_slot": 26,
+    "patient_name": "Carole Konopelski",
+    "age": 35,
+    "chronic_conditions": [
+      "Cerebral palsy (disorder)",
+      "Osteoporosis (disorder)",
+      "Intellectual disability (disorder)"
+    ],
+    "questions": [
+      {
+        "text": "How have you been feeling today, and have you had any new pains or discomfort?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "You mentioned you were in good spirits and cooking the other day — have you been able to do much of that today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "Are you feeling able to move around and get your tasks done comfortably today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "6d2fc252-7270-aa59-e5e0-0c21432984ba": {
+    "fhir_id": "6d2fc252-7270-aa59-e5e0-0c21432984ba",
+    "patient_slot": 27,
+    "patient_name": "Allison Howell",
+    "age": 76,
+    "chronic_conditions": [
+      "Hypertension",
+      "Depression"
+    ],
+    "questions": [
+      {
+        "text": "You've been in such good spirits lately, but have you felt any more sad or hopeless than usual today?",
+        "category": "symptom_followup",
+        "related_condition": "Depression",
+        "related_symptom": "Feeling much more sad or hopeless"
+      },
+      {
+        "text": "Have you noticed any changes in your appetite or how much you are eating lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "Depression",
+        "related_symptom": "Significant changes in appetite"
+      },
+      {
+        "text": "How are you feeling overall today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "7442e18c-ac59-805d-6140-6db8778408b5": {
+    "fhir_id": "7442e18c-ac59-805d-6140-6db8778408b5",
+    "patient_slot": 28,
+    "patient_name": "Kristeen Paucek",
+    "age": 19,
+    "chronic_conditions": [],
+    "questions": [
+      {
+        "text": "You mentioned having some chest discomfort a few days ago — how is your chest feeling today?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": "chest discomfort"
+      },
+      {
+        "text": "Have you been able to eat anything today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "How has your sleep been since we last spoke?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "730963e3-8472-75ab-fc64-5be33cdcc125": {
+    "fhir_id": "730963e3-8472-75ab-fc64-5be33cdcc125",
+    "patient_slot": 29,
+    "patient_name": "Teresa Estévez",
+    "age": 52,
+    "chronic_conditions": [
+      "Hypertension",
+      "COPD"
+    ],
+    "questions": [
+      {
+        "text": "Have you noticed any more coughing or chest tightness lately?",
+        "category": "proactive_monitoring",
+        "related_condition": "COPD",
+        "related_symptom": "Coughing more frequently or chest tightness"
+      },
+      {
+        "text": "Have you felt any more shortness of breath than usual today?",
+        "category": "proactive_monitoring",
+        "related_condition": "COPD",
+        "related_symptom": "Increased shortness of breath"
+      },
+      {
+        "text": "How has your appetite been over the last few days?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  },
+  "d1ac7006-362b-cc1d-d516-f11d65055473": {
+    "fhir_id": "d1ac7006-362b-cc1d-d516-f11d65055473",
+    "patient_slot": 30,
+    "patient_name": "Nita McLaughlin",
+    "age": 93,
+    "chronic_conditions": [
+      "Atrial Fibrillation",
+      "Glaucoma"
+    ],
+    "questions": [
+      {
+        "text": "Yesterday you mentioned feeling dizzy when standing up — has that happened again today?",
+        "category": "symptom_followup",
+        "related_condition": "Atrial Fibrillation",
+        "related_symptom": "Dizziness or lightheadedness"
+      },
+      {
+        "text": "Have you noticed any sudden blurring in your vision or seeing halos around lights?",
+        "category": "proactive_monitoring",
+        "related_condition": "Glaucoma",
+        "related_symptom": "Sudden blurring of vision or seeing halos around lights"
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
+  }
+}

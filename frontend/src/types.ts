@@ -61,6 +61,24 @@ export interface CheckIn {
   notes: string;
 }
 
+// --- LLM-generated check-in questions ---
+
+export interface GeneratedQuestion {
+  text: string;
+  category: string | null; // symptom_followup | proactive_monitoring | wellbeing | adherence
+  related_condition: string | null;
+  related_symptom: string | null;
+}
+
+export interface PatientQuestions {
+  patient_id: number;
+  fhir_id: string | null;
+  patient_name: string | null;
+  chronic_conditions: string[];
+  questions: GeneratedQuestion[];
+  generated: boolean; // false => no generated set on record yet
+}
+
 export interface WearableReading {
   id: number;
   patient_id: number;

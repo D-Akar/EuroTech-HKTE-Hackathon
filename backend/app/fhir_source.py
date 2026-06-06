@@ -13,8 +13,8 @@ because Mongo is down or the file is empty.
 
 from __future__ import annotations
 
+import random
 import re
-from datetime import date
 
 from .config import settings
 from .models import Allergy, Condition, MedicalProfile, Medication, Patient, Procedure
@@ -24,7 +24,14 @@ from .models import Allergy, Condition, MedicalProfile, Medication, Patient, Pro
 _MAX_PAST_MEDICATIONS = 15
 _MAX_RECENT_PROCEDURES = 20
 
-_TODAY = date(2026, 6, 6)
+# Featured patients are shown as an elderly-care cohort, so every bound slot gets a
+# random age in this range — many Synthea records are far younger than the elderly
+# outpatients this platform serves.
+_MIN_AGE = 65
+_MAX_AGE = 92
+# The app runs against a fixed "today" (see data.py); birth years are derived from
+# the assigned age relative to this so the profile's birth date matches the age.
+_REFERENCE_YEAR = 2026
 
 # Standard 8-4-4-4-12 hex UUID, as used for the FHIR _id / filename stem.
 _UUID_RE = re.compile(
@@ -97,18 +104,30 @@ def _display_name(raw: str) -> str:
     return cleaned or raw
 
 
-def _age_from(birth_date: str | None) -> int | None:
-    if not birth_date:
-        return None
-    try:
-        year, month, day = (int(x) for x in birth_date.split("-")[:3])
-        born = date(year, month, day)
-    except (ValueError, TypeError):
-        return None
-    return _TODAY.year - born.year - ((_TODAY.month, _TODAY.day) < (born.month, born.day))
+def _elderly_age(seed: str) -> int:
+    """A stable random age >= 65 for a featured patient, seeded by their FHIR id.
+
+    Seeding by id keeps each patient's displayed age the same across restarts
+    instead of changing on every boot.
+    """
+    return random.Random(seed).randint(_MIN_AGE, _MAX_AGE)
 
 
-def _build_profile(patient_id: int, fhir_id: str, doc: dict) -> MedicalProfile:
+def _birth_date_for_age(age: int, original: str | None) -> str:
+    """A birth_date string consistent with the assigned age.
+
+    Keeps the real month/day from the FHIR record when available (so it still looks
+    natural) but sets the year so the patient is ``age`` as of the reference date.
+    """
+    md = "01-01"
+    if original:
+        parts = original.split("-")
+        if len(parts) >= 3 and parts[1] and parts[2]:
+            md = f"{parts[1]}-{parts[2]}"
+    return f"{_REFERENCE_YEAR - age:04d}-{md}"
+
+
+def _build_profile(patient_id: int, fhir_id: str, doc: dict, age: int) -> MedicalProfile:
     demo = doc.get("demographics") or {}
     past_meds = sorted(
         (m for m in doc.get("past_medications", []) if m.get("name")),
@@ -124,7 +143,7 @@ def _build_profile(patient_id: int, fhir_id: str, doc: dict) -> MedicalProfile:
         patient_id=patient_id,
         fhir_id=fhir_id,
         gender=demo.get("gender"),
-        birth_date=demo.get("birth_date"),
+        birth_date=_birth_date_for_age(age, demo.get("birth_date")),
         preferred_language=demo.get("preferred_language"),
         phone_number=demo.get("phone_number"),
         chronic_conditions=[
@@ -186,13 +205,14 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
         demo = doc.get("demographics") or {}
         if demo.get("name"):
             slot.name = _display_name(demo["name"])
-        age = _age_from(demo.get("birth_date"))
-        if age is not None:
-            slot.age = age
+        # Always assign a random elderly age (>= 65); the synthetic birth dates
+        # often make these patients far too young for an elderly-care dashboard.
+        age = _elderly_age(fhir_id)
+        slot.age = age
         if demo.get("phone_number"):
             slot.phone_number = demo["phone_number"]
         slot.fhir_id = fhir_id
-        _PROFILES[slot.id] = _build_profile(slot.id, fhir_id, doc)
+        _PROFILES[slot.id] = _build_profile(slot.id, fhir_id, doc, age)
 
     return bound
 

@@ -17,7 +17,12 @@ class Settings:
     """Telephony credentials for the ElevenLabs Twilio outbound-call endpoint."""
 
     elevenlabs_api_key: str = os.getenv("ELEVENLABS_API_KEY", "")
+    # Outbound check-in agent — the one this backend dials with (see telephony.py).
     elevenlabs_agent_id: str = os.getenv("ELEVENLABS_AGENT_ID", "")
+    # Inbound agent — answers patient call-backs. Stored for reference/parity;
+    # inbound calls are handled by ElevenLabs' dashboard-configured agent, so the
+    # backend never dials with this id (it only serves the patient-context tool).
+    elevenlabs_inbound_agent_id: str = os.getenv("ELEVENLABS_INBOUND_AGENT_ID", "")
     elevenlabs_agent_phone_number_id: str = os.getenv(
         "ELEVENLABS_AGENT_PHONE_NUMBER_ID", ""
     )
@@ -29,6 +34,9 @@ class Settings:
     elevenlabs_outbound_url: str = (
         "https://api.eu.residency.elevenlabs.io/v1/convai/twilio/outbound-call"
     )
+
+    # API key for ElevenLabs server-tool callbacks into this service.
+    elevenlabs_tool_api_key: str = os.getenv("ELEVENLABS_TOOL_API_KEY", "")
 
     @property
     def is_configured(self) -> bool:

@@ -1,0 +1,24 @@
+{
+  "type": "webhook",
+  "name": "get_patient_context",
+  "description": "Retrieves the full health record for an elderly-care patient by phone number. Returns demographics, care status, phone check-ins, wearable data, health alerts, summary statistics, and configured check-in questions. Use at call start or when you need fresh patient context.",
+  "api_schema": {
+    "url": "https://YOUR_PUBLIC_API_HOST/integrations/elevenlabs/patient-context",
+    "method": "GET",
+    "query_params_schema": {
+      "phone_number": {
+        "type": "string",
+        "dynamic_variable": "system__caller_id"
+      }
+    },
+    "request_headers": [
+      {
+        "type": "value",
+        "name": "X-API-Key",
+        "value": "YOUR_ELEVENLABS_TOOL_API_KEY"
+      }
+    ]
+  },
+  "response_timeout_secs": 20,
+  "tool_error_handling_mode": "summarized"
+}

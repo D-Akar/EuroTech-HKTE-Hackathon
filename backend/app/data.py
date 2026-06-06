@@ -179,6 +179,25 @@ def get_patient(patient_id: int) -> Patient | None:
     return next((p for p in PATIENTS if p.id == patient_id), None)
 
 
+def _normalize_phone(phone_number: str) -> str:
+    """Normalize to E.164 for comparison (strip formatting, ensure leading +)."""
+    stripped = "".join(c for c in phone_number.strip() if c.isdigit() or c == "+")
+    if stripped.startswith("+"):
+        return "+" + "".join(c for c in stripped[1:] if c.isdigit())
+    digits = "".join(c for c in stripped if c.isdigit())
+    return f"+{digits}" if digits else ""
+
+
+def get_patient_by_phone(phone_number: str) -> Patient | None:
+    normalized = _normalize_phone(phone_number)
+    if not normalized:
+        return None
+    return next(
+        (p for p in PATIENTS if _normalize_phone(p.phone_number) == normalized),
+        None,
+    )
+
+
 def get_checkins(patient_id: int) -> list[CheckIn]:
     return [c for c in CHECKINS if c.patient_id == patient_id]
 

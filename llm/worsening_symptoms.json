@@ -1,0 +1,211 @@
+{
+  "Essential hypertension": [
+    "Severe headaches",
+    "Blurred vision",
+    "Chest pain",
+    "Dizziness",
+    "Shortness of breath",
+    "Heart racing"
+  ],
+  "Dyslipidaemia": [
+    "Chest tightness",
+    "Leg pain when walking",
+    "Shortness of breath during activity",
+    "Sudden weakness on one side"
+  ],
+  "Osteoarthritis": [
+    "Increased joint stiffness",
+    "More pain when moving",
+    "Swelling around the joints",
+    "Difficulty walking",
+    "Increased pain at night"
+  ],
+  "Type 2 diabetes mellitus": [
+    "Excessive thirst",
+    "Passing urine more often",
+    "Blurred vision",
+    "Slow-healing sores",
+    "Feeling very tired",
+    "Confusion"
+  ],
+  "Chronic kidney disease": [
+    "Swelling in ankles or legs",
+    "Reduced urine output",
+    "Persistent itching",
+    "Feeling nauseous",
+    "Unusual tiredness",
+    "Shortness of breath"
+  ],
+  "Osteoporosis": [
+    "Sudden, severe back pain",
+    "Loss of height",
+    "Change in posture or stooping",
+    "New bone pain"
+  ],
+  "Chronic hepatitis B": [
+    "Yellowing of the eyes or skin",
+    "Dark-colored urine",
+    "Swelling in the belly",
+    "Extreme tiredness",
+    "Confusion or mental fog",
+    "Persistent itching"
+  ],
+  "Cerebrovascular disease": [
+    "Sudden weakness on one side of the body",
+    "Slurred or garbled speech",
+    "Sudden numbness or tingling",
+    "Sudden loss of balance",
+    "Severe or unusual headache",
+    "Sudden vision changes"
+  ],
+  "Coronary heart disease": [
+    "Chest pain or pressure",
+    "Shortness of breath during activity",
+    "Pain spreading to the jaw or left arm",
+    "Sudden sweating with chest discomfort",
+    "Heart racing or fluttering",
+    "Feeling lightheaded or dizzy"
+  ],
+  "Benign prostatic hyperplasia": [
+    "Difficulty starting to urinate",
+    "Very weak or slow urine stream",
+    "Feeling like the bladder is not empty",
+    "Needing to urinate much more often at night",
+    "Sudden inability to pass urine",
+    "Blood in the urine"
+  ],
+  "Cataract": [
+    "Increasing cloudiness or blurriness",
+    "Increased glare or halos around lights",
+    "Difficulty seeing clearly at night",
+    "Colors appearing faded or yellowed",
+    "Difficulty seeing in bright light"
+  ],
+  "Chronic low back pain": [
+    "Pain spreading down the legs",
+    "Numbness or tingling in the legs or feet",
+    "Weakness in the legs",
+    "Pain that prevents sleeping",
+    "Sudden loss of bladder or bowel control"
+  ],
+  "Non-alcoholic fatty liver disease": [
+    "Yellowing of the eyes or skin",
+    "Swelling in the belly",
+    "Swelling in the legs",
+    "Confusion or mental fog",
+    "Easy bruising or bleeding",
+    "Pain in the upper right side of the belly"
+  ],
+  "COPD": [
+    "Increased shortness of breath",
+    "More mucus or phlegm than usual",
+    "Change in mucus color",
+    "Increased wheezing",
+    "Chest tightness",
+    "Coughing more frequently"
+  ],
+  "Atrial fibrillation": [
+    "Heart racing or pounding",
+    "Skipped or irregular heartbeats",
+    "Dizziness or lightheadedness",
+    "Fainting or feeling like passing out",
+    "Chest pain",
+    "Sudden shortness of breath"
+  ],
+  "Dementia": [
+    "Increased confusion or disorientation",
+    "New or worsening agitation",
+    "Changes in sleep patterns",
+    "Difficulty with daily tasks like dressing",
+    "Sudden changes in personality",
+    "Increased wandering"
+  ],
+  "Glaucoma": [
+    "Sudden blurring of vision",
+    "Seeing halos around lights",
+    "Severe eye pain or aching",
+    "Loss of side vision",
+    "Increased redness in the eye",
+    "Nausea or vomiting with eye pain"
+  ],
+  "Hypothyroidism": [
+    "Extreme tiredness or lethargy",
+    "Feeling unusually cold",
+    "Unexplained weight gain",
+    "Increased constipation",
+    "Mental slowness or brain fog",
+    "Dry or coarse skin"
+  ],
+  "Heart failure": [
+    "Increasing shortness of breath",
+    "Difficulty breathing when lying flat",
+    "Swelling in the ankles or legs",
+    "Sudden weight gain",
+    "Waking up at night gasping for air"
+  ],
+  "Asthma": [
+    "Increased wheezing",
+    "Tightness in the chest",
+    "More frequent coughing",
+    "Shortness of breath",
+    "Needing the rescue inhaler more often"
+  ],
+  "Gout": [
+    "Sudden, intense joint pain",
+    "Redness and warmth in a joint",
+    "Swelling in a joint",
+    "Increased pain when touching a joint",
+    "Difficulty walking due to joint pain"
+  ],
+  "Age-related macular degeneration": [
+    "Blurry vision in the center",
+    "Straight lines looking wavy or distorted",
+    "Dark or empty spots in the center of vision",
+    "Difficulty recognizing faces",
+    "Increased trouble reading"
+  ],
+  "Depression": [
+    "Loss of interest in usual activities",
+    "Feeling much more sad or hopeless",
+    "Sleeping much more or much less than usual",
+    "Significant changes in appetite",
+    "Withdrawing from friends and family",
+    "Feeling much more tired or low energy"
+  ],
+  "Rheumatoid arthritis": [
+    "Increased joint stiffness, especially in the morning",
+    "More swelling in the joints",
+    "Increased pain in multiple joints",
+    "Increased fatigue or tiredness",
+    "Joints feeling warmer to the touch"
+  ],
+  "Parkinson's disease": [
+    "Increased shaking or tremors",
+    "More stiffness in the arms or legs",
+    "Increased difficulty walking or balance issues",
+    "Difficulty swallowing food or liquids",
+    "More frequent 'freezing' when trying to move",
+    "Increased confusion or changes in thinking"
+  ],
+  "Allergic rhinitis": [
+    "Increased sneezing fits",
+    "More nasal congestion or stuffiness",
+    "Increased itchy or watery eyes",
+    "More frequent sinus pressure or pain",
+    "Increased coughing from post-nasal drip"
+  ],
+  "Generalised anxiety disorder": [
+    "Increased racing heart or palpitations",
+    "More frequent feelings of panic",
+    "Increased difficulty falling or staying asleep",
+    "More constant muscle tension or aches",
+    "Increased restlessness or inability to sit still"
+  ],
+  "Chronic gastritis": [
+    "Increased burning pain in the upper stomach",
+    "More frequent nausea",
+    "Increased vomiting",
+    "Feeling full very quickly after eating",
+    "Increased bloating or fullness"
+  ]
+}

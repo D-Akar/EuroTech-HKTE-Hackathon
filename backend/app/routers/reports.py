@@ -4,7 +4,7 @@ from datetime import date
 
 from fastapi import APIRouter, HTTPException, Response
 
-from .. import care_plan_store, data
+from .. import alerts, care_plan_store, data, fhir_source, wearable_source
 from ..report_pdf import build_report_pdf
 from ..report_summary import build_summary
 
@@ -24,10 +24,28 @@ def patient_report_pdf(patient_id: int) -> Response:
 
     checkins = data.get_checkins(patient_id)
     wearables = data.get_wearables(patient_id)
-    summary = build_summary(checkins, wearables)
+    vitals = (
+        wearable_source.raw_samples()
+        if patient_id == wearable_source.REAL_PATIENT_ID
+        else []
+    )
+    alert_list = alerts.alerts_for(patient_id, wearables, vitals)
+    profile = fhir_source.get_profile(patient_id)  # None for mock patients
     stored_plan = care_plan_store.get(patient_id)
     care_plan = stored_plan.care_plan if stored_plan else None
-    pdf = build_report_pdf(patient, summary, checkins, wearables, care_plan=care_plan)
+
+    summary = build_summary(
+        checkins, wearables, vitals, care_plan=care_plan, alerts=alert_list
+    )
+    pdf = build_report_pdf(
+        patient,
+        summary,
+        checkins,
+        wearables,
+        profile=profile,
+        alerts=alert_list,
+        care_plan=care_plan,
+    )
 
     filename = f"patient-{patient_id}-report-{date.today():%Y-%m-%d}.pdf"
     return Response(

@@ -282,10 +282,6 @@ pip install pytest httpx
 pytest
 ```
 
-## Not yet built (planned)
-
-Practices entity, authentication, a real database, write endpoints, and real
-telephony / wearable-device integrations. The FHIR/eHRSS integration, PDPO/encryption,
-and Cantonese-AI claims from `PROJECT.md` are **roadmap, not current capability** - see
-[`HONESTY.md`](HONESTY.md) for the full real-vs-mocked breakdown and
-[`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md) for the eHRSS engagement plan.
+For a candid map of what runs end to end versus what's synthetic seed data, see
+[`HONESTY.md`](HONESTY.md). The eHRSS/eHealth+ engagement plan lives in
+[`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md).

@@ -254,14 +254,31 @@ def test_care_plan_store_roundtrip():
     assert care_plan_store.delete(999) is False
 
 
+def _unique_named_patient():
+    """A patient whose display name is unique in the current roster.
+
+    Subject-matching is by display name, so the target must be unique to be
+    deterministic. We read the *live* ``data.PATIENTS`` because the FHIR overlay
+    mutates that global (renaming seed patients) whenever Mongo is reachable —
+    so a hardcoded seed name like "Margaret Holloway" breaks locally with the
+    Docker DB up while still passing on CI without it. Deriving the name keeps
+    the test correct in both environments.
+    """
+    from app import data
+
+    names = [p.name for p in data.PATIENTS]
+    return next(p for p in data.PATIENTS if names.count(p.name) == 1)
+
+
 def test_get_patient_by_subject():
     from app import data
 
-    p = data.get_patient_by_subject("Margaret Holloway")
-    assert p is not None and p.name == "Margaret Holloway"
+    target = _unique_named_patient()
+    p = data.get_patient_by_subject(target.name)
+    assert p is not None and p.name == target.name
 
-    assert data.get_patient_by_subject("margaret holloway") is not None  # case-insensitive
-    assert data.get_patient_by_subject("Nobody Here") is None
+    assert data.get_patient_by_subject(target.name.lower()) is not None  # case-insensitive
+    assert data.get_patient_by_subject("Definitely Nobody 9999") is None
     assert data.get_patient_by_subject("") is None
 
 
@@ -313,9 +330,13 @@ def test_upload_bad_document_422(client):
 
 
 def test_auto_match_endpoint(client):
-    r = client.post("/care-plans", content=json.dumps(CAREPLAN_R4))
+    # Build the subject from a real current patient so the auto-match lands
+    # deterministically even when the FHIR overlay has renamed seed patients.
+    target = _unique_named_patient()
+    plan = dict(CAREPLAN_R4, subject={"reference": f"Patient/{target.id}", "display": target.name})
+    r = client.post("/care-plans", content=json.dumps(plan))
     assert r.status_code == 200, r.text
-    assert r.json()["patient_id"] == 1  # "Margaret Holloway" is patient 1
+    assert r.json()["patient_id"] == target.id  # matched by subject display name
 
 
 def test_auto_match_no_subject_match_422(client):

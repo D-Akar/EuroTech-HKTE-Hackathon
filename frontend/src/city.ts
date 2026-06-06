@@ -118,6 +118,51 @@ export function placePatient(patient: Patient): PlacedPatient {
   };
 }
 
+// --- Real-world geography (for the Google Photorealistic 3D Tiles map) --------
+// Real WGS84 coordinates for each district, so a patient's marker lands on the
+// actual building when we render the photoreal globe. The center anchors the
+// ReorientationPlugin (Victoria Harbour, between Kowloon and the Island).
+
+export const HK_CENTER = { lat: 22.295, lon: 114.169 };
+
+export const DISTRICT_LATLON: Record<string, { lat: number; lon: number }> = {
+  // Kowloon (north of the harbour)
+  "Cheung Sha Wan": { lat: 22.337, lon: 114.1555 },
+  "Wong Tai Sin": { lat: 22.3415, lon: 114.1935 },
+  "Diamond Hill": { lat: 22.34, lon: 114.2015 },
+  "Sham Shui Po": { lat: 22.3303, lon: 114.162 },
+  "Mong Kok": { lat: 22.319, lon: 114.169 },
+  "Yau Ma Tei": { lat: 22.313, lon: 114.1705 },
+  "Tsim Sha Tsui": { lat: 22.2975, lon: 114.1722 },
+  "West Kowloon": { lat: 22.304, lon: 114.1605 },
+  "Hung Hom": { lat: 22.303, lon: 114.182 },
+  "Kowloon City": { lat: 22.328, lon: 114.19 },
+  // Hong Kong Island, north shore
+  "Kennedy Town": { lat: 22.281, lon: 114.1285 },
+  "Sheung Wan": { lat: 22.287, lon: 114.15 },
+  Central: { lat: 22.282, lon: 114.158 },
+  Admiralty: { lat: 22.279, lon: 114.165 },
+  "Wan Chai": { lat: 22.28, lon: 114.173 },
+  "Causeway Bay": { lat: 22.28, lon: 114.185 },
+  "North Point": { lat: 22.291, lon: 114.2 },
+  "Quarry Bay": { lat: 22.287, lon: 114.213 },
+  // Hills / south side
+  "The Peak": { lat: 22.271, lon: 114.149 },
+  Aberdeen: { lat: 22.248, lon: 114.155 },
+  Stanley: { lat: 22.219, lon: 114.212 },
+};
+
+/** A patient's real lat/lon: their district centre plus a stable jitter (~600 m). */
+export function patientLatLon(patient: Patient): { lat: number; lon: number } {
+  const base = DISTRICT_LATLON[patient.district] ?? HK_CENTER;
+  const rng = seeded(patient.id + 1000);
+  const angle = rng() * Math.PI * 2;
+  const radius = Math.sqrt(rng()) * 0.0055; // degrees (~610 m)
+  const dLat = Math.sin(angle) * radius;
+  const dLon = (Math.cos(angle) * radius) / Math.cos((base.lat * Math.PI) / 180);
+  return { lat: base.lat + dLat, lon: base.lon + dLon };
+}
+
 // --- Status system (colorblind-safe: hue + glyph + label + marker shape) ------
 
 export interface StatusMeta {

@@ -3,6 +3,7 @@ import type {
   CallConfig,
   CallRecord,
   CheckIn,
+  EscalationRecord,
   LiveVitals,
   Meta,
   Patient,
@@ -91,4 +92,19 @@ export const api = {
       "DELETE",
       `/patients/${patientId}/calls/schedules/${scheduleId}`,
     ),
+
+  // --- Real-time escalation ---
+  escalate: (
+    patientId: number,
+    body: {
+      reason: string;
+      source?: string;
+      notify_nurse?: boolean;
+      nurse_number?: string;
+    },
+  ) =>
+    sendJSON<EscalationRecord>("POST", `/patients/${patientId}/escalate`, body),
+
+  // Server-Sent Events stream — open with `new EventSource(api.eventsUrl())`.
+  eventsUrl: () => `${BASE_URL}/events`,
 };

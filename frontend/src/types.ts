@@ -60,6 +60,30 @@ export interface CallRecord {
   error: string | null;
 }
 
+// --- Real-time clinical escalation -------------------------------------------
+
+export interface EscalationRecord {
+  id: number;
+  patient_id: number;
+  patient_name: string;
+  reason: string;
+  source: string;
+  previous_status: PatientStatus;
+  status: PatientStatus;
+  triggered_at: string; // ISO datetime
+  nurse_call: CallRecord | null;
+}
+
+// SSE payload pushed on the `patient_status` event when a patient is escalated.
+export interface PatientStatusEvent {
+  patient_id: number;
+  status: PatientStatus;
+  previous_status: PatientStatus;
+  reason: string;
+  source: string;
+  at: string;
+}
+
 // --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----
 
 export type LiveSource = "live" | "ble" | "export-fallback" | "demo" | "none";

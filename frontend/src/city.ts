@@ -27,37 +27,55 @@ export interface District {
   z: number;
   /** Ground height: the southern hills sit higher than the reclaimed waterfront. */
   y: number;
-  /** Rough tower height multiplier — the dense cores spike, the suburbs stay low. */
+  /** How many towers spawn here — Mong Kok packs the most, suburbs the fewest. */
   density: number;
+  /**
+   * Tower height multiplier, separate from count. This is what gives the skyline
+   * its HK silhouette: Central spikes (IFC), the dense Kowloon residential cores
+   * stay mid-rise, and Kowloon City stays low (old Kai Tak flight-path limit).
+   */
+  height: number;
   side: "kowloon" | "island" | "hills";
 }
 
-// (name, nx, ny, elevation, density, side) — placed to match the real map.
-const _D: [string, number, number, number, number, District["side"]][] = [
-  // Kowloon (top mass) — clustered toward the centre of the peninsula
-  ["Sham Shui Po", 0.28, 0.2, 0, 0.8, "kowloon"],
-  ["Mong Kok", 0.36, 0.28, 0, 1.0, "kowloon"],
-  ["Yau Ma Tei", 0.36, 0.38, 0, 0.85, "kowloon"],
-  ["Tsim Sha Tsui", 0.41, 0.45, 0, 0.95, "kowloon"],
-  ["Kowloon City", 0.5, 0.25, 0, 0.7, "kowloon"],
-  // Hong Kong Island, north shore (bottom mass, along the harbour)
-  ["Sheung Wan", 0.2, 0.63, 0, 0.8, "island"],
-  ["Central", 0.3, 0.645, 0, 1.0, "island"],
-  ["Wan Chai", 0.42, 0.645, 0, 0.95, "island"],
-  ["Causeway Bay", 0.52, 0.645, 0, 0.9, "island"],
-  ["North Point", 0.66, 0.605, 0, 0.75, "island"],
-  ["Quarry Bay", 0.78, 0.565, 0, 0.7, "island"],
+// (name, nx, ny, elevation, density, height, side) — placed to match the real map.
+// density = how many towers; height = how tall. Tuned for a realistic HK profile.
+const _D: [string, number, number, number, number, number, District["side"]][] = [
+  // Kowloon (top mass) — clustered toward the centre of the peninsula.
+  // Packed with buildings but mostly mid-rise residential, except TST.
+  // Northern (New Kowloon) belt across the top edge — dense public housing.
+  ["Cheung Sha Wan", 0.13, 0.22, 0, 0.85, 0.6, "kowloon"], // NW, dense residential/industrial
+  ["Wong Tai Sin", 0.46, 0.15, 0, 0.85, 0.6, "kowloon"], // north-central public housing
+  ["Diamond Hill", 0.58, 0.14, 0, 0.8, 0.65, "kowloon"], // NE, dense mid-rise
+  ["Sham Shui Po", 0.20, 0.3, 0, 0.9, 0.55, "kowloon"], // old, very dense, low-mid
+  ["Mong Kok", 0.34, 0.28, 0, 1.0, 0.7, "kowloon"], // densest count, medium height
+  ["Yau Ma Tei", 0.36, 0.38, 0, 0.85, 0.6, "kowloon"],
+  ["Tsim Sha Tsui", 0.41, 0.45, 0, 0.95, 1.0, "kowloon"], // waterfront, tall
+  ["West Kowloon", 0.29, 0.41, 0, 0.65, 1.4, "kowloon"], // ICC — tallest tower in HK
+  ["Hung Hom", 0.5, 0.4, 0, 0.8, 0.72, "kowloon"], // harbour-front, east of TST
+  ["Kowloon City", 0.5, 0.25, 0, 0.7, 0.4, "kowloon"], // old airport: height-restricted, low
+  // Hong Kong Island, north shore (bottom mass, along the harbour). The financial
+  // core: fewer, far taller towers in Central, dense and tall eastward.
+  ["Kennedy Town", 0.1, 0.67, 0, 0.75, 0.7, "island"], // far-west shore, mid-rise residential
+  ["Sheung Wan", 0.2, 0.66, 0, 0.8, 0.75, "island"],
+  ["Central", 0.3, 0.66, 0, 1.0, 1.35, "island"], // the supertall core (IFC)
+  ["Admiralty", 0.36, 0.665, 0, 0.85, 1.1, "island"], // Pacific Place / govt HQ, tall
+  ["Wan Chai", 0.42, 0.68, 0, 0.95, 1.05, "island"], // Central Plaza, tall
+  ["Causeway Bay", 0.52, 0.7, 0, 0.95, 0.9, "island"],
+  ["North Point", 0.66, 0.605, 0, 0.8, 0.8, "island"], // dense residential, tall
+  ["Quarry Bay", 0.80, 0.565, 0, 0.85, 0.85, "island"], // "Monster Building" density
+
   // The hills and southern side of the island. Elevation stays 0 so markers rest
   // on the map floor, not floating where the old large hills used to be.
-  ["The Peak", 0.31, 0.74, 0, 0.3, "hills"],
-  ["Aberdeen", 0.24, 0.86, 0, 0.5, "hills"],
-  ["Stanley", 0.7, 0.88, 0, 0.4, "hills"],
+  ["The Peak", 0.31, 0.74, 0, 0.3, 0.3, "hills"],
+  ["Aberdeen", 0.24, 0.86, 0, 0.5, 0.5, "hills"],
+  ["Stanley", 0.7, 0.88, 0, 0.4, 0.4, "hills"],
 ];
 
 export const DISTRICTS: Record<string, District> = Object.fromEntries(
-  _D.map(([name, nx, ny, y, density, side]) => {
+  _D.map(([name, nx, ny, y, density, height, side]) => {
     const { x, z } = toWorld(nx, ny);
-    return [name, { name, x, z, y, density, side }];
+    return [name, { name, x, z, y, density, height, side }];
   }),
 );
 

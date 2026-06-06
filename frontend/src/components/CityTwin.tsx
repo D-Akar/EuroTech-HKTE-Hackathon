@@ -182,13 +182,14 @@ function useBuildings(): Building[] {
     };
     for (const d of Object.values(DISTRICTS)) {
       if (d.side === "hills") continue; // hill districts stay green — no towers on mountains
-      const count = Math.round(6 + d.density * 12);
+      const count = Math.round(6 + d.density * 12); // density drives how many towers
       const spread = 1.2 + d.density * 0.5;
       for (let i = 0; i < count; i++) {
         const a = rand() * Math.PI * 2;
         const r = Math.sqrt(rand()) * spread;
         const w = 0.28 + rand() * 0.34;
-        const h = (0.5 + rand() * 2.6) * (0.5 + d.density) + d.y * 0.4;
+        // height drives how tall, independently of count, for an HK-shaped skyline
+        const h = (0.5 + rand() * 2.6) * (0.4 + d.height) + d.y * 0.4;
         const col = base.clone();
         col.offsetHSL((rand() - 0.5) * 0.04, (rand() - 0.5) * 0.05, (rand() - 0.5) * 0.08);
         out.push({
@@ -462,7 +463,7 @@ function Scene({ patients, selectedId, statusFilter, paused, onSelect, onHover }
         minPolarAngle={0.15}
         maxPolarAngle={Math.PI / 2.15}
         autoRotate={!reduced && selectedId === null && !paused}
-        autoRotateSpeed={0.35}
+        autoRotateSpeed={0.175}
         enableDamping
         dampingFactor={0.08}
         target={[0, 0, 0]}

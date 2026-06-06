@@ -1,6 +1,7 @@
 """Outbound check-in call endpoints, nested under a patient."""
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi.responses import StreamingResponse
 
 from .. import (
     call_store,
@@ -23,6 +24,7 @@ from ..models import (
     TriggerRequest,
 )
 from ..services import elevenlabs_conversations, telephony
+from ..services import elevenlabs_monitor as monitor
 
 router = APIRouter(prefix="/patients/{patient_id}/calls", tags=["calls"])
 
@@ -159,6 +161,44 @@ async def get_call_audio(patient_id: int, call_id: int) -> Response:
         media_type="audio/mpeg",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/{call_id}/live")
+async def live_call_transcript(patient_id: int, call_id: int, request: Request) -> StreamingResponse:
+    """Stream a live call's transcript as it is spoken (Server-Sent Events).
+
+    Proxies the ElevenLabs real-time monitor WebSocket (Enterprise-only) down to the
+    browser as SSE: ``event: ready`` immediately, one ``event: turn`` per spoken
+    turn, then a terminal ``event: end`` when the call finishes. Any failure (no
+    Enterprise access, call already over, telephony unconfigured) ends the stream
+    cleanly so the UI falls back to the post-call conversation view.
+    """
+    _require_patient(patient_id)
+    record = call_store.get_call_record(patient_id, call_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+    if not record.conversation_id:
+        raise HTTPException(status_code=404, detail="No conversation for this call")
+    conversation_id = record.conversation_id
+
+    async def gen():
+        yield "event: ready\ndata: {}\n\n"
+        async for turn in monitor.stream_turns(conversation_id):
+            if await request.is_disconnected():
+                return  # client gone: closing the generator closes the upstream WS
+            yield monitor.format_sse(turn)
+        # Upstream closed on its own (call ended). Tell the client it's over so
+        # EventSource stops reconnecting and the row flips to the post-call view.
+        # (Not in a finally: a disconnect closes us via GeneratorExit, during which
+        # yielding is illegal — and the cleanup we need lives in stream_turns.)
+        yield "event: end\ndata: {}\n\n"
+
+    headers = {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",  # disable proxy buffering so turns flush immediately
+    }
+    return StreamingResponse(gen(), media_type="text/event-stream", headers=headers)
 
 
 @router.get("/config", response_model=CallConfig)

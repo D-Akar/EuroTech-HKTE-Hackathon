@@ -35,7 +35,7 @@ three, aim to cover different angles:
   **refers back to what they said** and asks whether it is still happening or has
   changed. For example, if yesterday they mentioned feeling dizzy and dizziness is a
   worsening sign of one of their conditions, ask something like: "Yesterday you
-  mentioned feeling a bit dizzy — have you felt dizzy again today, or has that
+  mentioned feeling a bit dizzy. Have you felt dizzy again today, or has that
   eased?"
 - **Proactive monitoring.** Pick a different chronic condition (or a different
   warning sign they have NOT yet reported) and gently ask whether they have noticed
@@ -49,6 +49,9 @@ Rules:
 - One topic per question. Keep each question to a single, clear sentence a hard-of-
   hearing elderly person could follow.
 - Plain English, no medical jargon (say "short of breath", not "dyspnoea").
+- Do NOT use em dashes or double dashes ("—", "--") anywhere in a question. Write
+  the question as one or two short, complete sentences instead, using a comma, a
+  period, or the word "and" where you would otherwise reach for a dash.
 - Never invent symptoms the patient did not report and that are not in the guide.
 - If the patient had no complaints recently, lean on proactive monitoring of their
   chronic conditions' warning signs plus a wellbeing question.
@@ -65,7 +68,7 @@ The JSON is a **single object** of this shape:
 {
   "questions": [
     {
-      "text": "Yesterday you said you felt dizzy when standing up — has that happened again today?",
+      "text": "Yesterday you said you felt dizzy when standing up. Has that happened again today?",
       "category": "symptom_followup",
       "related_condition": "Essential hypertension",
       "related_symptom": "Dizziness"

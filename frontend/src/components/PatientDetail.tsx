@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type {
   Alert,
@@ -77,6 +77,13 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
     };
   }, [patient.id, isFeatured, isFhirBacked]);
 
+  // Pull the check-in history again on its own (used when a call finishes
+  // analysing) so the latest call's summary card surfaces at the top without a
+  // full patient reload.
+  const reloadCheckins = useCallback(() => {
+    api.getCheckins(patient.id).then(setCheckins).catch(() => {});
+  }, [patient.id]);
+
   async function handleEscalateCall() {
     setCallBusy(true);
     setCallMessage(null);
@@ -129,6 +136,9 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
 
   return (
     <section className="detail" aria-label={`${patient.name} detail`}>
+      <button className="detail-close" onClick={onClose} aria-label="Close patient detail">
+        <CloseGlyph />
+      </button>
       <div className="detail-scroll">
         <div className="detail-header">
           <div>
@@ -150,9 +160,6 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
               <DownloadGlyph /> Clinician report
             </a>
           </div>
-          <button className="detail-close" onClick={onClose} aria-label="Close patient detail">
-            <CloseGlyph />
-          </button>
         </div>
 
         {error && <p className="call-error">Failed to load: {error}</p>}
@@ -190,7 +197,11 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
             <QuestionsPanel patientId={patient.id} />
-            <CallPanel patient={patient} onPatientUpdate={onPatientUpdate} />
+            <CallPanel
+              patient={patient}
+              onPatientUpdate={onPatientUpdate}
+              onCallCompleted={reloadCheckins}
+            />
             <ScreeningPanel patient={patient} />
             <CarePlanPanel patient={patient} />
           </>

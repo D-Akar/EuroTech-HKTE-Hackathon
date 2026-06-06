@@ -8,6 +8,7 @@ without touching readers. Resets on restart.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import date
 
@@ -71,6 +72,34 @@ async def get_detail(conversation_id: str) -> ConversationDetail | None:
     if detail is not None:
         _remember(detail)
     return detail
+
+
+async def ensure_materialized(
+    conversation_id: str, *, attempts: int = 40, interval: float = 15.0
+) -> None:
+    """Poll ElevenLabs until this call's analysis is terminal, so its check-in gets
+    saved even when no one has the call open in the dashboard.
+
+    ``get_detail`` materializes the check-in the moment it sees a terminal "done",
+    so all this does is keep asking until that happens (or we give up). Designed to
+    be fired with ``asyncio.create_task`` after an emergency/auto call is placed.
+    Never raises - a background task must not crash the loop.
+    """
+    for _ in range(attempts):
+        if conversation_id in _CACHE:
+            return  # already terminal + materialized
+        try:
+            detail = await get_detail(conversation_id)
+        except Exception:  # noqa: BLE001 - keep polling through transient errors
+            detail = None
+        if detail is not None and detail.status in _TERMINAL:
+            return
+        await asyncio.sleep(interval)
+    log.info(
+        "Gave up materializing conversation %s after %d attempts; it never reached "
+        "a terminal state.",
+        conversation_id, attempts,
+    )
 
 
 async def latest_digest(patient_id: int) -> str | None:

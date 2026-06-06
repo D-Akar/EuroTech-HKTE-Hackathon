@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { ConversationDataPoint, ConversationDetail } from "../types";
 
@@ -63,6 +63,7 @@ export function CallConversation({
   const [loading, setLoading] = useState(true);
   const [showTranscript, setShowTranscript] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const attemptsRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +78,24 @@ export function CallConversation({
       cancelled = true;
     };
   }, [patientId, callId, reloadKey]);
+
+  // Reset the retry budget whenever we switch to a different call.
+  useEffect(() => {
+    attemptsRef.current = 0;
+  }, [patientId, callId]);
+
+  // While ElevenLabs is still analysing, re-fetch on a timer so the summary
+  // fills in on its own - no "Check again" tapping. Capped so it can't poll
+  // forever on a call that never finishes analysing.
+  useEffect(() => {
+    if (!detail || detail.ready || error) return;
+    if (attemptsRef.current >= 30) return;
+    const id = setTimeout(() => {
+      attemptsRef.current += 1;
+      setReloadKey((k) => k + 1);
+    }, 5000);
+    return () => clearTimeout(id);
+  }, [detail, error]);
 
   if (loading) {
     return (
@@ -98,10 +117,10 @@ export function CallConversation({
     return (
       <div className="conv-detail">
         <p className="muted">
-          ElevenLabs is still analysing this call ({detail.status}).
+          <span className="analysing-dot" aria-hidden /> Analysing this call ({detail.status})… updates automatically.
         </p>
         <button className="link-btn" onClick={() => setReloadKey((k) => k + 1)}>
-          Check again
+          Check now
         </button>
       </div>
     );
@@ -168,29 +187,37 @@ export function CallConversation({
         </div>
       )}
 
-      {detail.transcript.length > 0 && (
-        <>
+      <div className="conv-actions">
+        {detail.transcript.length > 0 && (
           <button
             className="link-btn"
             onClick={() => setShowTranscript((s) => !s)}
           >
             {showTranscript ? "Hide transcript" : "Show transcript"}
           </button>
-          {showTranscript && (
-            <div className="conv-transcript">
-              {detail.transcript
-                .filter((t) => t.message)
-                .map((t, i) => (
-                  <div key={i} className={`conv-turn conv-turn-${t.role}`}>
-                    <span className="conv-turn-role">
-                      {t.role === "agent" ? "Agent" : "Patient"}
-                    </span>
-                    <span className="conv-turn-msg">{t.message}</span>
-                  </div>
-                ))}
-            </div>
-          )}
-        </>
+        )}
+        <a
+          className="link-btn"
+          href={api.callAudioUrl(patientId, callId)}
+          download
+        >
+          Download audio
+        </a>
+      </div>
+
+      {showTranscript && detail.transcript.length > 0 && (
+        <div className="conv-transcript">
+          {detail.transcript
+            .filter((t) => t.message)
+            .map((t, i) => (
+              <div key={i} className={`conv-turn conv-turn-${t.role}`}>
+                <span className="conv-turn-role">
+                  {t.role === "agent" ? "Agent" : "Patient"}
+                </span>
+                <span className="conv-turn-msg">{t.message}</span>
+              </div>
+            ))}
+        </div>
       )}
     </div>
   );

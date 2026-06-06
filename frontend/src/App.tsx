@@ -279,26 +279,6 @@ export default function App() {
             />
           )}
 
-          <div className="stage-overlay">
-            <div className="stage-title">
-              <h2>Live care twin · Hong Kong</h2>
-              <p>
-                {displayPatients.length} patients monitored ·{" "}
-                {counts.urgent > 0
-                  ? `${counts.urgent} needing immediate care`
-                  : "all under watch"}
-              </p>
-            </div>
-            <div className="legend">
-              {STATUS_ORDER.map((s) => (
-                <span className="legend-item" key={s}>
-                  <span className={`legend-swatch ${s}`} />
-                  {STATUS[s].label}
-                </span>
-              ))}
-            </div>
-          </div>
-
           {loaded && displayPatients.length === 0 && !error && (
             <div className="stage-empty">
               <div>

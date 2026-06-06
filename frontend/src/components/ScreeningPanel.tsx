@@ -58,7 +58,7 @@ export function ScreeningPanel({ patient }: { patient: Patient }) {
         <div>
           <h3>Cognitive screening</h3>
           <p className="screening-sub">
-            Voice biomarker check · Mini-Cog recall, orientation &amp; verbal fluency
+            Voice biomarker check · three-word recall &amp; orientation
           </p>
         </div>
         <button className="btn btn-screen" onClick={handleScreen} disabled={busy}>

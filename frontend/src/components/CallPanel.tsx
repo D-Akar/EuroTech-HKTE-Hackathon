@@ -1,14 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
 
+// How often we re-check for a finished call's analysis while a patient is open.
+const POLL_MS = 6000;
+
 export function CallPanel({
   patient,
   onPatientUpdate,
+  onCallCompleted,
 }: {
   patient: Patient;
   onPatientUpdate?: (patient: Patient) => void;
+  onCallCompleted?: () => void;
 }) {
   const [toNumber, setToNumber] = useState(patient.phone_number);
   const [questions, setQuestions] = useState<string[]>([]);
@@ -24,6 +29,14 @@ export function CallPanel({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [openCallId, setOpenCallId] = useState<number | null>(null);
+  const [analysing, setAnalysing] = useState(false);
+
+  // Calls whose analysis we've already surfaced - so reopening a patient never
+  // auto-expands an old, already-finished call, only ones that finish live.
+  const settledRef = useRef<Set<number>>(new Set());
+
+  const onCallCompletedRef = useRef(onCallCompleted);
+  onCallCompletedRef.current = onCallCompleted;
 
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
@@ -32,6 +45,7 @@ export function CallPanel({
     setStatus(null);
     setError(null);
     setOpenCallId(null);
+    setAnalysing(false);
     Promise.all([
       api.getCallConfig(patient.id),
       api.listSchedules(patient.id),
@@ -44,12 +58,52 @@ export function CallPanel({
         setSystemPrompt(config.system_prompt ?? "");
         setSchedules(sched);
         setHistory(hist);
+        // Treat everything already on record as settled; only calls that finish
+        // while we're watching should auto-surface.
+        settledRef.current = new Set(hist.map((r) => r.id));
       })
       .catch((e) => !cancelled && setError(String(e)));
     return () => {
       cancelled = true;
     };
   }, [patient.id, patient.phone_number]);
+
+  // Poll while a patient is open: pick up newly-placed calls (manual, scheduled,
+  // or auto-escalated) and wait for ElevenLabs to finish analysing the newest
+  // one. The moment it's ready we expand it and refresh the check-in summary at
+  // the top - no manual clicking or page reload.
+  useEffect(() => {
+    let cancelled = false;
+    const tick = async () => {
+      let hist: CallRecord[];
+      try {
+        hist = await api.getCallHistory(patient.id);
+      } catch {
+        return;
+      }
+      if (cancelled) return;
+      setHistory(hist);
+      const newest = hist.find((r) => r.conversation_id);
+      if (!newest || settledRef.current.has(newest.id)) {
+        setAnalysing(false);
+        return;
+      }
+      setAnalysing(true);
+      const detail = await api
+        .getCallConversation(patient.id, newest.id)
+        .catch(() => null);
+      if (cancelled || !detail?.ready) return;
+      settledRef.current.add(newest.id);
+      setAnalysing(false);
+      setOpenCallId(newest.id);
+      onCallCompletedRef.current?.();
+    };
+    const id = setInterval(tick, POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [patient.id]);
 
   const refreshHistory = () =>
     api.getCallHistory(patient.id).then(setHistory).catch(() => {});
@@ -64,6 +118,7 @@ export function CallPanel({
       const record = await api.triggerCall(patient.id, { to_number: toNumber });
       if (record.status === "initiated") {
         setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "-"}).`);
+        setAnalysing(true); // poll will surface the summary once analysis lands
       } else {
         setError(record.error ?? "Call failed.");
       }
@@ -282,7 +337,14 @@ export function CallPanel({
 
       {/* History */}
       <div className="call-block">
-        <span className="field-label">Recent calls</span>
+        <div className="call-block-head">
+          <span className="field-label">Recent calls</span>
+          {analysing && (
+            <span className="analysing-tag">
+              <span className="analysing-dot" aria-hidden /> Analysing latest call…
+            </span>
+          )}
+        </div>
         {history.length === 0 ? (
           <p className="muted" style={{ fontSize: 13.5, margin: "8px 0 0" }}>
             No calls yet.

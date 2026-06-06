@@ -141,6 +141,8 @@ export const api = {
     getJSON<ConversationDetail>(
       `/patients/${patientId}/calls/${callId}/conversation`,
     ),
+  callAudioUrl: (patientId: number, callId: number) =>
+    `${BASE_URL}/patients/${patientId}/calls/${callId}/audio`,
   listSchedules: (patientId: number) =>
     getJSON<ScheduledCall[]>(`/patients/${patientId}/calls/schedules`),
   cancelSchedule: (patientId: number, scheduleId: number) =>

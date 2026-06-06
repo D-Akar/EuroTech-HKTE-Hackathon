@@ -144,3 +144,24 @@ async def fetch_conversation(conversation_id: str) -> ConversationDetail | None:
     except Exception as exc:  # noqa: BLE001 - never let a fetch failure crash a route
         logger.warning("Failed to fetch conversation %s: %s", conversation_id, exc)
         return None
+
+
+async def fetch_conversation_audio(conversation_id: str) -> bytes | None:
+    """Download the recorded call audio (mp3) for a conversation, or None.
+
+    Returns None when telephony isn't configured, the recording isn't ready yet, or
+    the request fails - the caller turns that into a 404/409 rather than crashing.
+    """
+    if not settings.elevenlabs_api_key:
+        return None
+
+    url = f"{settings.elevenlabs_conversations_url}/{conversation_id}/audio"
+    headers = {"xi-api-key": settings.elevenlabs_api_key}
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        return resp.content
+    except Exception as exc:  # noqa: BLE001 - never let a fetch failure crash a route
+        logger.warning("Failed to fetch audio for conversation %s: %s", conversation_id, exc)
+        return None

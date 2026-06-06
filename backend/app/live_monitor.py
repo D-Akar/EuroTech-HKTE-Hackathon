@@ -140,6 +140,14 @@ async def emergency_call(patient: Patient, reason: str) -> CallRecord | None:
     questions = call_store.get_config(patient.id).questions
     call = await telephony.place_call(patient, to_number, questions, kind="auto")
 
+    # Persist this episode: poll the call's analysis in the background until it's
+    # done so it materializes into a saved check-in summary, even though no one may
+    # have the patient open in the dashboard.
+    if call.conversation_id:
+        from . import conversation_store  # late import avoids an import cycle
+
+        asyncio.create_task(conversation_store.ensure_materialized(call.conversation_id))
+
     # If the dial never connected, escalate to the nurse promptly; otherwise give
     # the patient's phone time to ring before deciding they didn't answer.
     delay = NO_ANSWER_SECS if call.status == "initiated" else 1.0

@@ -373,6 +373,13 @@ button {
   transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
 }
 
+.search input::placeholder,
+.input::placeholder,
+textarea.input::placeholder {
+  color: var(--faint);
+  opacity: 1;
+}
+
 .search input:focus {
   outline: none;
   border-color: var(--accent);
@@ -443,12 +450,14 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 4px oklch(0 0 0 / 0.5);
 }
 
 .patient-row-sub {
   font-size: 12.5px;
   color: var(--muted);
   margin-top: 1px;
+  text-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
 }
 
 /* =============================================================================
@@ -674,15 +683,15 @@ button {
 .command-bar,
 .roster-drawer,
 .detail {
-  /* Dark-tinted vibrancy: low alpha so the map reads through, but a low lightness
-     floor keeps white text legible even over the bright sky/horizon band up top. */
-  --glass-bg: oklch(0.17 0.018 256 / 0.3);
-  --glass-border: oklch(1 0 0 / 0.18);
+  /* Dark-tinted vibrancy: very low alpha so the map reads through, but a low
+     lightness floor keeps white text legible even over the bright sky band up top. */
+  --glass-bg: oklch(0.16 0.018 256 / 0.08);
+  --glass-border: oklch(1 0 0 / 0.12);
 
-  --text: oklch(0.99 0.003 230);
-  --text-soft: oklch(0.92 0.01 232);
-  --muted: oklch(0.83 0.015 235);
-  --faint: oklch(0.72 0.02 238);
+  --text: oklch(0.995 0.002 230);
+  --text-soft: oklch(0.95 0.008 232);
+  --muted: oklch(0.9 0.012 235);
+  --faint: oklch(0.82 0.016 238);
 
   --surface: oklch(1 0 0 / 0.06);
   --surface-raised: oklch(1 0 0 / 0.1);
@@ -770,21 +779,41 @@ button {
   margin-top: 3px;
 }
 
+/* Floating close button: a direct child of .detail (not the scroller) so it
+   stays pinned to the panel's top-right corner no matter how far you scroll. */
 .detail-close {
-  border: 1px solid var(--border);
-  background: var(--surface-raised);
-  color: var(--muted);
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  background: oklch(0.16 0.018 256 / 0.55);
+  -webkit-backdrop-filter: blur(12px) saturate(1.6);
+  backdrop-filter: blur(12px) saturate(1.6);
+  color: var(--text-soft);
+  border-radius: 50%;
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+  box-shadow: 0 6px 18px -8px oklch(0 0 0 / 0.6);
+  transition: background 0.16s var(--ease), color 0.16s var(--ease),
+    transform 0.16s var(--ease), border-color 0.16s var(--ease);
 }
 .detail-close:hover {
-  background: var(--surface-sunken);
+  background: oklch(0.22 0.02 256 / 0.7);
+  border-color: var(--accent-ring);
   color: var(--text);
+  transform: scale(1.06);
+}
+.detail-close:active {
+  transform: scale(0.96);
+}
+
+/* Keep the header title clear of the floating close button. */
+.detail-header {
+  padding-right: 42px;
 }
 
 .report-link {
@@ -1194,6 +1223,41 @@ button {
   margin-bottom: 10px;
 }
 
+.analysing-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--accent-strong);
+}
+
+.analysing-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: analysing-pulse 1.4s var(--ease) infinite;
+}
+
+@keyframes analysing-pulse {
+  0% {
+    opacity: 0.45;
+    box-shadow: 0 0 0 0 color-mix(in oklch, currentColor 60%, transparent);
+  }
+  70% {
+    opacity: 1;
+    box-shadow: 0 0 0 6px color-mix(in oklch, currentColor 0%, transparent);
+  }
+  100% {
+    opacity: 0.45;
+    box-shadow: 0 0 0 0 color-mix(in oklch, currentColor 0%, transparent);
+  }
+}
+
 .question-row {
   display: flex;
   gap: 6px;
@@ -1518,6 +1582,16 @@ button {
   color: var(--muted);
 }
 
+.conv-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.conv-actions .link-btn {
+  text-decoration: none;
+}
+
 .conv-summary {
   margin: 0;
   font-size: 13.5px;
@@ -1824,20 +1898,33 @@ button {
 .med-profile {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 4px;
 }
 .med-meta {
-  font-size: 12.5px;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--muted);
   text-transform: capitalize;
+  padding-bottom: 14px;
+}
+
+/* Each record section reads as its own paragraph: a hairline rule and generous
+   space above it separate it cleanly from the previous block. */
+.med-group {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.med-group:first-of-type {
+  padding-top: 0;
+  border-top: none;
 }
 .med-group-title {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 650;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 .med-list {
   list-style: none;
@@ -1845,18 +1932,21 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
+/* Plain rows with hairline separators instead of stacked cards - much calmer
+   when a patient has a long medication or condition list. */
 .med-list li {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 7px 11px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
+  padding: 8px 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+}
+.med-list li:last-child {
+  border-bottom: none;
 }
 .med-name {
   color: var(--text);
@@ -1866,6 +1956,7 @@ button {
   color: var(--muted);
   font-size: 12px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .med-chips {
   display: flex;
@@ -1874,16 +1965,17 @@ button {
 }
 .med-chip.allergy {
   font-size: 12px;
+  font-weight: 550;
   padding: 3px 10px;
   border-radius: var(--radius-sm);
-  background: var(--status-attention-soft);
-  color: oklch(0.45 0.1 70);
-  border: 1px solid oklch(0.85 0.08 80);
+  background: oklch(0.84 0.15 85 / 0.14);
+  color: oklch(0.86 0.15 85);
+  border: 1px solid oklch(0.84 0.15 85 / 0.32);
 }
 .med-chip.allergy.critical {
-  background: var(--status-urgent-soft);
-  color: var(--status-urgent);
-  border-color: oklch(0.8 0.1 30);
+  background: oklch(0.72 0.19 25 / 0.18);
+  color: oklch(0.82 0.18 24);
+  border-color: oklch(0.72 0.19 25 / 0.4);
 }
 
 /* Demo toggle in the command bar */
@@ -2441,6 +2533,64 @@ button {
   box-shadow: 0 0 20px -6px var(--accent), var(--shadow-sm);
 }
 :root[data-theme="dark"] .btn-call {
+  color: white;
+}
+
+/* --- Glass-panel buttons: transparent fills, white text ---------------------
+   Inside the floating glass chrome the solid cyan fills + dark text read as
+   "blue stuff" floating on the map. Override them to a translucent white tile
+   with white text. Placed after the dark-theme button rules so it wins the
+   specificity tie. The call button keeps its urgent red - it's the dial action. */
+.command-bar .btn,
+.command-bar .btn-ghost,
+.command-bar .btn-screen,
+.roster-drawer .btn,
+.roster-drawer .btn-ghost,
+.detail .btn,
+.detail .btn-ghost,
+.detail .btn-screen {
+  background: oklch(1 0 0 / 0.1);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  box-shadow: none;
+}
+.command-bar .btn:hover,
+.command-bar .btn-ghost:hover,
+.command-bar .btn-screen:hover,
+.roster-drawer .btn:hover,
+.roster-drawer .btn-ghost:hover,
+.detail .btn:hover,
+.detail .btn-ghost:hover,
+.detail .btn-screen:hover {
+  background: oklch(1 0 0 / 0.18);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.detail .btn-call {
+  background: var(--status-urgent);
+  border-color: transparent;
+  color: white;
+}
+.detail .btn-call:hover {
+  background: oklch(0.55 0.18 28);
+}
+
+.detail .btn-remove {
+  color: var(--text-soft);
+  background: oklch(1 0 0 / 0.08);
+  border: 1px solid var(--border);
+}
+.detail .btn-remove:hover {
+  color: white;
+  background: oklch(0.72 0.19 25 / 0.24);
+}
+
+.detail .link-btn,
+.command-bar .link-btn {
+  color: var(--text);
+}
+.detail .link-btn:hover {
   color: white;
 }
 

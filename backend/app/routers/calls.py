@@ -1,8 +1,16 @@
 """Outbound check-in call endpoints, nested under a patient."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 
-from .. import call_store, cognitive_demo, conversation_store, data, live_monitor, scheduler
+from .. import (
+    call_store,
+    cognitive_demo,
+    conversation_store,
+    data,
+    live_monitor,
+    scheduler,
+    screening,
+)
 from ..config import settings
 from ..models import (
     CallConfig,
@@ -14,7 +22,7 @@ from ..models import (
     ScheduleRequest,
     TriggerRequest,
 )
-from ..services import telephony
+from ..services import elevenlabs_conversations, telephony
 
 router = APIRouter(prefix="/patients/{patient_id}/calls", tags=["calls"])
 
@@ -56,13 +64,18 @@ async def screening_call(patient_id: int, body: TriggerRequest) -> CallRecord:
     to_number = body.to_number or patient.phone_number
     if not to_number:
         raise HTTPException(status_code=400, detail="No phone number for this patient")
-    # The screening agent runs a fixed protocol, so no per-call questions are sent.
+    # Drive the screening agent with our scripted, self-scoring protocol (3-word
+    # recall + orientation, no animal-fluency task) so wrong answers actually
+    # escalate to the nurse mid-call. Requires the screening agent to have prompt
+    # overrides + the escalate_emergency tool enabled.
     return await telephony.place_call(
         patient,
         to_number,
         questions=[],
         kind="screening",
         agent_id=settings.elevenlabs_screening_agent_id,
+        system_prompt=screening.system_prompt(patient),
+        first_message=screening.first_message(patient),
     )
 
 
@@ -122,6 +135,30 @@ async def get_call_conversation(patient_id: int, call_id: int) -> ConversationDe
     if detail is None:
         raise HTTPException(status_code=404, detail="Conversation data unavailable")
     return detail
+
+
+@router.get("/{call_id}/audio")
+async def get_call_audio(patient_id: int, call_id: int) -> Response:
+    """Download the recorded call audio (mp3) for one call.
+
+    Proxies the ElevenLabs recording so the dashboard can offer a download without
+    exposing the API key. 409 while the recording isn't ready yet.
+    """
+    _require_patient(patient_id)
+    record = call_store.get_call_record(patient_id, call_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+    if not record.conversation_id:
+        raise HTTPException(status_code=404, detail="No conversation for this call")
+    audio = await elevenlabs_conversations.fetch_conversation_audio(record.conversation_id)
+    if not audio:
+        raise HTTPException(status_code=409, detail="Recording not available yet")
+    filename = f"call-{patient_id}-{call_id}.mp3"
+    return Response(
+        content=audio,
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/config", response_model=CallConfig)

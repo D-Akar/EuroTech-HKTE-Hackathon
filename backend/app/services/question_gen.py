@@ -18,7 +18,7 @@ import sys
 import threading
 from pathlib import Path
 
-from .. import data, fhir_source
+from .. import checkin_store, data, fhir_source
 from ..models import GeneratedQuestion, Patient, PatientQuestions
 
 # repo root: backend/app/services/question_gen.py -> parents[3]
@@ -203,7 +203,12 @@ def generate_for_patient(patient: Patient, *, client=None, persist: bool = True)
     Pass ``persist=False`` for a dry run that doesn't touch the JSON store.
     """
     conditions = patient_conditions(patient.id)
-    checkins = data.get_checkins(patient.id)
+    # Merge call-derived check-ins (materialized the instant a call finishes
+    # analysing) with the synthetic daily history, exactly like the /checkins
+    # endpoint. Putting the derived ones first means a summary generated moments
+    # before "Regenerate" wins the newest-first slice in render_checkins, so the
+    # model always reasons over the very latest days.
+    checkins = checkin_store.list_for_patient(patient.id) + data.get_checkins(patient.id)
     guide = load_guide()
     symptom_text = render_symptom_guide(relevant_symptoms(conditions, guide))
     user = build_user_message(

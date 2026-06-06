@@ -1,20 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Careloop · Hong Kong care grid</title>
-    <script>
-      // Set the theme before first paint to avoid a flash (dark is the default).
-      (function () {
-        try {
-          var t = localStorage.getItem("careloop-theme");
-          document.documentElement.dataset.theme = t === "light" ? "light" : "dark";
-        } catch (e) {
-          document.documentElement.dataset.theme = "dark";
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

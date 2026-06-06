@@ -5,7 +5,6 @@ import { PatientDetail } from "./components/PatientDetail";
 import { PatientList } from "./components/PatientList";
 import { useLiveVitals } from "./hooks/useLiveVitals";
 import { useBleHeartRate } from "./hooks/useBleHeartRate";
-import { useTheme } from "./hooks/useTheme";
 import { assessLive } from "./lib/liveAssessment";
 import { STATUS, STATUS_ORDER } from "./city";
 import type { LiveVitals, Meta, Patient, PatientStatus, PatientStatusEvent } from "./types";
@@ -54,7 +53,6 @@ export default function App() {
     return () => es.close();
   }, []);
 
-  const [theme, toggleTheme] = useTheme();
   const featuredId = meta?.featured_patient_id ?? null;
   const live = useLiveVitals(featuredId, demo, manualHr);
   const ble = useBleHeartRate();
@@ -250,15 +248,6 @@ export default function App() {
           </div>
         )}
 
-        <button
-          className="theme-toggle"
-          onClick={toggleTheme}
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
-
         <Clock />
       </header>
 
@@ -353,19 +342,3 @@ function PanelIcon() {
   );
 }
 
-function SunIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-    </svg>
-  );
-}

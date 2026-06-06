@@ -904,19 +904,19 @@
     "chronic_conditions": [],
     "questions": [
       {
-        "text": "You mentioned that your back pain has been getting worse lately. Is it feeling any better or worse today?",
+        "text": "You mentioned having some back pain and feeling a bit weak recently. Is your back feeling any better today?",
         "category": "symptom_followup",
         "related_condition": null,
-        "related_symptom": "Back pain"
+        "related_symptom": "back pain"
       },
       {
-        "text": "A few days ago you mentioned feeling a bit unsteady. Have you felt any more wobbly or confused since then?",
-        "category": "symptom_followup",
+        "text": "Have you felt any dizziness or lightheadedness since we last spoke?",
+        "category": "proactive_monitoring",
         "related_condition": null,
-        "related_symptom": "Unsteady/Confused"
+        "related_symptom": "dizziness"
       },
       {
-        "text": "How have you been sleeping over the last night or two?",
+        "text": "How have you been sleeping lately?",
         "category": "wellbeing",
         "related_condition": null,
         "related_symptom": null

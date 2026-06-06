@@ -14,7 +14,8 @@
     "3d-tiles-renderer": "^0.4.27",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "three": "^0.169.0"
+    "three": "^0.169.0",
+    "vercel": "^54.9.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",

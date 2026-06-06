@@ -10,6 +10,37 @@ export interface Patient {
   practice: string;
   district: string;
   phone_number: string;
+  fhir_id: string | null; // set when backed by a real MongoDB FHIR record
+}
+
+// --- Real FHIR medical profile (MongoDB-backed patients) ---
+
+export interface Condition {
+  name: string;
+  onset_date: string | null;
+}
+
+export interface Medication {
+  name: string;
+  frequency: string | null;
+  prescribed_date: string | null;
+}
+
+export interface Allergy {
+  substance: string;
+  type: string | null;
+  criticality: string | null;
+}
+
+export interface MedicalProfile {
+  patient_id: number;
+  fhir_id: string;
+  gender: string | null;
+  birth_date: string | null;
+  preferred_language: string | null;
+  chronic_conditions: Condition[];
+  allergies: Allergy[];
+  active_medications: Medication[];
 }
 
 export interface CheckIn {

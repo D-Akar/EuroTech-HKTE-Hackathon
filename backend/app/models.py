@@ -27,6 +27,42 @@ class Patient(BaseModel):
     practice: str
     district: str = ""  # Hong Kong district the patient lives in (for the city twin)
     phone_number: str = ""  # E.164 number the check-in call is placed to
+    # Set when this dashboard slot is backed by a real FHIR record in MongoDB
+    # (see app/fhir_source.py). None for mock patients.
+    fhir_id: str | None = None
+
+
+# --- Real FHIR medical profile (MongoDB-backed patients) ---------------------
+
+
+class Condition(BaseModel):
+    name: str
+    onset_date: str | None = None
+
+
+class Medication(BaseModel):
+    name: str
+    frequency: str | None = None
+    prescribed_date: str | None = None
+
+
+class Allergy(BaseModel):
+    substance: str
+    type: str | None = None
+    criticality: str | None = None
+
+
+class MedicalProfile(BaseModel):
+    """The clinical record pulled from a patient's FHIR document in MongoDB."""
+
+    patient_id: int  # dashboard slot id
+    fhir_id: str  # MongoDB _id (patient UUID)
+    gender: str | None = None
+    birth_date: str | None = None
+    preferred_language: str | None = None
+    chronic_conditions: list[Condition] = []
+    allergies: list[Allergy] = []
+    active_medications: list[Medication] = []
 
 
 class CheckIn(BaseModel):

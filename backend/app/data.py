@@ -9,7 +9,7 @@ and its status is derived from real alerts.
 import random
 from datetime import date, datetime, timedelta
 
-from . import alerts, wearable_source
+from . import alerts, fhir_source, wearable_source
 from .models import CheckIn, Patient, PatientStatus, WearableReading
 
 _TODAY = date(2026, 6, 6)
@@ -169,6 +169,11 @@ def _apply_featured_status() -> None:
 
 
 _apply_featured_status()
+
+# Overlay real FHIR records (MongoDB) onto the slots listed in featured_patients.md.
+# Best-effort: a no-op if Mongo is unreachable or the file is empty, so the dashboard
+# still shows the full mock roster. The live Garmin patient keeps its own data.
+fhir_source.apply_overlays(PATIENTS, wearable_source.REAL_PATIENT_ID)
 
 
 def get_patients() -> list[Patient]:

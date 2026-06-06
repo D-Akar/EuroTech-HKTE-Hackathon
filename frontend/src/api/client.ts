@@ -4,6 +4,7 @@ import type {
   CallRecord,
   CheckIn,
   LiveVitals,
+  MedicalProfile,
   Meta,
   Patient,
   ScheduledCall,
@@ -57,6 +58,9 @@ export const api = {
     getJSON<Summary>(`/patients/${patientId}/summary`),
   getAlerts: (patientId: number) =>
     getJSON<Alert[]>(`/patients/${patientId}/alerts`),
+  // Real FHIR clinical record — only for MongoDB-backed patients (404 otherwise).
+  getProfile: (patientId: number) =>
+    getJSON<MedicalProfile>(`/patients/${patientId}/profile`),
 
   // URL of the clinician-ready PDF report (opened/downloaded directly by the browser).
   reportUrl: (patientId: number) =>

@@ -16,8 +16,11 @@ frontend/dist/
 # Editor / OS
 .DS_Store
 
-# Data directory
-data/
+# Data directory: ignore the uncompressed records (data/fhir_processed/ etc.), but
+# DO track data/fhir_processed.tar.gz so a clone already has the folder + archive,
+# ready to extract in place with no manual mkdir.
+data/*
+!data/fhir_processed.tar.gz
 
 # Conda environments
 .conda/
@@ -35,3 +38,8 @@ venv/
 .env.local.php
 .env.*
 !.env.example
+
+
+# models
+.models/
+models/

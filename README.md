@@ -6,13 +6,17 @@ Patients receive **daily phone-call check-ins** about their health; combined wit
 patient.
 
 > This repo is currently an early scaffold: a React dashboard and a FastAPI backend
-> serving mock data. See `docs/superpowers/specs/` for the design.
+> serving mostly mock data, plus a MongoDB store (Docker) holding processed FHIR patient
+> records. See `docs/superpowers/specs/` for the design.
 
 ## Structure
 
 ```
 backend/    FastAPI wireframe — patients, check-ins, wearable readings (in-memory mock data)
+            backend/scripts/   FHIR preprocessing + MongoDB import scripts
 frontend/   React + Vite + TypeScript dashboard
+docker/     Dockerfiles for the MongoDB store and the one-shot FHIR importer
+data/       data/fhir_processed/ — 555 processed FHIR patient records (JSON)
 docs/       Design specs
 ```
 
@@ -75,6 +79,92 @@ with `VITE_API_URL` — see `frontend/.env.example`).
 - **Bare `python` opens the Microsoft Store** — the `python` command can resolve to a
   Store stub. Prefer the `py` launcher (`py -3.14 ...`) for venv creation.
 
+## Patient data store (MongoDB)
+
+Processed **FHIR patient records** live in MongoDB, run via Docker Compose. A single
+`docker compose up` starts the database **and** loads the records — no manual import step.
+
+> **Fresh clone / new machine:** the uncompressed records are gitignored; the repo ships
+> them as `data/fhir_processed.tar.gz`. Extract it in place **before** the first
+> `docker compose up`, or the importer exits with "no valid records loaded":
+>
+> ```bash
+> tar -xzf data/fhir_processed.tar.gz -C data    # -> data/fhir_processed/*.json (555 records)
+> ```
+>
+> (No `mkdir` needed — `data/` already exists from the clone.) To repack after changing
+> records: `tar -czf data/fhir_processed.tar.gz -C data fhir_processed`.
+
+```bash
+docker compose up -d --wait     # start Mongo + auto-import, block until ready
+docker compose down             # stop (data kept in the named volume)
+docker compose down -v          # stop AND wipe the database
+```
+
+Two services in `docker-compose.yml`:
+
+- **`mongo`** — `mongo:7` (built from `docker/mongo/Dockerfile`), published on
+  `localhost:27017`, with a healthcheck. Data persists in the named volume
+  `careloop-mongo-data`, so records survive restarts.
+- **`importer`** — a one-shot job (`docker/importer/Dockerfile`) that waits for Mongo's
+  healthcheck, then runs `backend/scripts/import_fhir_to_mongo.py` and exits. It upserts
+  by `_id`, so it's idempotent and re-runs harmlessly on every `up`.
+
+Layout: database **`careloop`**, collection **`fhir_patients`**, **555** records keyed by
+`_id` (the patient UUID). Source JSON is bind-mounted read-only from `data/fhir_processed/`,
+so adding records there and re-running `up` picks them up without a rebuild.
+
+**Query a patient by id** (the `_id` is the patient UUID, so this is a primary-key hit):
+
+```bash
+# from the host, via the container's mongosh
+docker exec careloop-mongo mongosh careloop --quiet --eval \
+  'JSON.stringify(db.fhir_patients.findOne({_id: "<patient-uuid>"}), null, 2)'
+
+# list some ids to try
+docker exec careloop-mongo mongosh careloop --quiet --eval \
+  'db.fhir_patients.find({}, {_id:1}).limit(10).forEach(d => print(d._id))'
+```
+
+From Python (`pip install pymongo`, already in `backend/requirements.txt`):
+
+```python
+from pymongo import MongoClient
+col = MongoClient("mongodb://localhost:27017").careloop.fhir_patients
+patient = col.find_one({"_id": "<patient-uuid>"})
+```
+
+To re-import manually (e.g. after regenerating records) without Compose:
+
+```bash
+cd backend
+python -m scripts.import_fhir_to_mongo          # all defaults: careloop.fhir_patients
+python scripts/import_fhir_to_mongo.py --drop   # clean reload
+```
+
+### Surfacing real patients on the dashboard
+
+The dashboard roster is mostly seeded mock patients, but you can promote specific
+records to **real data** by listing their MongoDB `_id`s in **`featured_patients.md`**
+(repo root):
+
+```markdown
+- 0ae08855-8e6c-5308-3ab5-da0080b36425
+- 01d78eb5-7f50-45e9-f524-921196a3dffe
+```
+
+On startup the backend (`app/fhir_source.py`) reads that file, queries Mongo for those
+ids, and binds each — top to bottom — to a dashboard patient slot: the first id becomes
+patient 1, the second patient 2, and so on (skipping the live Garmin patient). Those
+slots show the **real name, age, and a medical profile** (chronic conditions, active
+medications, allergies) pulled from FHIR; every other patient stays mock. The detail
+panel marks them with a "Real record · FHIR" tag and a Medical profile section, served by
+`GET /patients/{id}/profile`.
+
+This is **best-effort**: if Mongo is down, the file is empty, or an id isn't found, that
+slot just stays mock — the dashboard never breaks. The file is read **at startup**, so
+restart the backend after editing it. Override its location with `FEATURED_PATIENTS_FILE`.
+
 ## API endpoints
 
 | Method | Path                              | Description                     |
@@ -82,6 +172,7 @@ with `VITE_API_URL` — see `frontend/.env.example`).
 | GET    | `/health`                         | Liveness check                  |
 | GET    | `/patients`                       | List all patients with status   |
 | GET    | `/patients/{id}`                  | Single patient detail           |
+| GET    | `/patients/{id}/profile`          | Real FHIR medical profile (MongoDB-backed patients; 404 if mock) |
 | GET    | `/patients/{id}/checkins`         | Daily check-in history          |
 | GET    | `/patients/{id}/wearables`        | Wearable readings (daily)       |
 | GET    | `/patients/{id}/vitals`           | Rich Garmin vitals (stress, SpO2, etc.) |

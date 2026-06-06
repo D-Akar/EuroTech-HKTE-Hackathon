@@ -34,3 +34,4 @@ venv/
 .env.production.local
 .env.local.php
 .env.*
+!.env.example

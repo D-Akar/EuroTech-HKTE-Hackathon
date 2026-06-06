@@ -84,6 +84,32 @@ with `VITE_API_URL` — see `frontend/.env.example`).
 | GET    | `/patients/{id}`                  | Single patient detail           |
 | GET    | `/patients/{id}/checkins`         | Daily check-in history          |
 | GET    | `/patients/{id}/wearables`        | Wearable readings               |
+| POST   | `/patients/{id}/calls/trigger`    | Place an instant check-in call  |
+| GET    | `/patients/{id}/calls`            | Call history                    |
+| GET/PUT| `/patients/{id}/calls/config`     | Read/update the questions asked  |
+| POST   | `/patients/{id}/calls/schedules`  | Schedule a call (one-off/daily) |
+| GET    | `/patients/{id}/calls/schedules`  | List upcoming schedules         |
+| DELETE | `/patients/{id}/calls/schedules/{sid}` | Cancel a schedule          |
+
+## Outbound check-in calls (ElevenLabs + Twilio)
+
+Practices can trigger an **AI voice check-in call** to a patient — instantly ("Call now"),
+once at a chosen time, or repeating daily. Each call carries the patient's recent context
+(last few check-ins + latest wearable reading) and the practice's configured questions.
+Calls are placed via the ElevenLabs Twilio integration
+(`POST https://api.elevenlabs.io/v1/convai/twilio/outbound-call`).
+
+**Setup:**
+
+1. Copy `backend/.env.example` to `backend/.env` and fill in:
+   `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_AGENT_PHONE_NUMBER_ID`
+   (and optionally `TWILIO_API_KEY`).
+2. Context is injected as ElevenLabs **dynamic variables**, so the agent's prompt in the
+   ElevenLabs dashboard **must reference** these placeholders, or calls go out context-less:
+   `{{patient_name}}`, `{{patient_age}}`, `{{recent_summary}}`, `{{questions}}`.
+3. To demo, set a patient's "To number" (in the dashboard's call panel) to your own phone.
+
+Schedules and call history are in-memory and reset when the backend restarts.
 
 ## Tests
 

@@ -10,13 +10,13 @@ from .models import CheckIn, Patient, PatientStatus, WearableReading
 
 PATIENTS: list[Patient] = [
     Patient(id=1, name="Margaret Holloway", age=82, status=PatientStatus.stable,
-            practice="Riverside Geriatric Care"),
+            practice="Riverside Geriatric Care", phone_number="+10000000001"),
     Patient(id=2, name="Arthur Chen", age=77, status=PatientStatus.attention,
-            practice="Riverside Geriatric Care"),
+            practice="Riverside Geriatric Care", phone_number="+10000000002"),
     Patient(id=3, name="Dorothy Williams", age=89, status=PatientStatus.urgent,
-            practice="Oakwood Outpatient Clinic"),
+            practice="Oakwood Outpatient Clinic", phone_number="+10000000003"),
     Patient(id=4, name="Giuseppe Romano", age=74, status=PatientStatus.stable,
-            practice="Oakwood Outpatient Clinic"),
+            practice="Oakwood Outpatient Clinic", phone_number="+10000000004"),
 ]
 
 _TODAY = date(2026, 6, 6)

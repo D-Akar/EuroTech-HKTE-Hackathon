@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { CheckIn, Patient, WearableReading } from "../types";
+import { CallPanel } from "./CallPanel";
 import { HealthTimeline } from "./HealthTimeline";
 import { StatusBadge } from "./StatusBadge";
 
@@ -57,6 +58,8 @@ export function PatientDetail({ patient }: { patient: Patient }) {
           </div>
         </div>
       )}
+
+      <CallPanel patient={patient} />
 
       <h3>Health timeline</h3>
       <HealthTimeline checkins={checkins} wearables={wearables} />

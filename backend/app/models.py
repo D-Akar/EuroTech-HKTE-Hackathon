@@ -6,6 +6,7 @@ matching TypeScript definitions in ``frontend/src/types.ts``.
 
 from datetime import date, datetime
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -24,6 +25,7 @@ class Patient(BaseModel):
     age: int
     status: PatientStatus
     practice: str
+    phone_number: str = ""  # E.164 number the check-in call is placed to
 
 
 class CheckIn(BaseModel):
@@ -47,3 +49,58 @@ class WearableReading(BaseModel):
     heart_rate: int  # bpm
     steps: int  # steps so far that day
     sleep_hours: float  # previous night
+
+
+# --- Outbound check-in calls (ElevenLabs + Twilio) ---------------------------
+
+
+class CallConfig(BaseModel):
+    """Per-patient configuration for the AI check-in call."""
+
+    patient_id: int
+    questions: list[str]  # the practice's questions for the agent to ask
+    greeting: str | None = None  # optional custom opening line
+
+
+class ConfigUpdate(BaseModel):
+    """Request body to update a patient's call config."""
+
+    questions: list[str]
+    greeting: str | None = None
+
+
+class TriggerRequest(BaseModel):
+    """Request body for an instant 'Call now'."""
+
+    to_number: str | None = None  # overrides the patient's stored number
+    questions: list[str] | None = None  # overrides the stored config
+
+
+class ScheduleRequest(BaseModel):
+    """Request body to schedule a call."""
+
+    scheduled_at: datetime
+    recurring: bool = False  # True == repeat daily at scheduled_at's time
+
+
+class ScheduledCall(BaseModel):
+    id: int
+    patient_id: int
+    scheduled_at: datetime
+    recurring: bool  # daily when True
+    status: Literal["pending", "cancelled"]
+    questions: list[str]
+
+
+class CallRecord(BaseModel):
+    """A historical record of one placed (or attempted) call."""
+
+    id: int
+    patient_id: int
+    triggered_at: datetime
+    kind: Literal["instant", "scheduled"]
+    to_number: str
+    status: Literal["initiated", "failed"]
+    conversation_id: str | None = None
+    call_sid: str | None = None
+    error: str | None = None

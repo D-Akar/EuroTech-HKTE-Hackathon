@@ -195,6 +195,149 @@ body {
   color: var(--urgent);
 }
 
+.tag-ok {
+  background: #dcfce7;
+  color: var(--stable);
+}
+
+.tag-daily {
+  background: #eff4ff;
+  color: var(--accent);
+}
+
+/* Call panel */
+.call-panel {
+  margin: 24px 0;
+  padding: 16px 18px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.call-panel h3 {
+  margin: 0 0 12px;
+}
+
+.call-block {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.call-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.call-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  background: var(--panel);
+  color: var(--text);
+  min-width: 220px;
+}
+
+.question-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.question-row .input {
+  flex: 1;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover {
+  filter: brightness(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  padding: 4px 8px;
+}
+
+.btn-remove {
+  color: var(--urgent);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.schedule-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  width: 100%;
+}
+
+.schedule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.call-status {
+  color: var(--stable);
+  margin: 0;
+}
+
+.call-error {
+  padding: 0;
+}
+
 .muted {
   color: var(--muted);
 }

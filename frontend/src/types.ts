@@ -8,6 +8,7 @@ export interface Patient {
   age: number;
   status: PatientStatus;
   practice: string;
+  phone_number: string;
 }
 
 export interface CheckIn {
@@ -27,4 +28,33 @@ export interface WearableReading {
   heart_rate: number;
   steps: number;
   sleep_hours: number;
+}
+
+// --- Outbound check-in calls ---
+
+export interface CallConfig {
+  patient_id: number;
+  questions: string[];
+  greeting: string | null;
+}
+
+export interface ScheduledCall {
+  id: number;
+  patient_id: number;
+  scheduled_at: string; // ISO datetime
+  recurring: boolean;
+  status: "pending" | "cancelled";
+  questions: string[];
+}
+
+export interface CallRecord {
+  id: number;
+  patient_id: number;
+  triggered_at: string; // ISO datetime
+  kind: "instant" | "scheduled";
+  to_number: string;
+  status: "initiated" | "failed";
+  conversation_id: string | null;
+  call_sid: string | null;
+  error: string | null;
 }

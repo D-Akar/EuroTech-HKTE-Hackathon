@@ -12,7 +12,7 @@ from datetime import datetime
 
 import httpx
 
-from .. import call_store, data
+from .. import call_store, conversation_store, data
 from ..config import settings
 from ..models import CallRecord, Patient
 
@@ -20,8 +20,12 @@ from ..models import CallRecord, Patient
 _RECENT_CHECKINS = 3
 
 
-def build_recent_summary(patient_id: int) -> str:
-    """Human-readable summary of recent phone check-ins and latest wearables."""
+async def build_recent_summary(patient_id: int) -> str:
+    """Human-readable summary of recent phone check-ins and latest wearables.
+
+    Opens with a digest of the patient's most recent completed AI call (pulled
+    from ElevenLabs, best-effort) so the agent knows what was said last time.
+    """
     checkins = sorted(
         data.get_checkins(patient_id), key=lambda c: c.date, reverse=True
     )[:_RECENT_CHECKINS]
@@ -30,6 +34,9 @@ def build_recent_summary(patient_id: int) -> str:
     )
 
     lines: list[str] = []
+    prior_call = await conversation_store.latest_digest(patient_id)
+    if prior_call:
+        lines.append(prior_call)
     if checkins:
         lines.append("Recent phone check-ins:")
         for c in checkins:
@@ -50,13 +57,15 @@ def build_recent_summary(patient_id: int) -> str:
     return "\n".join(lines)
 
 
-def build_dynamic_variables(patient: Patient, questions: list[str]) -> dict[str, str]:
+async def build_dynamic_variables(
+    patient: Patient, questions: list[str]
+) -> dict[str, str]:
     """Build the ElevenLabs dynamic-variable map injected into the call."""
     numbered = "\n".join(f"{i}. {q}" for i, q in enumerate(questions, start=1))
     return {
         "patient_name": patient.name,
         "patient_age": str(patient.age),
-        "recent_summary": build_recent_summary(patient.id),
+        "recent_summary": await build_recent_summary(patient.id),
         "questions": numbered,
     }
 
@@ -88,7 +97,7 @@ async def place_call(
         "agent_phone_number_id": settings.elevenlabs_agent_phone_number_id,
         "to_number": to_number,
         "conversation_initiation_client_data": {
-            "dynamic_variables": build_dynamic_variables(patient, questions),
+            "dynamic_variables": await build_dynamic_variables(patient, questions),
         },
     }
     headers = {"xi-api-key": settings.elevenlabs_api_key}

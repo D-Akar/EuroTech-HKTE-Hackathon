@@ -4,6 +4,7 @@ import type {
   CallRecord,
   CarePlanContext,
   CheckIn,
+  ConversationDetail,
   LiveVitals,
   MedicalProfile,
   Meta,
@@ -107,6 +108,10 @@ export const api = {
       "POST",
       `/patients/${patientId}/calls/schedules`,
       body,
+    ),
+  getCallConversation: (patientId: number, callId: number) =>
+    getJSON<ConversationDetail>(
+      `/patients/${patientId}/calls/${callId}/conversation`,
     ),
   listSchedules: (patientId: number) =>
     getJSON<ScheduledCall[]>(`/patients/${patientId}/calls/schedules`),

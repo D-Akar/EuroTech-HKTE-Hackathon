@@ -94,3 +94,10 @@ def next_record_id() -> int:
 
 def list_call_records(patient_id: int) -> list[CallRecord]:
     return [r for r in CALL_HISTORY if r.patient_id == patient_id]
+
+
+def get_call_record(patient_id: int, call_id: int) -> CallRecord | None:
+    return next(
+        (r for r in CALL_HISTORY if r.id == call_id and r.patient_id == patient_id),
+        None,
+    )

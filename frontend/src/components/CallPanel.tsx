@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
+import { CallConversation } from "./CallConversation";
 
 export function CallPanel({ patient }: { patient: Patient }) {
   const [toNumber, setToNumber] = useState(patient.phone_number);
@@ -14,6 +15,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [openCallId, setOpenCallId] = useState<number | null>(null);
 
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
@@ -21,6 +23,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
     setToNumber(patient.phone_number);
     setStatus(null);
     setError(null);
+    setOpenCallId(null);
     Promise.all([
       api.getCallConfig(patient.id),
       api.listSchedules(patient.id),
@@ -220,16 +223,49 @@ export function CallPanel({ patient }: { patient: Patient }) {
           </p>
         ) : (
           <ul className="schedule-list">
-            {history.slice(0, 5).map((r) => (
-              <li key={r.id} className="schedule-item">
-                <span className="num">
-                  {new Date(r.triggered_at).toLocaleString()} · {r.kind}
-                </span>
-                <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
-                  {r.status}
-                </span>
-              </li>
-            ))}
+            {history.slice(0, 5).map((r) => {
+              const hasConversation = Boolean(r.conversation_id);
+              const open = openCallId === r.id;
+              return (
+                <li key={r.id} className="call-history-item">
+                  <div
+                    className={`schedule-item ${hasConversation ? "call-history-row" : ""}`}
+                    role={hasConversation ? "button" : undefined}
+                    tabIndex={hasConversation ? 0 : undefined}
+                    onClick={
+                      hasConversation
+                        ? () => setOpenCallId(open ? null : r.id)
+                        : undefined
+                    }
+                    onKeyDown={
+                      hasConversation
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setOpenCallId(open ? null : r.id);
+                            }
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className="num">
+                      {hasConversation && (
+                        <span className={`disclosure ${open ? "on" : ""}`} aria-hidden>
+                          ▸
+                        </span>
+                      )}
+                      {new Date(r.triggered_at).toLocaleString()} · {r.kind}
+                    </span>
+                    <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
+                      {r.status}
+                    </span>
+                  </div>
+                  {open && hasConversation && (
+                    <CallConversation patientId={patient.id} callId={r.id} />
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

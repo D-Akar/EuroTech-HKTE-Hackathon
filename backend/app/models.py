@@ -6,7 +6,7 @@ matching TypeScript definitions in ``frontend/src/types.ts``.
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -149,6 +149,39 @@ class CallRecord(BaseModel):
     conversation_id: str | None = None
     call_sid: str | None = None
     error: str | None = None
+
+
+# --- Conversation detail (post-call data pulled back from ElevenLabs) ---------
+
+
+class ConversationTurn(BaseModel):
+    """One turn in the call transcript."""
+
+    role: Literal["user", "agent"]
+    message: str | None = None
+    time_in_call_secs: int | None = None
+
+
+class ConversationDataPoint(BaseModel):
+    """One structured value extracted from the call by the agent's data collection."""
+
+    id: str  # the data_collection identifier, e.g. "pain_level"
+    value: Any = None  # str | int | bool | None, as returned by ElevenLabs
+    rationale: str | None = None
+
+
+class ConversationDetail(BaseModel):
+    """What happened in one outbound call, fetched from the ElevenLabs API."""
+
+    conversation_id: str
+    status: str  # initiated | in-progress | processing | done | failed
+    ready: bool  # True once status == "done"
+    transcript_summary: str | None = None
+    call_successful: str | None = None  # success | failure | unknown
+    call_duration_secs: int | None = None
+    started_at: datetime | None = None
+    transcript: list[ConversationTurn] = []
+    data_collection: list[ConversationDataPoint] = []
 
 
 # --- ElevenLabs server-tool integration --------------------------------------

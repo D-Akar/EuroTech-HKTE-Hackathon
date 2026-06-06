@@ -1264,6 +1264,139 @@ button {
 }
 
 /* =============================================================================
+   Call conversation — expandable post-call detail in the history list
+   ============================================================================= */
+
+.call-history-item {
+  border-bottom: 1px solid var(--border);
+}
+.call-history-item:last-child {
+  border-bottom: none;
+}
+.call-history-item .schedule-item {
+  border-bottom: none;
+}
+
+.call-history-row {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.16s var(--ease);
+}
+.call-history-row:hover {
+  background: var(--surface-raised);
+}
+.call-history-row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.disclosure {
+  display: inline-block;
+  width: 1em;
+  margin-right: 4px;
+  color: var(--faint);
+  transition: transform 0.16s var(--ease);
+}
+.disclosure.on {
+  transform: rotate(90deg);
+}
+
+.conv-detail {
+  padding: 4px 2px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.conv-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.conv-duration {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.conv-summary {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+.conv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.conv-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.conv-chip-label {
+  color: var(--muted);
+}
+.conv-chip-value {
+  color: var(--text);
+  font-weight: 600;
+}
+/* The follow-up flag is the one thing a coordinator must not miss. */
+.conv-chip-flag {
+  background: var(--status-attention-soft);
+  border-color: oklch(0.82 0.08 80);
+}
+.conv-chip-flag .conv-chip-value {
+  color: oklch(0.42 0.12 60);
+}
+
+.conv-followup-reason {
+  margin: 0;
+  font-size: 13px;
+  color: oklch(0.42 0.12 60);
+}
+
+.conv-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 10px 12px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.conv-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.conv-turn-role {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.conv-turn-agent .conv-turn-msg {
+  color: var(--text-soft);
+}
+.conv-turn-user .conv-turn-msg {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* =============================================================================
    States — loading, empty, error
    ============================================================================= */
 

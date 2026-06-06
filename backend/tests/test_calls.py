@@ -6,9 +6,11 @@ endpoint is exercised end-to-end without placing a call. The scheduler is never
 started here (TestClient is used without its lifespan), so no timers fire.
 """
 
+import asyncio
+
 from fastapi.testclient import TestClient
 
-from app import data
+from app import conversation_store, data
 from app.main import app
 from app.services import telephony
 
@@ -80,8 +82,28 @@ def test_cancel_unknown_schedule_404():
 
 def test_build_dynamic_variables():
     patient = data.get_patient(1)
-    variables = telephony.build_dynamic_variables(patient, ["How are you?"])
+    variables = asyncio.run(telephony.build_dynamic_variables(patient, ["How are you?"]))
     assert variables["patient_name"] == patient.name
     assert variables["patient_age"] == str(patient.age)
     assert "1. How are you?" in variables["questions"]
     assert "check-in" in variables["recent_summary"].lower()
+
+
+def test_recent_summary_prepends_prior_call_digest(monkeypatch):
+    async def fake_digest(patient_id):
+        return 'Previous check-in (2026-06-05): mood "tired"; pain 6/10.'
+
+    monkeypatch.setattr(conversation_store, "latest_digest", fake_digest)
+    summary = asyncio.run(telephony.build_recent_summary(1))
+    assert summary.startswith("Previous check-in (2026-06-05):")
+    assert 'mood "tired"' in summary
+
+
+def test_recent_summary_unchanged_without_prior_digest(monkeypatch):
+    async def no_digest(patient_id):
+        return None
+
+    monkeypatch.setattr(conversation_store, "latest_digest", no_digest)
+    summary = asyncio.run(telephony.build_recent_summary(1))
+    assert "Previous check-in" not in summary
+    assert "check-in" in summary.lower()  # still has the existing content

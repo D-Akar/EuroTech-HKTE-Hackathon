@@ -99,6 +99,30 @@ export interface CallRecord {
   error: string | null;
 }
 
+export interface ConversationTurn {
+  role: "user" | "agent";
+  message: string | null;
+  time_in_call_secs: number | null;
+}
+
+export interface ConversationDataPoint {
+  id: string;
+  value: string | number | boolean | null;
+  rationale: string | null;
+}
+
+export interface ConversationDetail {
+  conversation_id: string;
+  status: string; // initiated | in-progress | processing | done | failed
+  ready: boolean;
+  transcript_summary: string | null;
+  call_successful: string | null; // success | failure | unknown
+  call_duration_secs: number | null;
+  started_at: string | null;
+  transcript: ConversationTurn[];
+  data_collection: ConversationDataPoint[];
+}
+
 // --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----
 
 export type LiveSource = "live" | "ble" | "export-fallback" | "demo" | "none";

@@ -63,6 +63,10 @@ class Settings:
     elevenlabs_outbound_url: str = (
         "https://api.eu.residency.elevenlabs.io/v1/convai/twilio/outbound-call"
     )
+    # Conversation-detail endpoint (same residency base); {id} filled per call.
+    elevenlabs_conversations_url: str = (
+        "https://api.eu.residency.elevenlabs.io/v1/convai/conversations"
+    )
 
     # API key for ElevenLabs server-tool callbacks into this service.
     elevenlabs_tool_api_key: str = os.getenv("ELEVENLABS_TOOL_API_KEY", "")

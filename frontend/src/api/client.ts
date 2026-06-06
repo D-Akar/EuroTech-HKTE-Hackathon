@@ -47,6 +47,10 @@ export const api = {
   getWearables: (patientId: number) =>
     getJSON<WearableReading[]>(`/patients/${patientId}/wearables`),
 
+  // URL of the clinician-ready PDF report (opened/downloaded directly by the browser).
+  reportUrl: (patientId: number) =>
+    `${BASE_URL}/patients/${patientId}/report.pdf`,
+
   // --- Calls ---
   triggerCall: (
     patientId: number,

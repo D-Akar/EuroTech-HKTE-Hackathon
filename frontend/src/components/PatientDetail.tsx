@@ -39,8 +39,16 @@ export function PatientDetail({ patient, onClose }: { patient: Patient; onClose:
             <div className="detail-meta">
               {patient.district} · Age {patient.age} · {patient.practice}
             </div>
-            <div style={{ marginTop: 10 }}>
+            <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12 }}>
               <StatusBadge status={patient.status} />
+              <a
+                className="report-link"
+                href={api.reportUrl(patient.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ↓ Download clinician report
+              </a>
             </div>
           </div>
           <button className="detail-close" onClick={onClose} aria-label="Close patient detail">

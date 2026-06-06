@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import scheduler
-from .routers import calls, checkins, patients, wearables
+from .routers import calls, checkins, patients, reports, wearables
 
 
 @asynccontextmanager
@@ -40,6 +40,7 @@ app.include_router(patients.router)
 app.include_router(checkins.router)
 app.include_router(wearables.router)
 app.include_router(calls.router)
+app.include_router(reports.router)
 
 
 @app.get("/health", tags=["meta"])

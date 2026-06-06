@@ -47,10 +47,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Open CORS for the Vite dev server during development.
+# CORS: local Vite dev server, any Vercel preview/prod domain, and ngrok tunnels
+# (so a deployed frontend can reach this backend through a tunnel during demos).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origin_regex=(
+        r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+        r"|https://[a-z0-9-]+\.vercel\.app"
+        r"|https://[a-z0-9-]+\.ngrok(-free)?\.(dev|app|io)"
+    ),
     allow_methods=["*"],
     allow_headers=["*"],
 )

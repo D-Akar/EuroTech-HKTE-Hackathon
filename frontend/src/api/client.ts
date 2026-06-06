@@ -18,8 +18,12 @@ import type {
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+// Sent on every request so free ngrok tunnels skip their HTML browser-warning
+// interstitial and return the real JSON. Harmless when not behind ngrok.
+const BASE_HEADERS = { "ngrok-skip-browser-warning": "true" } as const;
+
 async function getJSON<T>(path: string): Promise<T> {
-  const resp = await fetch(`${BASE_URL}${path}`);
+  const resp = await fetch(`${BASE_URL}${path}`, { headers: { ...BASE_HEADERS } });
   if (!resp.ok) {
     throw new Error(`${resp.status} ${resp.statusText} for ${path}`);
   }
@@ -33,7 +37,7 @@ async function sendJSON<T>(
 ): Promise<T> {
   const resp = await fetch(`${BASE_URL}${path}`, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...BASE_HEADERS },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!resp.ok) {

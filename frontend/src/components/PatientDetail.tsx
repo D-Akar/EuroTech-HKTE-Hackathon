@@ -154,6 +154,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading 
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
             <CallPanel patient={patient} />
+            <CarePlanPanel patient={patient} />
           </>
         ) : tab === "patient" ? (
           <>

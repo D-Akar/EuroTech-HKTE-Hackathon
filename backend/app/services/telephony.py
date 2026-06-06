@@ -182,6 +182,12 @@ async def place_call(
     """Place an outbound call and record the outcome in the call history."""
     triggered_at = datetime.now()
     record_id = call_store.next_record_id()
+    # Normalize to strict E.164 (strip spaces/dashes, ensure a leading +) before we
+    # dial: ElevenLabs/Twilio reject anything that isn't bare E.164, so a number
+    # entered as "+41 76 540 22 80" (nurse or patient) would otherwise fail at the
+    # API. Done up front so the log, failure records, and payload all use the clean
+    # value.
+    to_number = data._normalize_phone(to_number)
     # One log line per placement makes "one click -> many calls" diagnosable: a
     # single user action must produce exactly one of these.
     logger.info(
@@ -202,6 +208,8 @@ async def place_call(
             )
         )
 
+    if not to_number:
+        return _failed("No dialable phone number (empty after normalization).")
     if data.is_placeholder_phone(to_number):
         return _failed(
             f"Patient has no real phone number (placeholder {to_number}); refusing to dial."

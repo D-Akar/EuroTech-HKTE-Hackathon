@@ -25,6 +25,7 @@ class Patient(BaseModel):
     age: int
     status: PatientStatus
     practice: str
+    district: str = ""  # Hong Kong district the patient lives in (for the city twin)
     phone_number: str = ""  # E.164 number the check-in call is placed to
 
 

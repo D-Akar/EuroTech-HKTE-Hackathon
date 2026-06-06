@@ -8,6 +8,7 @@ export interface Patient {
   age: number;
   status: PatientStatus;
   practice: string;
+  district: string;
   phone_number: string;
 }
 

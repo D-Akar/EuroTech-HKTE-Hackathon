@@ -2,96 +2,163 @@
 
 Seeded at import time so the API has realistic-looking data without a database.
 Resets on every restart. Replace with a real datastore later.
+
+The roster is sized and spread across Hong Kong districts so the dashboard's city
+"digital twin" reads as genuinely city-scale. Per-patient check-ins and wearable
+readings are generated deterministically from the patient id, so every patient a
+coordinator clicks into shows believable history (and the same history every restart).
 """
 
+import random
 from datetime import date, datetime, timedelta
 
 from .models import CheckIn, Patient, PatientStatus, WearableReading
 
-PATIENTS: list[Patient] = [
-    Patient(id=1, name="Margaret Holloway", age=82, status=PatientStatus.stable,
-            practice="Riverside Geriatric Care", phone_number="+10000000001"),
-    Patient(id=2, name="Arthur Chen", age=77, status=PatientStatus.attention,
-            practice="Riverside Geriatric Care", phone_number="+10000000002"),
-    Patient(id=3, name="Dorothy Williams", age=89, status=PatientStatus.urgent,
-            practice="Oakwood Outpatient Clinic", phone_number="+10000000003"),
-    Patient(id=4, name="Giuseppe Romano", age=74, status=PatientStatus.stable,
-            practice="Oakwood Outpatient Clinic", phone_number="+10000000004"),
-]
-
 _TODAY = date(2026, 6, 6)
 
+# (name, age, status, practice, district) — the seed roster.
+# Districts are real Hong Kong neighbourhoods; the frontend maps them onto the twin.
+_SEED: list[tuple[str, int, PatientStatus, str, str]] = [
+    ("Margaret Holloway", 82, PatientStatus.stable, "Riverside Geriatric Care", "Central"),
+    ("Arthur Chen", 77, PatientStatus.attention, "Riverside Geriatric Care", "Wan Chai"),
+    ("Dorothy Williams", 89, PatientStatus.urgent, "Oakwood Outpatient Clinic", "Mong Kok"),
+    ("Giuseppe Romano", 74, PatientStatus.stable, "Oakwood Outpatient Clinic", "Tsim Sha Tsui"),
+    ("Wong Mei-ling", 84, PatientStatus.stable, "Harbour Care Collective", "Sheung Wan"),
+    ("Chan Kwok-wah", 79, PatientStatus.attention, "Harbour Care Collective", "Causeway Bay"),
+    ("Eleanor Pang", 86, PatientStatus.stable, "Riverside Geriatric Care", "North Point"),
+    ("Henry Fitzgerald", 81, PatientStatus.stable, "Oakwood Outpatient Clinic", "Quarry Bay"),
+    ("Lau Siu-fong", 88, PatientStatus.urgent, "Harbour Care Collective", "Sham Shui Po"),
+    ("Beatrice Okonkwo", 76, PatientStatus.stable, "Riverside Geriatric Care", "Yau Ma Tei"),
+    ("Tomoko Ishida", 83, PatientStatus.attention, "Oakwood Outpatient Clinic", "Kowloon City"),
+    ("Walter Brennan", 90, PatientStatus.stable, "Harbour Care Collective", "Aberdeen"),
+    ("Ng Pui-shan", 78, PatientStatus.stable, "Riverside Geriatric Care", "Stanley"),
+    ("Raymond Carter", 80, PatientStatus.attention, "Oakwood Outpatient Clinic", "The Peak"),
+    ("Cheung Wai-man", 85, PatientStatus.stable, "Harbour Care Collective", "Central"),
+    ("Agnes Murphy", 87, PatientStatus.stable, "Riverside Geriatric Care", "Wan Chai"),
+    ("Ko Tin-yau", 73, PatientStatus.stable, "Oakwood Outpatient Clinic", "Causeway Bay"),
+    ("Frances Adeyemi", 82, PatientStatus.urgent, "Harbour Care Collective", "Tsim Sha Tsui"),
+    ("Leung Ka-ho", 79, PatientStatus.stable, "Riverside Geriatric Care", "North Point"),
+    ("Ingrid Larsson", 84, PatientStatus.attention, "Oakwood Outpatient Clinic", "Sheung Wan"),
+    ("Yip Lai-kuen", 91, PatientStatus.stable, "Harbour Care Collective", "Mong Kok"),
+    ("Charles Dube", 75, PatientStatus.stable, "Riverside Geriatric Care", "Sham Shui Po"),
+    ("Tang Shun-kei", 86, PatientStatus.stable, "Oakwood Outpatient Clinic", "Kowloon City"),
+    ("Rosa Iglesias", 88, PatientStatus.attention, "Harbour Care Collective", "Quarry Bay"),
+    ("Fung Yuk-ying", 80, PatientStatus.stable, "Riverside Geriatric Care", "Yau Ma Tei"),
+    ("Patrick O'Sullivan", 83, PatientStatus.stable, "Oakwood Outpatient Clinic", "Aberdeen"),
+    ("Sit Wing-chi", 77, PatientStatus.stable, "Harbour Care Collective", "Stanley"),
+    ("Helga Brandt", 89, PatientStatus.urgent, "Riverside Geriatric Care", "Causeway Bay"),
+    ("Mo Chi-keung", 81, PatientStatus.stable, "Oakwood Outpatient Clinic", "Central"),
+    ("Vera Stankovic", 85, PatientStatus.attention, "Harbour Care Collective", "Wan Chai"),
+]
 
-def _checkins_for(patient_id: int, days: list[tuple[int, str, int, bool, str]],
-                  start_id: int) -> list[CheckIn]:
-    out: list[CheckIn] = []
-    for offset, (cid_offset, mood, pain, answered, notes) in enumerate(_index(days)):
-        out.append(CheckIn(
-            id=start_id + cid_offset,
-            patient_id=patient_id,
-            date=_TODAY - timedelta(days=offset),
-            mood=mood,
-            pain_level=pain,
-            answered=answered,
-            notes=notes,
-        ))
-    return out
-
-
-def _index(rows):
-    """Yield (running_index, row) pairs for the check-in rows below."""
-    for i, row in enumerate(rows):
-        yield (i, *row)
-
-
-# (mood, pain_level, answered, notes) — most-recent first
-CHECKINS: list[CheckIn] = [
-    *_checkins_for(1, [
-        ("cheerful", 1, True, "Feeling good, went for a short walk."),
-        ("content", 2, True, "Slept well, no complaints."),
-        ("tired", 3, True, "A bit tired but managing."),
-    ], start_id=100),
-    *_checkins_for(2, [
-        ("anxious", 5, True, "Reports dizziness when standing."),
-        ("low", 4, False, "No answer — left voicemail."),
-        ("okay", 3, True, "Mild headache, took paracetamol."),
-    ], start_id=200),
-    *_checkins_for(3, [
-        ("distressed", 8, True, "Severe chest discomfort reported."),
-        ("low", 7, True, "Pain worsening, struggling to sleep."),
-        ("low", 6, True, "Increasing back pain."),
-    ], start_id=300),
-    *_checkins_for(4, [
-        ("upbeat", 0, True, "Great spirits, cooking again."),
-        ("content", 1, True, "Enjoyed family visit."),
-        ("content", 1, False, "No answer — will retry."),
-    ], start_id=400),
+PATIENTS: list[Patient] = [
+    Patient(
+        id=i + 1,
+        name=name,
+        age=age,
+        status=status,
+        practice=practice,
+        district=district,
+        phone_number=f"+1000000{i + 1:04d}",
+    )
+    for i, (name, age, status, practice, district) in enumerate(_SEED)
 ]
 
 
-def _wearables_for(patient_id: int, rows: list[tuple[int, int, float]],
-                   start_id: int) -> list[WearableReading]:
-    out: list[WearableReading] = []
-    for i, (hr, steps, sleep) in enumerate(rows):
-        out.append(WearableReading(
-            id=start_id + i,
-            patient_id=patient_id,
-            timestamp=datetime.combine(_TODAY - timedelta(days=i),
-                                       datetime.min.time()).replace(hour=9),
-            heart_rate=hr,
-            steps=steps,
-            sleep_hours=sleep,
-        ))
-    return out
+# --- Procedural per-patient history -----------------------------------------
+#
+# Mood / pain / wearable ranges keyed by status, so the numbers a coordinator
+# sees line up with the patient's flag. Seeded by patient id for stability.
+
+_PROFILE = {
+    PatientStatus.stable: {
+        "moods": ["cheerful", "content", "upbeat", "calm", "content"],
+        "pain": (0, 2),
+        "hr": (64, 78),
+        "steps": (2000, 4200),
+        "sleep": (7.0, 8.6),
+        "answer_rate": 0.92,
+        "notes": [
+            "Feeling good, went for a short walk.",
+            "Slept well, no complaints.",
+            "Enjoyed a visit from family.",
+            "Cooking again, in good spirits.",
+            "Steady day, no concerns.",
+        ],
+    },
+    PatientStatus.attention: {
+        "moods": ["anxious", "low", "okay", "tired", "unsettled"],
+        "pain": (3, 5),
+        "hr": (82, 96),
+        "steps": (500, 1500),
+        "sleep": (5.0, 6.6),
+        "answer_rate": 0.7,
+        "notes": [
+            "Reports dizziness when standing.",
+            "Mild headache, took paracetamol.",
+            "A bit tired but managing.",
+            "Slightly short of breath this morning.",
+            "Appetite lower than usual.",
+        ],
+    },
+    PatientStatus.urgent: {
+        "moods": ["distressed", "low", "in pain", "weak", "low"],
+        "pain": (6, 9),
+        "hr": (98, 116),
+        "steps": (80, 480),
+        "sleep": (3.4, 5.0),
+        "answer_rate": 0.85,
+        "notes": [
+            "Severe chest discomfort reported.",
+            "Pain worsening, struggling to sleep.",
+            "Increasing back pain, low mobility.",
+            "Confused and unsteady on the call.",
+            "Has not eaten since yesterday.",
+        ],
+    },
+}
+
+_HISTORY_DAYS = 4
 
 
-# (heart_rate, steps, sleep_hours) — most-recent first
-WEARABLES: list[WearableReading] = [
-    *_wearables_for(1, [(72, 2400, 7.5), (70, 2100, 7.8), (74, 1800, 6.9)], start_id=1000),
-    *_wearables_for(2, [(91, 600, 5.2), (88, 750, 5.8), (84, 900, 6.1)], start_id=2000),
-    *_wearables_for(3, [(108, 120, 3.9), (102, 200, 4.4), (99, 300, 4.8)], start_id=3000),
-    *_wearables_for(4, [(68, 3500, 8.1), (69, 3200, 7.9), (71, 3000, 8.0)], start_id=4000),
-]
+def _build_history() -> tuple[list[CheckIn], list[WearableReading]]:
+    checkins: list[CheckIn] = []
+    wearables: list[WearableReading] = []
+    for p in PATIENTS:
+        rng = random.Random(p.id)
+        prof = _PROFILE[p.status]
+        for day in range(_HISTORY_DAYS):
+            d = _TODAY - timedelta(days=day)
+            answered = rng.random() < prof["answer_rate"]
+            checkins.append(
+                CheckIn(
+                    id=p.id * 100 + day,
+                    patient_id=p.id,
+                    date=d,
+                    mood=rng.choice(prof["moods"]),
+                    pain_level=rng.randint(*prof["pain"]),
+                    answered=answered,
+                    notes=(
+                        rng.choice(prof["notes"])
+                        if answered
+                        else "No answer — left voicemail."
+                    ),
+                )
+            )
+            wearables.append(
+                WearableReading(
+                    id=p.id * 1000 + day,
+                    patient_id=p.id,
+                    timestamp=datetime.combine(d, datetime.min.time()).replace(hour=9),
+                    heart_rate=rng.randint(*prof["hr"]),
+                    steps=rng.randint(*prof["steps"]),
+                    sleep_hours=round(rng.uniform(*prof["sleep"]), 1),
+                )
+            )
+    return checkins, wearables
+
+
+CHECKINS, WEARABLES = _build_history()
 
 
 def get_patients() -> list[Patient]:

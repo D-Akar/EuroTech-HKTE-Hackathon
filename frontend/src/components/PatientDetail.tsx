@@ -5,22 +5,24 @@ import { CallPanel } from "./CallPanel";
 import { HealthTimeline } from "./HealthTimeline";
 import { StatusBadge } from "./StatusBadge";
 
-export function PatientDetail({ patient }: { patient: Patient }) {
+export function PatientDetail({ patient, onClose }: { patient: Patient; onClose: () => void }) {
   const [checkins, setCheckins] = useState<CheckIn[]>([]);
   const [wearables, setWearables] = useState<WearableReading[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setError(null);
+    setLoading(true);
     Promise.all([api.getCheckins(patient.id), api.getWearables(patient.id)])
       .then(([c, w]) => {
-        if (!cancelled) {
-          setCheckins(c);
-          setWearables(w);
-        }
+        if (cancelled) return;
+        setCheckins(c);
+        setWearables(w);
       })
-      .catch((e) => !cancelled && setError(String(e)));
+      .catch((e) => !cancelled && setError(String(e)))
+      .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
@@ -29,40 +31,60 @@ export function PatientDetail({ patient }: { patient: Patient }) {
   const latest = wearables[0];
 
   return (
-    <div className="detail">
-      <div className="detail-header">
-        <div>
-          <h2>{patient.name}</h2>
-          <div className="muted">
-            Age {patient.age} · {patient.practice}
+    <section className="detail" aria-label={`${patient.name} detail`}>
+      <div className="detail-scroll">
+        <div className="detail-header">
+          <div>
+            <h2>{patient.name}</h2>
+            <div className="detail-meta">
+              {patient.district} · Age {patient.age} · {patient.practice}
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <StatusBadge status={patient.status} />
+            </div>
           </div>
+          <button className="detail-close" onClick={onClose} aria-label="Close patient detail">
+            ✕
+          </button>
         </div>
-        <StatusBadge status={patient.status} />
-      </div>
 
-      {error && <p className="error">Failed to load: {error}</p>}
+        {error && <p className="call-error">Failed to load: {error}</p>}
 
-      {latest && (
         <div className="vitals">
-          <div className="vital-card">
-            <span className="vital-value">{latest.heart_rate}</span>
-            <span className="vital-label">bpm</span>
-          </div>
-          <div className="vital-card">
-            <span className="vital-value">{latest.steps}</span>
-            <span className="vital-label">steps today</span>
-          </div>
-          <div className="vital-card">
-            <span className="vital-value">{latest.sleep_hours}h</span>
-            <span className="vital-label">sleep</span>
-          </div>
+          {loading ? (
+            <>
+              <div className="vital-card skeleton" style={{ height: 78 }} />
+              <div className="vital-card skeleton" style={{ height: 78 }} />
+              <div className="vital-card skeleton" style={{ height: 78 }} />
+            </>
+          ) : latest ? (
+            <>
+              <Vital value={latest.heart_rate} unit="bpm" label="Heart rate" />
+              <Vital value={latest.steps.toLocaleString()} label="Steps today" />
+              <Vital value={latest.sleep_hours} unit="h" label="Sleep" />
+            </>
+          ) : (
+            <p className="muted">No wearable data.</p>
+          )}
         </div>
-      )}
 
-      <CallPanel patient={patient} />
+        <CallPanel patient={patient} />
 
-      <h3>Health timeline</h3>
-      <HealthTimeline checkins={checkins} wearables={wearables} />
+        <div className="section-label">Health timeline</div>
+        <HealthTimeline checkins={checkins} wearables={wearables} />
+      </div>
+    </section>
+  );
+}
+
+function Vital({ value, unit, label }: { value: number | string; unit?: string; label: string }) {
+  return (
+    <div className="vital-card">
+      <div>
+        <span className="vital-value num">{value}</span>
+        {unit && <span className="vital-unit">{unit}</span>}
+      </div>
+      <span className="vital-label">{label}</span>
     </div>
   );
 }

@@ -50,7 +50,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
     try {
       const record = await api.triggerCall(patient.id, { to_number: toNumber });
       if (record.status === "initiated") {
-        setStatus(`Call initiated (conversation ${record.conversation_id ?? "—"}).`);
+        setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "—"}).`);
       } else {
         setError(record.error ?? "Call failed.");
       }
@@ -68,10 +68,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
     setError(null);
     try {
       const cleaned = questions.map((q) => q.trim()).filter(Boolean);
-      const config = await api.saveCallConfig(patient.id, {
-        questions: cleaned,
-        greeting: null,
-      });
+      const config = await api.saveCallConfig(patient.id, { questions: cleaned, greeting: null });
       setQuestions(config.questions);
       setStatus("Questions saved.");
     } catch (e) {
@@ -118,24 +115,27 @@ export function CallPanel({ patient }: { patient: Patient }) {
 
   return (
     <section className="call-panel">
-      <h3>Check-in call</h3>
+      <div className="call-panel-head">
+        <PhoneIcon />
+        <h3>Check-in call</h3>
+      </div>
 
       {status && <p className="call-status">{status}</p>}
-      {error && <p className="error call-error">{error}</p>}
+      {error && <p className="call-error">{error}</p>}
 
       {/* Call now */}
       <div className="call-row">
         <label className="field">
-          <span className="field-label">To number</span>
+          <span className="field-label">Dispatch to number</span>
           <input
             className="input"
             value={toNumber}
             onChange={(e) => setToNumber(e.target.value)}
-            placeholder="+1..."
+            placeholder="+852..."
           />
         </label>
-        <button className="btn" onClick={handleCallNow} disabled={busy}>
-          Call now
+        <button className="btn btn-call" onClick={handleCallNow} disabled={busy}>
+          <PhoneIcon small /> Call now
         </button>
       </div>
 
@@ -143,10 +143,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
       <div className="call-block">
         <div className="call-block-head">
           <span className="field-label">Questions to ask</span>
-          <button
-            className="btn btn-ghost"
-            onClick={() => setQuestions((q) => [...q, ""])}
-          >
+          <button className="btn btn-ghost" onClick={() => setQuestions((q) => [...q, ""])}>
             + Add
           </button>
         </div>
@@ -160,15 +157,15 @@ export function CallPanel({ patient }: { patient: Patient }) {
               }
             />
             <button
-              className="btn btn-ghost btn-remove"
+              className="btn btn-remove"
               onClick={() => setQuestions((qs) => qs.filter((_, j) => j !== i))}
               aria-label="Remove question"
             >
-              ×
+              ✕
             </button>
           </div>
         ))}
-        <button className="btn" onClick={handleSaveQuestions} disabled={busy}>
+        <button className="btn btn-ghost" onClick={handleSaveQuestions} disabled={busy} style={{ marginTop: 4 }}>
           Save questions
         </button>
       </div>
@@ -176,12 +173,13 @@ export function CallPanel({ patient }: { patient: Patient }) {
       {/* Scheduling */}
       <div className="call-block">
         <span className="field-label">Schedule a call</span>
-        <div className="call-row">
+        <div className="call-row" style={{ marginTop: 8 }}>
           <input
             className="input"
             type="datetime-local"
             value={scheduleAt}
             onChange={(e) => setScheduleAt(e.target.value)}
+            style={{ flex: "1 1 180px" }}
           />
           <label className="checkbox">
             <input
@@ -189,7 +187,7 @@ export function CallPanel({ patient }: { patient: Patient }) {
               checked={recurring}
               onChange={(e) => setRecurring(e.target.checked)}
             />
-            Repeat daily
+            Daily
           </label>
           <button className="btn" onClick={handleSchedule} disabled={busy}>
             Schedule
@@ -200,14 +198,11 @@ export function CallPanel({ patient }: { patient: Patient }) {
           <ul className="schedule-list">
             {schedules.map((s) => (
               <li key={s.id} className="schedule-item">
-                <span>
+                <span className="num">
                   {new Date(s.scheduled_at).toLocaleString()}
-                  {s.recurring && <span className="tag tag-daily">daily</span>}
+                  {s.recurring && <span className="tag tag-daily" style={{ marginLeft: 8 }}>daily</span>}
                 </span>
-                <button
-                  className="btn btn-ghost"
-                  onClick={() => handleCancel(s.id)}
-                >
+                <button className="btn btn-ghost" onClick={() => handleCancel(s.id)}>
                   Cancel
                 </button>
               </li>
@@ -220,19 +215,17 @@ export function CallPanel({ patient }: { patient: Patient }) {
       <div className="call-block">
         <span className="field-label">Recent calls</span>
         {history.length === 0 ? (
-          <p className="muted">No calls yet.</p>
+          <p className="muted" style={{ fontSize: 13.5, margin: "8px 0 0" }}>
+            No calls yet.
+          </p>
         ) : (
           <ul className="schedule-list">
             {history.slice(0, 5).map((r) => (
               <li key={r.id} className="schedule-item">
-                <span>
+                <span className="num">
                   {new Date(r.triggered_at).toLocaleString()} · {r.kind}
                 </span>
-                <span
-                  className={`tag ${
-                    r.status === "initiated" ? "tag-ok" : "tag-missed"
-                  }`}
-                >
+                <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
                   {r.status}
                 </span>
               </li>
@@ -241,5 +234,19 @@ export function CallPanel({ patient }: { patient: Patient }) {
         )}
       </div>
     </section>
+  );
+}
+
+function PhoneIcon({ small }: { small?: boolean }) {
+  const s = small ? 15 : 18;
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A15 15 0 0 1 4.5 6a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

@@ -17,18 +17,20 @@ def test_list_patients():
     resp = client.get("/patients")
     assert resp.status_code == 200
     patients = resp.json()
-    assert len(patients) == 4
-    assert {"id", "name", "age", "status", "practice"} <= patients[0].keys()
+    assert len(patients) == 30
+    assert {"id", "name", "age", "status", "practice", "district"} <= patients[0].keys()
+    # Every patient is placed in a Hong Kong district for the city twin.
+    assert all(p["district"] for p in patients)
 
 
 def test_patient_checkins_and_wearables():
     resp = client.get("/patients/1/checkins")
     assert resp.status_code == 200
-    assert len(resp.json()) == 3
+    assert len(resp.json()) == 4
 
     resp = client.get("/patients/1/wearables")
     assert resp.status_code == 200
-    assert len(resp.json()) == 3
+    assert len(resp.json()) == 4
 
 
 def test_unknown_patient_404():

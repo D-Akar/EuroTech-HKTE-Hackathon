@@ -9,13 +9,12 @@ type TimelineEvent =
   | { kind: "checkin"; at: number; data: CheckIn }
   | { kind: "wearable"; at: number; data: WearableReading };
 
+const fmtDate = (ms: number) =>
+  new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
 export function HealthTimeline({ checkins, wearables }: Props) {
   const events: TimelineEvent[] = [
-    ...checkins.map((c) => ({
-      kind: "checkin" as const,
-      at: new Date(c.date).getTime(),
-      data: c,
-    })),
+    ...checkins.map((c) => ({ kind: "checkin" as const, at: new Date(c.date).getTime(), data: c })),
     ...wearables.map((w) => ({
       kind: "wearable" as const,
       at: new Date(w.timestamp).getTime(),
@@ -29,34 +28,44 @@ export function HealthTimeline({ checkins, wearables }: Props) {
 
   return (
     <ol className="timeline">
-      {events.map((e) =>
-        e.kind === "checkin" ? (
-          <li key={`c-${e.data.id}`} className="timeline-item checkin">
-            <div className="timeline-date">{e.data.date}</div>
-            <div className="timeline-body">
-              <strong>Phone check-in</strong>
-              {!e.data.answered && <span className="tag tag-missed">No answer</span>}
-              <div>
-                Mood: {e.data.mood} · Pain {e.data.pain_level}/10
-              </div>
-              <div className="muted">{e.data.notes}</div>
-            </div>
-          </li>
-        ) : (
-          <li key={`w-${e.data.id}`} className="timeline-item wearable">
-            <div className="timeline-date">
-              {new Date(e.data.timestamp).toLocaleDateString()}
-            </div>
-            <div className="timeline-body">
-              <strong>Wearable reading</strong>
-              <div>
-                {e.data.heart_rate} bpm · {e.data.steps} steps ·{" "}
-                {e.data.sleep_hours}h sleep
-              </div>
-            </div>
-          </li>
-        )
-      )}
+      {events.map((e) => (
+        <li key={`${e.kind}-${e.data.id}`} className="timeline-item">
+          <div className="timeline-rail">
+            <span className={`timeline-node ${e.kind}`} />
+            <span className="timeline-line" />
+          </div>
+          <div className="timeline-body">
+            {e.kind === "checkin" ? (
+              <>
+                <div className="timeline-row1">
+                  <span className="timeline-kind">Phone check-in</span>
+                  {e.data.answered ? (
+                    <span className="tag tag-ok">Answered</span>
+                  ) : (
+                    <span className="tag tag-missed">No answer</span>
+                  )}
+                  <span className="timeline-date">{fmtDate(e.at)}</span>
+                </div>
+                <div className="timeline-detail">
+                  Mood {e.data.mood} · pain {e.data.pain_level}/10
+                </div>
+                {e.data.notes && <div className="timeline-note">{e.data.notes}</div>}
+              </>
+            ) : (
+              <>
+                <div className="timeline-row1">
+                  <span className="timeline-kind">Wearable reading</span>
+                  <span className="timeline-date">{fmtDate(e.at)}</span>
+                </div>
+                <div className="timeline-detail num">
+                  {e.data.heart_rate} bpm · {e.data.steps.toLocaleString()} steps ·{" "}
+                  {e.data.sleep_hours}h sleep
+                </div>
+              </>
+            )}
+          </div>
+        </li>
+      ))}
     </ol>
   );
 }

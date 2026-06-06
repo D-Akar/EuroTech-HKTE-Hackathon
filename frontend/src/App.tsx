@@ -19,6 +19,10 @@ export default function App() {
   const [manualHr, setManualHr] = useState<number | null>(null); // demo: operator-pinned HR
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  // Live 'dementia demo' call state: idle -> calling -> sent | error.
+  const [demoCall, setDemoCall] = useState<"idle" | "calling" | "sent" | "error">("idle");
+  // Roster drawer: floats as glass over the full-screen twin; collapsible.
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     api
@@ -90,6 +94,23 @@ export default function App() {
     if (!demo) setManualHr(null); // leaving demo drops any pinned heart rate
   }, [demo, featuredId]);
 
+  // Place the live 'dementia demo' call to the featured patient (the operator's
+  // own phone on stage): the agent asks the day, mentions the high HR, asks again,
+  // and escalates to the nurse if they can't answer.
+  async function handleDementiaDemoCall() {
+    if (featuredId == null || demoCall === "calling") return;
+    setDemoCall("calling");
+    try {
+      await api.dementiaDemoCall(featuredId);
+      setDemoCall("sent");
+      window.setTimeout(() => setDemoCall("idle"), 4000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setDemoCall("error");
+      window.setTimeout(() => setDemoCall("idle"), 4000);
+    }
+  }
+
   const counts = useMemo(() => {
     const c: Record<PatientStatus, number> = { stable: 0, attention: 0, urgent: 0 };
     for (const p of displayPatients) c[p.status]++;
@@ -110,6 +131,16 @@ export default function App() {
   return (
     <div className="app">
       <header className="command-bar">
+        <button
+          className={`sidebar-toggle ${sidebarOpen ? "on" : ""}`}
+          onClick={() => setSidebarOpen((o) => !o)}
+          aria-pressed={sidebarOpen}
+          aria-label={sidebarOpen ? "Hide roster" : "Show roster"}
+          title={sidebarOpen ? "Hide roster" : "Show roster"}
+        >
+          <PanelIcon />
+        </button>
+
         <div className="brand">
           <span className="brand-mark" aria-hidden>
             <CareloopMark />
@@ -202,6 +233,20 @@ export default function App() {
             >
               Ramp
             </button>
+            <button
+              className={`demo-chip demo-chip-dementia ${demoCall === "calling" ? "on" : ""}`}
+              onClick={handleDementiaDemoCall}
+              disabled={featuredId == null || demoCall === "calling"}
+              title="Call the featured patient: the agent asks the day, mentions the high heart rate, asks again, and alerts the nurse if they can't answer"
+            >
+              {demoCall === "calling"
+                ? "Calling…"
+                : demoCall === "sent"
+                  ? "Call placed ✓"
+                  : demoCall === "error"
+                    ? "Call failed"
+                    : "Dementia call"}
+            </button>
           </div>
         )}
 
@@ -224,14 +269,6 @@ export default function App() {
       )}
 
       <div className="layout">
-        <PatientList
-          patients={displayPatients}
-          selectedId={selectedId}
-          featuredId={featuredId}
-          statusFilter={activeFilter}
-          onSelect={setSelectedId}
-        />
-
         <div className="stage">
           {displayPatients.length > 0 && (
             <CityTwin
@@ -271,8 +308,6 @@ export default function App() {
             </div>
           )}
 
-          <div className="stage-hint">Drag to orbit · scroll to zoom · click a light</div>
-
           {selected && (
             <PatientDetail
               patient={selected}
@@ -288,6 +323,19 @@ export default function App() {
             />
           )}
         </div>
+
+        <aside
+          className={`roster-drawer ${sidebarOpen ? "open" : ""}`}
+          aria-hidden={!sidebarOpen}
+        >
+          <PatientList
+            patients={displayPatients}
+            selectedId={selectedId}
+            featuredId={featuredId}
+            statusFilter={activeFilter}
+            onSelect={setSelectedId}
+          />
+        </aside>
       </div>
     </div>
   );
@@ -312,6 +360,15 @@ function CareloopMark() {
       <circle cx="12" cy="12" r="3.2" fill="white" />
       <circle cx="12" cy="12" r="7.5" stroke="white" strokeWidth="1.6" opacity="0.85" />
       <circle cx="12" cy="12" r="11" stroke="white" strokeWidth="1.2" opacity="0.45" />
+    </svg>
+  );
+}
+
+function PanelIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <path d="M9 4v16" />
     </svg>
   );
 }

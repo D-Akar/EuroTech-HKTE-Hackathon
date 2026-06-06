@@ -46,6 +46,13 @@
   --shadow: 0 6px 22px -8px oklch(0 0 0 / 0.55);
   --shadow-lg: 0 24px 60px -20px oklch(0 0 0 / 0.7);
 
+  /* Frosted glass - panels float over the live twin (see reference UI).
+     Theme-aware so light + dark both read as real depth, not flat overlays. */
+  --glass-bg: oklch(0.205 0.022 256 / 0.3);
+  --glass-border: oklch(0.86 0.07 220 / 0.18);
+  --glass-blur: blur(26px) saturate(1.6);
+  --glass-shadow: 0 22px 60px -22px oklch(0 0 0 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.08);
+
   --ease: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint */
 
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -87,6 +94,11 @@
   --shadow-sm: 0 1px 2px oklch(0.4 0.04 256 / 0.06);
   --shadow: 0 4px 16px -6px oklch(0.4 0.04 256 / 0.12);
   --shadow-lg: 0 18px 50px -18px oklch(0.35 0.05 256 / 0.28);
+
+  --glass-bg: oklch(0.99 0.006 235 / 0.34);
+  --glass-border: oklch(1 0 0 / 0.55);
+  --glass-blur: blur(28px) saturate(1.4);
+  --glass-shadow: 0 20px 54px -22px oklch(0.4 0.05 256 / 0.26), inset 0 1px 0 oklch(1 0 0 / 0.6);
 
   color-scheme: light;
 }
@@ -132,21 +144,60 @@ button {
    ============================================================================= */
 
 .app {
-  display: grid;
-  grid-template-rows: auto 1fr;
+  position: relative;
   height: 100vh;
   overflow: hidden;
 }
 
+/* Floating glass command bar - hovers over the full-screen twin */
 .command-bar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 0 22px;
-  height: 60px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  z-index: 5;
+  gap: 18px;
+  padding: 0 16px 0 10px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  z-index: 20;
+}
+
+/* Roster toggle - leading glass tile in the command bar */
+.sidebar-toggle {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease), border-color 0.16s var(--ease);
+}
+
+.sidebar-toggle:hover {
+  background: oklch(0.6 0.04 256 / 0.1);
+  color: var(--text);
+}
+
+.sidebar-toggle.on {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-ring);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .brand {
@@ -240,21 +291,42 @@ button {
 }
 
 .layout {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  min-height: 0;
-  position: relative;
+  position: absolute;
+  inset: 0;
 }
 
 /* =============================================================================
-   Roster rail
+   Roster rail - floating glass drawer over the twin, collapsible
    ============================================================================= */
 
+.roster-drawer {
+  position: absolute;
+  top: 80px;
+  left: 12px;
+  bottom: 12px;
+  width: 328px;
+  z-index: 15;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.42s var(--ease), opacity 0.3s var(--ease);
+}
+
+.roster-drawer:not(.open) {
+  transform: translateX(calc(-100% - 20px));
+  opacity: 0;
+  pointer-events: none;
+}
+
 .roster {
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+  background: transparent;
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
 }
 
@@ -450,8 +522,8 @@ button {
    ============================================================================= */
 
 .stage {
-  position: relative;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
   background: radial-gradient(120% 90% at 50% 0%, var(--sky-top), var(--sky-bottom));
   overflow: hidden;
 }
@@ -461,14 +533,17 @@ button {
   touch-action: none;
 }
 
+/* Twin chrome clears the floating command bar (top) and sits along the bottom,
+   centered between the roster drawer (left) and detail panel (right). */
 .stage-overlay {
   position: absolute;
-  inset: 0;
+  inset: 80px 12px 14px;
   pointer-events: none;
-  padding: 18px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
 }
 
 .stage-overlay > * {
@@ -572,19 +647,23 @@ button {
 
 .detail {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 80px;
+  right: 12px;
+  bottom: 12px;
   width: 420px;
-  max-width: calc(100vw - 360px);
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
+  max-width: calc(100vw - 380px);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   display: flex;
   flex-direction: column;
   min-height: 0;
   animation: panel-in 0.32s var(--ease);
-  z-index: 3;
+  z-index: 16;
 }
 
 @keyframes panel-in {
@@ -1528,10 +1607,10 @@ button {
 
 .banner-error {
   position: absolute;
-  top: 14px;
+  top: 84px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 6;
+  z-index: 22;
   background: var(--status-urgent-soft);
   color: oklch(0.42 0.16 28);
   border: 1px solid oklch(0.8 0.08 30);
@@ -1786,6 +1865,20 @@ button {
   color: var(--status-urgent-strong, var(--status-urgent));
   border-color: var(--status-urgent);
 }
+/* The dementia-demo call trigger: a distinct, deliberate accent. */
+.demo-chip-dementia {
+  border-color: oklch(0.7 0.12 300);
+  color: oklch(0.55 0.16 300);
+  font-weight: 600;
+}
+.demo-chip-dementia:hover:not(:disabled) {
+  background: oklch(0.95 0.04 300);
+}
+.demo-chip-dementia.on {
+  background: oklch(0.95 0.05 300);
+  border-color: oklch(0.6 0.16 300);
+}
+
 /* Connected watch reads as real/live (green), distinct from the demo's accent. */
 .watch-chip-ble.on {
   background: var(--status-stable-soft);
@@ -2168,21 +2261,12 @@ button {
 }
 
 /* --- Layered glass chrome (dark only) -------------------------------------- */
-:root[data-theme="dark"] .command-bar {
-  background: oklch(0.165 0.02 256 / 0.82);
-  backdrop-filter: blur(16px) saturate(1.1);
-  border-bottom-color: oklch(0.62 0.08 215 / 0.22);
-  box-shadow: 0 1px 0 oklch(0.75 0.12 215 / 0.07), 0 10px 30px -22px black;
-}
-:root[data-theme="dark"] .roster {
-  background: oklch(0.185 0.018 256 / 0.66);
-  backdrop-filter: blur(12px);
-  border-right-color: oklch(0.6 0.07 218 / 0.16);
-}
+/* Glass chrome gains a faint HUD-cyan rim + glow in the dark theme */
+:root[data-theme="dark"] .command-bar,
+:root[data-theme="dark"] .roster-drawer,
 :root[data-theme="dark"] .detail {
-  background: oklch(0.17 0.02 256 / 0.9);
-  backdrop-filter: blur(22px) saturate(1.1);
-  border-left-color: oklch(0.62 0.08 218 / 0.24);
+  border-color: oklch(0.72 0.1 215 / 0.2);
+  box-shadow: var(--glass-shadow), 0 0 34px -12px oklch(0.7 0.13 215 / 0.2);
 }
 
 /* --- Stage: deep space + glowing HUD overlay cards (dark only) -------------- */

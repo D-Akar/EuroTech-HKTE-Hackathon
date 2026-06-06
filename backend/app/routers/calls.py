@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from .. import call_store, conversation_store, data, live_monitor, scheduler
+from .. import call_store, cognitive_demo, conversation_store, data, live_monitor, scheduler
 from ..config import settings
 from ..models import (
     CallConfig,
@@ -61,6 +61,29 @@ async def screening_call(patient_id: int, body: TriggerRequest) -> CallRecord:
         questions=[],
         kind="screening",
         agent_id=settings.elevenlabs_screening_agent_id,
+    )
+
+
+@router.post("/dementia-demo", response_model=CallRecord)
+async def dementia_demo_call(patient_id: int, body: TriggerRequest) -> CallRecord:
+    """Live demo: call the patient with the orientation-probe + high-HR script.
+
+    The agent asks what day it is, mentions the high heart rate, then re-asks; if the
+    patient can't answer, it escalates to the nurse mid-call via its escalate tool.
+    Rides the default outbound agent (which has the escalate tool) with a per-call
+    prompt override, so no separate agent is needed.
+    """
+    patient = _require_patient(patient_id)
+    to_number = body.to_number or patient.phone_number
+    if not to_number:
+        raise HTTPException(status_code=400, detail="No phone number for this patient")
+    return await telephony.place_call(
+        patient,
+        to_number,
+        questions=[],
+        kind="instant",
+        system_prompt=cognitive_demo.system_prompt(patient),
+        first_message=cognitive_demo.first_message(patient),
     )
 
 

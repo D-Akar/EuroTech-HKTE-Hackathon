@@ -105,6 +105,10 @@ export const api = {
   // that runs the dementia voice-biomarker protocol.
   screeningCall: (patientId: number, to_number?: string) =>
     sendJSON<CallRecord>("POST", `/patients/${patientId}/calls/screening`, { to_number }),
+  // Live demo: orientation-probe + high-HR call that escalates to the nurse mid-call
+  // if the patient can't say what day it is.
+  dementiaDemoCall: (patientId: number, to_number?: string) =>
+    sendJSON<CallRecord>("POST", `/patients/${patientId}/calls/dementia-demo`, { to_number }),
   getCallHistory: (patientId: number) =>
     getJSON<CallRecord[]>(`/patients/${patientId}/calls`),
   getCallConfig: (patientId: number) =>

@@ -42,6 +42,34 @@ def _nurse_briefing(patient: Patient, reason: str) -> list[str]:
     ]
 
 
+def _nurse_system_prompt(patient: Patient, reason: str) -> str:
+    """Persona override so the alert call briefs the NURSE, not the patient.
+
+    Without this, an agent-triggered escalation inherits the patient check-in
+    persona and greets the nurse as if they were the unwell patient.
+    """
+    where = patient.district or "an unknown district"
+    return (
+        "You are Careloop, an automated clinical escalation line for an elderly-care "
+        "service. IMPORTANT: you are calling the ON-CALL NURSE, not the patient. Do not "
+        "greet this person as a patient and do not ask how they are feeling; speak to them "
+        "as a clinical colleague. "
+        f"An alert has been raised for {patient.name}, age {patient.age}, in {where}. "
+        f"Reason for the escalation: {reason}. "
+        "Calmly brief the nurse: state the patient's name and the reason, and ask them to "
+        "follow up with the patient as soon as possible. Keep it under a minute, confirm "
+        "they have noted it, then end the call politely."
+    )
+
+
+def _nurse_first_message(patient: Patient) -> str:
+    """Opening line the alert agent says to the nurse."""
+    return (
+        f"Hello, this is the Careloop care line with an urgent escalation about "
+        f"{patient.name}. May I give you the details?"
+    )
+
+
 async def perform_escalation(
     patient: Patient,
     reason: str,
@@ -83,6 +111,8 @@ async def perform_escalation(
                 target,
                 _nurse_briefing(patient, reason),
                 kind="instant",
+                system_prompt=_nurse_system_prompt(patient, reason),
+                first_message=_nurse_first_message(patient),
             )
         else:
             # No number configured -> the dial is skipped silently otherwise, which

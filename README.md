@@ -17,13 +17,11 @@ patient.
 
 ## Screenshots
 
-| Live care map | Check-in data |
-| --- | --- |
-| ![Live care twin map](docs/screenshots/overview.png) | ![Phone check-in history](docs/screenshots/checkin-data.png) |
+![Live care map](docs/screenshots/overview.png)
 
-| Device data | Patient record (FHIR) |
+| Check-in data | Device data |
 | --- | --- |
-| ![Live wearable vitals](docs/screenshots/device-data.png) | ![FHIR medical profile](docs/screenshots/patient-data.png) |
+| ![Phone check-in history](docs/screenshots/checkin-data.png) | ![Live wearable vitals](docs/screenshots/device-data.png) |
 
 ## Hong Kong eHealth context
 
@@ -56,14 +54,11 @@ docs/       Market brief + dashboard screenshots
 The app has **two halves that run at the same time**, so you need **two terminals** -
 one for the backend, one for the frontend.
 
-> **Windows / PowerShell note:** PowerShell 5.1 does not support `&&` to chain commands.
-> Run each line separately, or use `;`. Commands below are written for PowerShell.
-
 ### 1. Backend (FastAPI, port 8000)
 
-```powershell
+```bash
 cd backend
-.venv\Scripts\activate
+source .venv/bin/activate
 uvicorn app.main:app --reload
 ```
 
@@ -72,43 +67,24 @@ uvicorn app.main:app --reload
 
 If `.venv` does **not** exist yet (fresh clone), create it once first:
 
-```powershell
-py -3.14 -m venv .venv          # use the `py` launcher, not bare `python`
-.venv\Scripts\activate
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-If `.venv\Scripts\activate` errors with "cannot be loaded ... execution policy",
-run this once per terminal, then re-run activate:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -Bypass
 ```
 
 ### 2. Frontend (React + Vite, port 5173)
 
 Open a **second** terminal:
 
-```powershell
+```bash
 cd frontend
+npm install   # first run only
 npm run dev
 ```
 
-If `node_modules` does not exist yet (fresh clone), run `npm install` once first.
-
 Open http://localhost:5173. The dashboard expects the backend on port 8000 (override
 with `VITE_API_URL` - see `frontend/.env.example`).
-
-### Common gotchas
-
-- **`The token '&&' is not a valid statement separator`** - you're on PowerShell 5.1;
-  run the commands on separate lines instead of joining with `&&`.
-- **`Unable to copy ...venvlauncher.exe to ...python.exe`** - the `.venv` already exists
-  and was locked (a running server, editor, or antivirus). Don't recreate it; just
-  activate it. To rebuild from scratch, close everything using it, then
-  `Remove-Item -Recurse -Force .venv` and recreate.
-- **Bare `python` opens the Microsoft Store** - the `python` command can resolve to a
-  Store stub. Prefer the `py` launcher (`py -3.14 ...`) for venv creation.
 
 ## Patient data store (MongoDB)
 
@@ -277,7 +253,7 @@ Schedules and call history are in-memory and reset when the backend restarts.
 
 ```bash
 cd backend
-.venv\Scripts\activate
+source .venv/bin/activate
 pip install pytest httpx
 pytest
 ```

@@ -31,7 +31,9 @@ async def trigger_call(patient_id: int, body: TriggerRequest) -> CallRecord:
     to_number = body.to_number or patient.phone_number
     if not to_number:
         raise HTTPException(status_code=400, detail="No phone number for this patient")
-    questions = body.questions or call_store.get_config(patient_id).questions
+    # Hand the agent the patient's personalised generated questions (falling back
+    # to the practice config), unless the caller passed an explicit override.
+    questions = telephony.resolve_questions(patient_id, override=body.questions)
     return await telephony.place_call(patient, to_number, questions, kind="instant")
 
 
@@ -77,7 +79,7 @@ def update_config(patient_id: int, body: ConfigUpdate) -> CallConfig:
 @router.post("/schedules", response_model=ScheduledCall)
 def create_schedule(patient_id: int, body: ScheduleRequest) -> ScheduledCall:
     _require_patient(patient_id)
-    questions = call_store.get_config(patient_id).questions
+    questions = telephony.resolve_questions(patient_id)
     schedule = call_store.add_schedule(
         patient_id, body.scheduled_at, body.recurring, questions
     )

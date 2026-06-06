@@ -20,6 +20,7 @@ from .routers import (
     live,
     meta,
     patients,
+    questions,
     reports,
     summary,
     vitals,
@@ -57,6 +58,7 @@ app.add_middleware(
 app.include_router(patients.router)
 app.include_router(meta.router)
 app.include_router(checkins.router)
+app.include_router(questions.router)
 app.include_router(wearables.router)
 app.include_router(vitals.router)
 app.include_router(alerts.router)

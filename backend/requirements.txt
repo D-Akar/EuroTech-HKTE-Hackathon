@@ -11,3 +11,6 @@ garminconnect>=0.3.2
 curl_cffi
 # Clinician PDF report generation.
 reportlab==4.2.5
+# LLM-generated tailored check-in questions (Gemma via the Gemini API; see llm/).
+# Powers the "Questions to ask" panel's Regenerate button.
+openai>=1.40

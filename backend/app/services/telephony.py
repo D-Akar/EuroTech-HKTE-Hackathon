@@ -13,6 +13,7 @@ from datetime import datetime
 
 import httpx
 
+from . import question_gen
 from .. import call_store, care_plan_store, conversation_store, data, fhir_source
 from ..config import settings
 from ..models import CallConfig, CallRecord, Patient
@@ -50,6 +51,35 @@ def build_clinical_context(patient_id: int) -> list[str]:
         lines.append(stored.care_plan.rendered_text)
 
     return lines
+
+
+def resolve_questions(patient_id: int, override: list[str] | None = None) -> list[str]:
+    """Decide which questions the agent should be handed for this call.
+
+    Priority: an explicit caller override (e.g. custom "Call now" questions) >
+    the personalised questions generated for this patient (``question_gen``,
+    cross-referenced against their recent check-ins and worsening-symptom guide,
+    and surfaced on the dashboard) > the practice's editable default config.
+
+    Order is preserved, so the agent leads with the first generated question.
+    Best-effort: any failure to read the generated set falls back to the config.
+    """
+    if override:
+        return override
+    patient = data.get_patient(patient_id)
+    if patient is not None:
+        try:
+            generated = question_gen.get_for_patient(patient)
+            if generated.generated and generated.questions:
+                texts = [q.text for q in generated.questions if q.text]
+                if texts:
+                    return texts
+        except Exception:  # noqa: BLE001 — never let this block a call
+            logger.warning(
+                "resolve_questions: falling back to config for patient %s", patient_id,
+                exc_info=True,
+            )
+    return call_store.get_config(patient_id).questions
 
 
 def build_overrides(config: CallConfig) -> dict | None:

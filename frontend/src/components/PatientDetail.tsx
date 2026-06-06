@@ -13,6 +13,7 @@ import { CallPanel } from "./CallPanel";
 import { CarePlanPanel } from "./CarePlanPanel";
 import { CheckInPanel } from "./CheckInPanel";
 import { DevicePanel } from "./DevicePanel";
+import { QuestionsPanel } from "./QuestionsPanel";
 import { StatusBadge } from "./StatusBadge";
 
 interface Props {
@@ -154,6 +155,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
         {tab === "checkins" ? (
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
+            <QuestionsPanel patientId={patient.id} />
             <CallPanel patient={patient} onPatientUpdate={onPatientUpdate} />
             <CarePlanPanel patient={patient} />
           </>

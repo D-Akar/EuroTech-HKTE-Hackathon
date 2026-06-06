@@ -10,6 +10,7 @@ import type {
   MedicalProfile,
   Meta,
   Patient,
+  PatientQuestions,
   ScheduledCall,
   Summary,
   WearableReading,
@@ -83,6 +84,16 @@ export const api = {
   // Real FHIR clinical record — only for MongoDB-backed patients (404 otherwise).
   getProfile: (patientId: number) =>
     getJSON<MedicalProfile>(`/patients/${patientId}/profile`),
+
+  // LLM-generated, tailored check-in questions for the voice agent.
+  getQuestions: (patientId: number) =>
+    getJSON<PatientQuestions>(`/patients/${patientId}/questions`),
+  // Re-run question generation for one patient (calls the LLM; can take a few seconds).
+  regenerateQuestions: (patientId: number) =>
+    sendJSON<PatientQuestions>(
+      "POST",
+      `/patients/${patientId}/questions/regenerate`,
+    ),
 
   // Persist the patient's check-in phone number; returns the updated patient.
   updatePatientPhone: (patientId: number, phone_number: string) =>

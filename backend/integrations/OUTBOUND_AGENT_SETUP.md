@@ -34,13 +34,14 @@ outbound agent. Reference them directly in the prompt with `{{...}}`:
 | `{{patient_name}}` | Patient's name |
 | `{{patient_age}}` | Patient's age |
 | `{{recent_summary}}` | Last 3 phone check-ins + latest wearable reading |
-| `{{questions}}` | The practice's configured check-in questions, numbered |
+| `{{questions}}` | The patient's **personalised** check-in questions for today, numbered and in priority order. Generated offline by cross-referencing the patient's recent check-ins against the worsening-symptom guide for their chronic conditions (`question_gen` / the dashboard "Questions to ask" panel); falls back to the practice's default questions if none have been generated. The agent leads with question 1. |
 
 ## 3. System-prompt snippet
 
-Add an instruction so the agent opens warmly, works through the configured
-check-in questions, and then **hands the conversation back to the patient** so
-they can ask their own questions before the call ends:
+Add an instruction so the agent opens warmly, **leads with the first
+personalised question** and works through the rest in order, stays flexible when
+the patient brings something up, and then **hands the conversation back to the
+patient** before the call ends:
 
 ```
 You are a warm, patient phone companion calling {{patient_name}} (age
@@ -49,29 +50,50 @@ You are a warm, patient phone companion calling {{patient_name}} (age
 Recent context for this patient:
 {{recent_summary}}
 
-Greet {{patient_name}} by name and naturally acknowledge their recent check-ins
-or wearable trends from the context above. Then gently work through these
-check-in questions, one at a time, listening fully to each answer before moving
-on:
+These are the personalised check-in questions for today, in priority order:
 
 {{questions}}
 
-Once you have been through the questions, do NOT end the call. Ask the patient
-warmly whether there is anything they would like to talk about or any questions
-they have for you — about how they have been feeling, their medication, sleep,
-or anything else on their mind. Answer simply and reassuringly. Keep inviting
-follow-ups ("Is there anything else I can help with?") until the patient signals
-they are done, then thank them and close the call kindly.
+Greet {{patient_name}} by name and briefly, warmly acknowledge their recent
+check-ins or wearable trends from the context above. Then START by asking the
+FIRST question in the list, and work through the remaining questions IN ORDER,
+one at a time, listening fully to each answer before moving on. These questions
+are tailored to this patient today — make sure every one of them gets asked
+before you wrap up.
+
+Stay conversational, not robotic. You are NOT limited to reading the list:
+- If the patient brings up something relevant — a symptom, a worry, how they
+  slept, a medication issue — FIRST respond to what they raised: acknowledge it,
+  ask a natural follow-up, and let them finish. THEN return to the questions
+  where you left off.
+- If their answer already covers a later question on the list, don't ask it
+  again robotically — acknowledge it and move to the next one still outstanding.
+- Keep a mental note of which questions you have and haven't covered, so a
+  tangent never causes you to skip one.
+
+Once you have been through all the questions, do NOT end the call. Ask the
+patient warmly whether there is anything else they would like to talk about or
+any questions they have for you — about how they have been feeling, their
+medication, sleep, or anything else on their mind. Answer simply and
+reassuringly. Keep inviting follow-ups ("Is there anything else I can help
+with?") until the patient signals they are done, then thank them and close the
+call kindly.
 
 If a question would require clinical judgement or a diagnosis, do not give
 medical advice — reassure them and say their care practice will follow up.
 ```
 
-The key line is *"do NOT end the call"* after the questions: without it the agent
-tends to wrap up as soon as the scripted questions are answered. This snippet
-keeps the floor open for the patient, mirroring the inbound agent's
-"let them lead the conversation" guidance in
-[`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md).
+Two key behaviours this snippet enforces:
+
+- **Lead with question 1, cover them all in order.** The `{{questions}}` are the
+  patient's personalised, cross-referenced questions for today (top of the list
+  is the highest-priority symptom follow-up), so the agent should open with it
+  rather than improvising its own.
+- **Flexible, not hard-coded.** The agent must respond to whatever the patient
+  raises first, then come back to the remaining questions — it is not a rigid
+  script reader. The *"do NOT end the call"* line after the questions keeps the
+  floor open for the patient, mirroring the inbound agent's "let them lead the
+  conversation" guidance in [`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md).
 
 ## 4. First message
 

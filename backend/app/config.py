@@ -25,9 +25,9 @@ class Settings:
     # number already registered to the ElevenLabs agent, so it is not sent here.
     twilio_api_key: str = os.getenv("TWILIO_API_KEY", "")
 
-    # ElevenLabs Twilio outbound-call endpoint.
+    # ElevenLabs Twilio outbound-call endpoint (EU data-residency base URL).
     elevenlabs_outbound_url: str = (
-        "https://api.elevenlabs.io/v1/convai/twilio/outbound-call"
+        "https://api.eu.residency.elevenlabs.io/v1/convai/twilio/outbound-call"
     )
 
     @property

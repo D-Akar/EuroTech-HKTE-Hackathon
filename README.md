@@ -96,8 +96,8 @@ with `VITE_API_URL` — see `frontend/.env.example`).
 Practices can trigger an **AI voice check-in call** to a patient — instantly ("Call now"),
 once at a chosen time, or repeating daily. Each call carries the patient's recent context
 (last few check-ins + latest wearable reading) and the practice's configured questions.
-Calls are placed via the ElevenLabs Twilio integration
-(`POST https://api.elevenlabs.io/v1/convai/twilio/outbound-call`).
+Calls are placed via the ElevenLabs Twilio integration on the **EU data-residency**
+endpoint (`POST https://api.eu.residency.elevenlabs.io/v1/convai/twilio/outbound-call`).
 
 **Setup:**
 

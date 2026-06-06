@@ -3,7 +3,10 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Html, Instance, Instances, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { Patient } from "../types";
-import { DISTRICTS, placePatient, STATUS } from "../city";
+import { DISTRICTS, MAP, placePatient, STATUS, toWorld } from "../city";
+
+// Height of the land slabs above the harbour; everything sits on top of this.
+const LAND_TOP = 0.42;
 
 // -----------------------------------------------------------------------------
 // Reduced-motion: the living city holds still, urgency stays legible by shape.
@@ -45,41 +48,116 @@ function useGlowTexture() {
 // -----------------------------------------------------------------------------
 // Terrain — two landmasses split by Victoria Harbour, plus the southern hills.
 // -----------------------------------------------------------------------------
-const LAND_COLOR = "#dfe5ec";
-const WATER_COLOR = "#9fcbcf";
+const LAND_COLOR = "#dee4ea";
+const HILL_COLOR = "#cdd6cf";
+const WATER_COLOR = "#a7cfd2";
+const BASE_COLOR = "#c6ccd4";
+
+// Coastlines traced from the printed map, in normalized (nx, ny) map coords.
+// Kowloon is the northern mass; Hong Kong Island the southern one. The gap
+// between their facing coasts is Victoria Harbour — the water "running through".
+const KOWLOON: [number, number][] = [
+  [0.0, 0.0], [1.0, 0.0], [1.0, 0.4],
+  [0.9, 0.4], [0.82, 0.44], [0.74, 0.4], [0.66, 0.34], [0.6, 0.33],
+  [0.56, 0.4], [0.5, 0.45], [0.44, 0.5], [0.39, 0.55], // Tsim Sha Tsui tip
+  [0.35, 0.52], [0.31, 0.45], [0.26, 0.41], [0.2, 0.4], [0.16, 0.43],
+  [0.14, 0.36], [0.1, 0.3], [0.06, 0.22], [0.07, 0.12], [0.02, 0.07], [0.0, 0.05],
+];
+
+const ISLAND: [number, number][] = [
+  [0.0, 0.66], [0.07, 0.61], [0.14, 0.585], [0.22, 0.585], [0.3, 0.59],
+  [0.37, 0.605], [0.44, 0.59], [0.52, 0.59], [0.57, 0.605], // Causeway Bay shelter
+  [0.64, 0.57], [0.72, 0.53], [0.82, 0.49], [0.9, 0.5], [1.0, 0.55],
+  [1.0, 1.0], [0.0, 1.0],
+];
+
+// Small peaks. The island's hilly spine sits along the very bottom edge; a few
+// modest hills rise behind north-east Kowloon (top right). Nothing in the middle,
+// where the urban districts are.
+const HILLS: [number, number, number, number][] = [
+  // nx, ny, radius, height
+  // Bottom edge — the island's peaks (small)
+  [0.2, 0.95, 1.1, 0.9], [0.35, 0.97, 1.2, 1.0], [0.5, 0.96, 1.0, 0.85],
+  [0.64, 0.97, 1.1, 0.95], [0.78, 0.95, 1.2, 1.0], [0.9, 0.93, 1.0, 0.8],
+  // Top right — a small amount behind north-east Kowloon
+  [0.84, 0.09, 1.2, 1.0], [0.93, 0.15, 1.0, 0.85], [0.9, 0.04, 0.9, 0.7],
+];
+
+function landGeometry(points: [number, number][]) {
+  const shape = new THREE.Shape();
+  points.forEach(([nx, ny], i) => {
+    const { x, z } = toWorld(nx, ny);
+    // rotation-x = -PI/2 maps shape (sx, sy) -> world (sx, 0, -sy); we want world z, so sy = -z.
+    if (i === 0) shape.moveTo(x, -z);
+    else shape.lineTo(x, -z);
+  });
+  shape.closePath();
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: LAND_TOP,
+    bevelEnabled: true,
+    bevelThickness: 0.08,
+    bevelSize: 0.06,
+    bevelSegments: 1,
+  });
+  return geo;
+}
 
 function Terrain() {
+  const kowloon = useMemo(() => landGeometry(KOWLOON), []);
+  const island = useMemo(() => landGeometry(ISLAND), []);
+
+  // Kai Tak runway — a thin spit reaching into the eastern harbour.
+  const runway = useMemo(() => {
+    const a = toWorld(0.6, 0.29);
+    const b = toWorld(0.81, 0.44);
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const len = Math.hypot(dx, dz);
+    return {
+      pos: [(a.x + b.x) / 2, LAND_TOP - 0.06, (a.z + b.z) / 2] as [number, number, number],
+      rotY: -Math.atan2(dz, dx),
+      len,
+    };
+  }, []);
+
   return (
     <group>
-      {/* Sea */}
-      <mesh rotation-x={-Math.PI / 2} position={[1, -0.12, -1]} receiveShadow>
-        <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color={WATER_COLOR} roughness={0.35} metalness={0.05} />
+      {/* Model base tray — gives the rectangle a physical edge */}
+      <mesh position={[0, -0.18, 0]} receiveShadow>
+        <boxGeometry args={[MAP.w + 1.4, 0.5, MAP.d + 1.4]} />
+        <meshStandardMaterial color={BASE_COLOR} roughness={0.9} />
       </mesh>
 
-      {/* Kowloon (north of the harbour) */}
-      <mesh position={[-1.5, 0, -7.2]} receiveShadow>
-        <boxGeometry args={[16, 0.35, 6.4]} />
-        <meshStandardMaterial color={LAND_COLOR} roughness={0.95} />
+      {/* Harbour water — a rectangle the exact size of the map */}
+      <mesh rotation-x={-Math.PI / 2} position={[0, 0.12, 0]} receiveShadow>
+        <planeGeometry args={[MAP.w, MAP.d]} />
+        <meshStandardMaterial color={WATER_COLOR} roughness={0.3} metalness={0.1} />
       </mesh>
 
-      {/* Hong Kong Island north shore + flats */}
-      <mesh position={[1.5, 0, 1.2]} receiveShadow>
-        <boxGeometry args={[20, 0.35, 4]} />
-        <meshStandardMaterial color={LAND_COLOR} roughness={0.95} />
+      {/* Landmasses with real coastlines */}
+      <mesh geometry={kowloon} rotation-x={-Math.PI / 2} castShadow receiveShadow>
+        <meshStandardMaterial color={LAND_COLOR} roughness={0.92} />
+      </mesh>
+      <mesh geometry={island} rotation-x={-Math.PI / 2} castShadow receiveShadow>
+        <meshStandardMaterial color={LAND_COLOR} roughness={0.92} />
       </mesh>
 
-      {/* Island mass extending south into the hills */}
-      <mesh position={[0.5, 0, 6.4]} receiveShadow>
-        <boxGeometry args={[18, 0.35, 7] } />
-        <meshStandardMaterial color={LAND_COLOR} roughness={0.95} />
+      {/* Kai Tak runway */}
+      <mesh position={runway.pos} rotation-y={runway.rotY} castShadow receiveShadow>
+        <boxGeometry args={[runway.len, 0.3, 0.7]} />
+        <meshStandardMaterial color={LAND_COLOR} roughness={0.92} />
       </mesh>
 
-      {/* The Peak — a soft hill rising over the island */}
-      <mesh position={[DISTRICTS["The Peak"].x, 0.6, DISTRICTS["The Peak"].z]} receiveShadow castShadow>
-        <coneGeometry args={[3.2, 2.6, 24]} />
-        <meshStandardMaterial color="#cdd8d2" roughness={1} />
-      </mesh>
+      {/* Topographic hills */}
+      {HILLS.map(([nx, ny, r, h], i) => {
+        const { x, z } = toWorld(nx, ny);
+        return (
+          <mesh key={i} position={[x, LAND_TOP - 0.05 + h / 2, z]} castShadow receiveShadow>
+            <coneGeometry args={[r, h, 20]} />
+            <meshStandardMaterial color={HILL_COLOR} roughness={1} />
+          </mesh>
+        );
+      })}
     </group>
   );
 }
@@ -103,17 +181,19 @@ function useBuildings(): Building[] {
       return (seed - 1) / 2147483646;
     };
     for (const d of Object.values(DISTRICTS)) {
-      const count = Math.round(6 + d.density * 12);
-      const spread = 1.7 + d.density * 0.6;
+      if (d.side === "hills") continue; // hill districts stay green — no towers on mountains
+      const count = Math.round(6 + d.density * 12); // density drives how many towers
+      const spread = 1.2 + d.density * 0.5;
       for (let i = 0; i < count; i++) {
         const a = rand() * Math.PI * 2;
         const r = Math.sqrt(rand()) * spread;
         const w = 0.28 + rand() * 0.34;
-        const h = (0.5 + rand() * 2.6) * (0.5 + d.density) + d.y * 0.4;
+        // height drives how tall, independently of count, for an HK-shaped skyline
+        const h = (0.5 + rand() * 2.6) * (0.4 + d.height) + d.y * 0.4;
         const col = base.clone();
         col.offsetHSL((rand() - 0.5) * 0.04, (rand() - 0.5) * 0.05, (rand() - 0.5) * 0.08);
         out.push({
-          position: [d.x + Math.cos(a) * r, d.y + h / 2 + 0.15, d.z + Math.sin(a) * r],
+          position: [d.x + Math.cos(a) * r, d.y + LAND_TOP + h / 2, d.z + Math.sin(a) * r],
           scale: [w, h, w * (0.8 + rand() * 0.5)],
           color: col,
         });
@@ -156,7 +236,7 @@ function PatientMarker({ placed, selected, dimmed, reduced, glow, onSelect, onHo
   const isAttention = patient.status === "attention";
 
   const beamH = isUrgent ? 1.9 : isAttention ? 1.2 : 0.85;
-  const capY = y + 0.2 + beamH;
+  const capY = beamH + 0.12;
 
   const pulseRef = useRef<THREE.Group>(null);
   const beamRef = useRef<THREE.Mesh>(null);
@@ -180,7 +260,7 @@ function PatientMarker({ placed, selected, dimmed, reduced, glow, onSelect, onHo
 
   return (
     <group
-      position={[x, y, z]}
+      position={[x, y + LAND_TOP, z]}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(patient.id);
@@ -196,13 +276,13 @@ function PatientMarker({ placed, selected, dimmed, reduced, glow, onSelect, onHo
       }}
     >
       {/* Invisible hit cylinder for a comfortable click target */}
-      <mesh position={[0, 0.2 + beamH / 2, 0]} visible={false}>
+      <mesh position={[0, beamH / 2 + 0.1, 0]} visible={false}>
         <cylinderGeometry args={[0.4, 0.4, beamH + 0.6, 6]} />
         <meshBasicMaterial />
       </mesh>
 
       {/* Beam of light */}
-      <mesh ref={beamRef} position={[0, 0.2 + beamH / 2, 0]}>
+      <mesh ref={beamRef} position={[0, beamH / 2 + 0.1, 0]}>
         <cylinderGeometry args={[0.05, 0.07, beamH, 10]} />
         <meshBasicMaterial
           color={color}
@@ -213,7 +293,7 @@ function PatientMarker({ placed, selected, dimmed, reduced, glow, onSelect, onHo
       </mesh>
 
       {/* Ground ring footprint */}
-      <mesh rotation-x={-Math.PI / 2} position={[0, 0.22, 0]}>
+      <mesh rotation-x={-Math.PI / 2} position={[0, 0.04, 0]}>
         <ringGeometry args={[0.22, 0.3, 24]} />
         <meshBasicMaterial color={color} transparent opacity={0.5 * opacity} depthWrite={false} />
       </mesh>
@@ -298,7 +378,7 @@ function CameraRig({
   useFrame(() => {
     if (!target || !controls.current) return;
     controls.current.target.lerp(target, 0.08);
-    desired.current.set(target.x + 6, target.y + 7, target.z + 9);
+    desired.current.set(target.x + 8, target.y + 9, target.z + 12);
     camera.position.lerp(desired.current, 0.05);
     controls.current.update();
   });
@@ -312,11 +392,12 @@ interface SceneProps {
   patients: Patient[];
   selectedId: number | null;
   statusFilter: Set<string> | null;
+  paused: boolean;
   onSelect: (id: number) => void;
   onHover: (p: Patient | null) => void;
 }
 
-function Scene({ patients, selectedId, statusFilter, onSelect, onHover }: SceneProps) {
+function Scene({ patients, selectedId, statusFilter, paused, onSelect, onHover }: SceneProps) {
   const reduced = usePrefersReducedMotion();
   const glow = useGlowTexture();
   const controls = useRef<any>(null);
@@ -325,25 +406,25 @@ function Scene({ patients, selectedId, statusFilter, onSelect, onHover }: SceneP
 
   const target = useMemo(() => {
     const sel = placed.find((p) => p.patient.id === selectedId);
-    return sel ? new THREE.Vector3(sel.x, sel.y + 1, sel.z) : null;
+    return sel ? new THREE.Vector3(sel.x, sel.y + LAND_TOP + 1, sel.z) : null;
   }, [placed, selectedId]);
 
   return (
     <>
       <color attach="background" args={["#eef3f7"]} />
-      <fog attach="fog" args={["#e7eef3", 22, 46]} />
+      <fog attach="fog" args={["#e7eef3", 34, 74]} />
 
       <hemisphereLight args={["#ffffff", "#aebccb", 0.9]} />
       <ambientLight intensity={0.35} />
       <directionalLight
-        position={[10, 18, 8]}
+        position={[14, 22, 12]}
         intensity={1.15}
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-22}
-        shadow-camera-right={22}
-        shadow-camera-top={22}
-        shadow-camera-bottom={-22}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-26}
+        shadow-camera-right={26}
+        shadow-camera-top={26}
+        shadow-camera-bottom={-26}
       />
 
       <Terrain />
@@ -366,26 +447,26 @@ function Scene({ patients, selectedId, statusFilter, onSelect, onHover }: SceneP
       })}
 
       <ContactShadows
-        position={[1, 0.18, -1]}
-        scale={48}
-        far={12}
-        blur={2.6}
-        opacity={0.32}
+        position={[0, LAND_TOP + 0.02, 0]}
+        scale={MAP.w + 6}
+        far={14}
+        blur={2.8}
+        opacity={0.3}
         color="#46586d"
       />
 
       <OrbitControls
         ref={controls}
         enablePan={false}
-        minDistance={6}
-        maxDistance={34}
+        minDistance={10}
+        maxDistance={58}
         minPolarAngle={0.15}
         maxPolarAngle={Math.PI / 2.15}
-        autoRotate={!reduced && selectedId === null}
-        autoRotateSpeed={0.35}
+        autoRotate={!reduced && selectedId === null && !paused}
+        autoRotateSpeed={0.175}
         enableDamping
         dampingFactor={0.08}
-        target={[1, 0, -1]}
+        target={[0, 0, 0]}
       />
       <CameraRig target={target} controls={controls} />
     </>
@@ -409,7 +490,7 @@ export function CityTwin({ patients, selectedId, statusFilter, onSelect }: CityT
     <Canvas
       shadows
       dpr={[1, 2]}
-      camera={{ position: [2, 15, 19], fov: 38 }}
+      camera={{ position: [0, 21, 28], fov: 40 }}
       gl={{ antialias: true }}
       onPointerMissed={() => setHovered(null)}
     >
@@ -417,6 +498,7 @@ export function CityTwin({ patients, selectedId, statusFilter, onSelect }: CityT
         patients={patients}
         selectedId={selectedId}
         statusFilter={statusFilter}
+        paused={hovered !== null}
         onSelect={onSelect}
         onHover={setHovered}
       />
@@ -431,7 +513,11 @@ function HoverTip({ patient }: { patient: Patient }) {
   const meta = STATUS[patient.status];
   const beamH = patient.status === "urgent" ? 1.9 : patient.status === "attention" ? 1.2 : 0.85;
   return (
-    <Html position={[placed.x, placed.y + 0.4 + beamH, placed.z]} center distanceFactor={14}>
+    <Html
+      position={[placed.x, placed.y + LAND_TOP + beamH + 0.35, placed.z]}
+      center
+      distanceFactor={16}
+    >
       <div className="marker-tip">
         {patient.name}
         <div className="tip-status">

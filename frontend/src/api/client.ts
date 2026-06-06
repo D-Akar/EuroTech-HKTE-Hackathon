@@ -58,6 +58,10 @@ export const api = {
   getAlerts: (patientId: number) =>
     getJSON<Alert[]>(`/patients/${patientId}/alerts`),
 
+  // URL of the clinician-ready PDF report (opened/downloaded directly by the browser).
+  reportUrl: (patientId: number) =>
+    `${BASE_URL}/patients/${patientId}/report.pdf`,
+
   // --- Calls ---
   triggerCall: (
     patientId: number,

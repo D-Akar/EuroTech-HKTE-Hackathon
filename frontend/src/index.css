@@ -594,6 +594,25 @@ button {
   color: var(--text);
 }
 
+.report-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.16s var(--ease), box-shadow 0.16s var(--ease);
+}
+.report-link:hover {
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
 /* Vitals */
 .vitals {
   display: grid;

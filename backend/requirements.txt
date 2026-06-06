@@ -9,3 +9,5 @@ pymongo>=4.6
 # exported data if these are absent). garminconnect>=0.3.5 needs Python 3.12+.
 garminconnect>=0.3.2
 curl_cffi
+# Clinician PDF report generation.
+reportlab==4.2.5

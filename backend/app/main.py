@@ -9,7 +9,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import scheduler
-from .routers import alerts, calls, checkins, live, meta, patients, summary, vitals, wearables
+from .routers import (
+    alerts,
+    calls,
+    checkins,
+    live,
+    meta,
+    patients,
+    reports,
+    summary,
+    vitals,
+    wearables,
+)
 
 
 @asynccontextmanager
@@ -45,6 +56,7 @@ app.include_router(alerts.router)
 app.include_router(summary.router)
 app.include_router(live.router)
 app.include_router(calls.router)
+app.include_router(reports.router)
 
 
 @app.get("/health", tags=["meta"])

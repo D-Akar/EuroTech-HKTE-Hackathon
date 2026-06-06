@@ -86,6 +86,14 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading 
             <div className="detail-tags">
               <StatusBadge status={patient.status} />
               {isFeatured && <span className="you-tag">You · live device</span>}
+              <a
+                className="report-link"
+                href={api.reportUrl(patient.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Download clinician report
+              </a>
             </div>
           </div>
           <button className="detail-close" onClick={onClose} aria-label="Close patient detail">

@@ -1,6 +1,12 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 httpx==0.28.1
+# WebSocket client for the ElevenLabs live-call monitor (app/services/elevenlabs_monitor.py).
+# Ships transitively with uvicorn[standard]; pinned here as a direct dependency.
+# Needs >=14: that's when `websockets.connect` became the asyncio client whose
+# header kwarg is `additional_headers` (legacy 12/13 used `extra_headers`).
+websockets>=14
+
 apscheduler==3.11.0
 python-dotenv==1.0.1
 # MongoDB is the platform datastore (Garmin vitals pipeline + dashboard reads).

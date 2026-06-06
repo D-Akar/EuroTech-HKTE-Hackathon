@@ -1,112 +1,85 @@
-# HONESTY.md - what's real vs. what's mocked
+# HONESTY.md
 
-This document is for the hackathon jury and our partners, to be read alongside our pitch
-materials. We believe a prototype is more credible when it's honest about its own
-boundaries - so rather than blur the line, we draw it clearly here.
-
-The short version: **the product engine is real and working end to end.** Real outbound AI
-voice calls, a voice agent that receives each patient's full clinical context, live
-mid-call escalation that recolors the clinician dashboard in real time, real wearable data,
-real FHIR ingestion into long-term storage, LLM-generated questions, and PDF clinical
-reports all run today. What is *synthetic* is some of the patient **data content** (we can't
-demo on real patients), and what is *not yet built* is the **external regulatory
-integration** (eHRSS, PDPO controls) - which, importantly, no third party can build yet
-because it's gated behind a HK government accreditation scheme (see
-`docs/hk-ehealth-market.md`).
-
-Nothing in our pitch should outrun what's recorded here. If a claim elsewhere isn't backed
-by a ✅ below, treat it as roadmap.
-
-Legend:
-- ✅ **Real** - works end to end against real services/infrastructure.
-- 🟡 **Partial** - real and working, with a stated limit (e.g. in-memory persistence).
-- 🧪 **Synthetic data** - the mechanism is real; the patient *data* is generated/seeded.
-- ⛔ **Roadmap** - described in our vision docs, not yet in code.
-
-Last reviewed: 2026-06-07.
+> Mandatory disclosure for the hackathon. This file lives at the root of your repository. Judges cross-check it against your code and your technical video.
+>
+> **The deal:** disclosed shortcuts are **not** penalized — that is the entire point of this file. Hidden ones are. Undisclosed pre-built code is heavily penalized, each undisclosed mock carries a small penalty, and a faked demo is heavily penalized. Telling the truth here costs you nothing.
 
 ---
 
-## ✅ What's genuinely built and working
+## 1. Team — who did what
+Judges compare this against `git shortlog -sn`, so keep it honest.
 
-| Capability | Status | Reality |
-| --- | --- | --- |
-| **Outbound AI voice check-in calls** | ✅ Real | Real calls placed via the ElevenLabs + Twilio integration on the EU data-residency endpoint. |
-| **Clinical context handed to the voice agent** | ✅ Real | A secured (API-key) server-tool callback assembles each patient's full context - demographics, active alerts, check-in history, wearable readings, configured questions, and their **FHIR-ingested CarePlan + profile from long-term (MongoDB) storage** - and serves it to the agent at call time. |
-| **Live mid-call escalation** | ✅ Real | The agent can flag a patient mid-conversation; the backend flips them to *urgent*, **recolors every open clinician dashboard in real time over Server-Sent Events**, and places a nurse-alert call. |
-| **Call transcript + extracted check-in data** | ✅ Real | After a call, the transcript and structured check-in data are pulled back on demand from ElevenLabs and shown in the dashboard. |
-| **Call scheduling (one-off + recurring)** | 🟡 Real, in-memory | A real APScheduler engine places scheduled and daily check-in calls; the schedule/history store is in-memory and resets on backend restart. |
-| **Garmin wearable pipeline** | ✅ Real | Real vitals (heart rate, resting HR, stress, sleep, SpO2, respiration, body battery, steps) pulled from a real Garmin account for the live patient. |
-| **FHIR ingestion → long-term storage** | ✅ Real (🧪 data) | A real pipeline parses FHIR records and upserts them into MongoDB (555 records), overlaid onto dashboard patients. The *pipeline and storage are real*; the *records* are synthetic (see below). |
-| **FHIR CarePlan ingestion** | ✅ Real | Parses FHIR **CarePlan (R4/R5) from JSON or XML**, persists it, and feeds it into the live call context above. |
-| **Rule-based alerting / triage** | ✅ Real | Health alerts are computed from wearable readings and vitals and drive the dashboard's risk flags. |
-| **LLM-generated tailored check-in questions** | ✅ Real | The "Questions to ask" panel generates patient-specific questions via an LLM (best-effort; needs an API key). |
-| **Clinician PDF report** | ✅ Real | Generates a downloadable clinical summary PDF (reportlab). |
-| **Clinician dashboard + live health timeline** | ✅ Real | React dashboard running against the live API, updating in real time over SSE. |
-
-> Read together, the daily-check-in loop is real today: schedule or trigger a call → the
-> agent speaks with the patient using their real clinical context → it can escalate live →
-> the transcript and extracted check-in flow back to the dashboard. That full loop works.
+| Member | GitHub handle | Main contributions |
+|---|---|---|
+| Derin Akar | `D-Akar` | Platform scaffold (FastAPI backend + React dashboard); Hong Kong 3D digital-twin frontend; outbound/inbound voice check-in framework + ElevenLabs agent tool-calls; FHIR CarePlan ingestion; nurse escalation / emergency-redirect logic; clinician PDF report generation; live call transcript tracking. |
+| Barnabas Juhasz | `BarnabasJuhasz1` | MongoDB + Docker data layer; FHIR patient-record import and on-dashboard profiles; LLM (Gemma) check-in question generation wired to ElevenLabs; chronic-disease and worsening-symptom modelling. |
+| Dario Monopoli | `dariomonopoli-dev` | Garmin wearable pipeline — live vitals, trends, alerts — running on his **own** Garmin account (he is the "live Garmin" patient); real-time patient escalation over Server-Sent Events + nurse call; photoreal HK twin, theming and UI polish; cognitive-screening agent; auto-updating call summaries. |
+| Jan | *(no commits — non-code)* | Business development groundwork and the business pitch / go-to-market case (HK government healthcare track). |
 
 ---
 
-## 🧪 Where the data is synthetic (mechanisms are real)
+## 2. What is fully working
+Features that run end-to-end on the live app, with real data and real logic.
 
-- **The 555 FHIR patient records are Synthea-generated** (a standard open-source
-  synthetic-patient generator), not real patients - we can't and shouldn't demo on real
-  clinical data. The ingestion, storage, overlay, and call-context pipelines that process
-  them are all real.
-- **Most dashboard patients are seeded demo profiles.** One patient runs on real Garmin
-  vitals; promoted slots show (synthetic) FHIR profiles; the rest are hand-seeded so the
-  dashboard is populated for demonstration.
-- **A committed synthetic Garmin fallback** lets a fresh setup show wearable data even
-  without the live Garmin login present; the live export is real, the fallback is labelled
-  synthetic.
-- **Wearable readings aren't yet emitted as FHIR `Observation` resources** - they flow
-  through our own data shape today. Mapping them to LOINC-coded FHIR Observations is a
-  near-term roadmap step.
-
----
-
-## ⛔ Roadmap (in our vision docs, not yet in code)
-
-These appear in `PROJECT.md` / `PRODUCT.md` as the product vision. We flag them so they're
-never mistaken for working features:
-
-- **Live eHRSS / eHealth integration via HL7 FHIR R4.** No eHRSS integration code today -
-  and, crucially, **no third party can connect to eHRSS at present**: the pathway is gated
-  behind a HK government accreditation scheme. Our honest position is *FHIR-native and
-  accreditation-ready*, not *integrated*. Full background and engagement plan:
-  `docs/hk-ehealth-market.md`.
-- **PDPO compliance, AES-256 at rest, TLS 1.3, local (HK) data residency.** Stated as our
-  compliance intent; the prototype does not yet implement these controls.
-- **Authentication / consent layer.** No login or consent flow yet (the ElevenLabs
-  server-tool callbacks *are* API-key secured; full user auth is roadmap).
-- **Cantonese LLM fine-tuning and speech tuning for elderly speakers.** Voice is provided by
-  the external ElevenLabs agent; we have not fine-tuned a Cantonese model.
-- **Vector-database long-term memory.** Real long-term context *is* injected into calls
-  (history + alerts + FHIR CarePlan from MongoDB); the specific *vector-database*
-  implementation in the vision doc is not built.
-- **Medical-device telemetry beyond Garmin, cellular-eSIM wearables, GBA cross-border
-  sync.** Not implemented.
-- **Blood pressure from wearables.** Garmin watches have no blood-pressure sensor, so no
-  real BP reading exists in the system.
+- **Outbound AI voice check-in call.** Input: a patient + their resolved check-in questions. Output: a **real phone call** placed via the ElevenLabs + Twilio integration (EU data-residency endpoint), where the AI agent speaks with the patient.
+- **Clinical context handed to the voice agent.** Input: the patient's phone number, on an API-key-secured server-tool callback. Output: a JSON context bundle — demographics, active alerts, check-in history, wearable readings, configured questions, and the patient's **FHIR-ingested CarePlan + profile from MongoDB** — consumed by the agent at call time.
+- **Live mid-call escalation.** Input: the agent's "escalate" tool-call during a conversation. Output: the patient flips to *urgent*, **every open clinician dashboard recolors in real time over Server-Sent Events**, and a nurse-alert call is placed.
+- **Post-call transcript + extracted check-in.** Input: a completed call ID. Output: the transcript and structured check-in data, pulled on demand from ElevenLabs into the dashboard.
+- **Garmin wearable vitals.** Input: a real Garmin account export. Output: daily heart rate, resting HR, stress, sleep, SpO2, respiration, body battery and steps on the dashboard.
+- **FHIR ingestion → long-term storage.** Input: FHIR patient JSON. Output: 555 records upserted into MongoDB and overlaid onto dashboard patients (`GET /patients/{id}/profile`).
+- **FHIR CarePlan ingestion.** Input: a FHIR CarePlan (R4/R5) as JSON or XML. Output: a stored, parsed plan that feeds the live call context above.
+- **Rule-based triage alerts.** Input: wearable readings + vitals. Output: severity-tagged health alerts driving the dashboard's risk flags.
+- **LLM-generated check-in questions.** Input: a patient's context. Output: patient-specific check-in questions (via the Gemma/Gemini API; best-effort, needs a key).
+- **Clinician PDF report.** Input: a patient ID. Output: a downloadable clinical-summary PDF (reportlab).
+- **Live clinician dashboard.** A React Hong Kong digital-twin map + roster, updating in real time over SSE.
 
 ---
 
-## Code reuse & prior work (transparency disclosure)
+## 3. What is mocked, stubbed, or hardcoded
+Every shortcut. **Undisclosed mocks carry a small penalty each. Anything listed here = free.**
 
-In the spirit of fair competition, our disclosure on reused code and external content:
+| What is faked | Where (file:line or folder) | Why we mocked it | What the real version would do |
+|---|---|---|---|
+| Patient roster (names + baseline check-ins/wearables for non-featured patients) | `backend/app/data.py` | Need a populated demo roster without using real patient data | Read patients from the practice's real registry |
+| The 555 "FHIR patient records" are **Synthea**-generated synthetic data, not real patients | `data/fhir_processed/` (surfaced via `backend/app/fhir_source.py`) | Cannot and should not demo on real clinical records | Ingest consented, real patient FHIR records |
+| Call schedules + call history are an in-memory store (reset on backend restart) | `backend/app/call_store.py` | No persistent DB layer built yet | Persist to a real database |
+| Check-in, conversation and care-plan stores are in-memory | `backend/app/checkin_store.py`, `conversation_store.py`, `care_plan_store.py` | Same — no DB layer yet | DB-backed persistence with history |
+| Synthetic Garmin fallback so a fresh clone shows vitals without the live login | `backend/app/sample_data/garmin_fallback.json` | Keep the demo populated when the real Garmin export isn't present | Always use live per-patient device data |
+| No user authentication; ElevenLabs callbacks use a single shared API key | app-wide (`backend/app/routers/integrations.py` key check) | Auth/consent out of scope for the hackathon window | Full login + consent + audit trail |
 
-- **Developer familiarity with infrastructure (Derin Akar).** Our integrations with
-  **Twilio** and **ElevenLabs** draw on Derin Akar's prior experience setting up that same
-  infrastructure. That experience informed *how* we wired things up - it sped up
-  configuration and helped us avoid dead ends - but **all of the actual code and
-  connections in this repository were written from zero for this hackathon. No code or
-  content from any prior project was directly copied in.**
-- **Third-party services and open data.** We use standard third-party platforms (ElevenLabs,
-  Twilio, MongoDB) via their public SDKs/APIs, and the synthetic patient records come from
-  the open-source **Synthea** generator. These are external tools and datasets, not our own
-  prior work.
+---
 
-If anything else in our submission warrants a reuse disclosure, we'll add it here.
+## 4. External APIs, services & data sources
+Everything the project calls. Each marked real or mocked.
+
+| Service / API / dataset | Used for | Real call or mocked? | Auth |
+|---|---|---|---|
+| ElevenLabs Conversational AI | The voice agent that conducts check-in calls | **Real** | API key |
+| Twilio (via the ElevenLabs integration) | Telephony / placing the outbound PSTN calls | **Real** | Via ElevenLabs (key) |
+| Garmin Connect | Live wearable vitals for the featured patient | **Real** | Account login (a team member's own account) |
+| MongoDB | Patient / FHIR record store (long-term) | **Real** (local, Docker Compose) | Local / none |
+| Gemma via the Gemini API | Generating tailored check-in questions | **Real** | API key |
+| Synthea (synthetic patient generator) | The 555 synthetic FHIR records | **Dataset, generated offline** | None |
+
+---
+
+## 5. Pre-existing code
+
+*All code in this repo was written during the hackathon window.*
+
+Clarifications, for full transparency:
+- **Prior experience, not prior code (Derin Akar).** The Twilio + ElevenLabs wiring drew on Derin's prior experience setting up that infrastructure — that know-how sped up configuration and helped us avoid dead ends — but **no code or content from any prior project was copied in.**
+- **Third-party tooling.** We use ElevenLabs, Twilio and MongoDB via their public SDKs/APIs, and the synthetic records come from the open-source **Synthea** generator. These are external tools/datasets, not our own pre-existing code.
+
+---
+
+## 6. Known limitations & next steps
+Naming these honestly is a strength, not a flaw.
+
+- **No live eHRSS / eHealth integration.** No third party can connect to eHRSS today — it is gated behind a HK government accreditation scheme. We are *FHIR-native and accreditation-ready*, not integrated. Full background and engagement plan: [`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md).
+- **No PDPO controls / AES-256 at rest / TLS 1.3 / HK data residency yet** — stated compliance intent, not yet implemented.
+- **No authentication / consent layer** — the ElevenLabs callbacks are API-key secured, but there's no user login.
+- **Persistence is in-memory** for calls, check-ins, conversations and care plans — these reset on backend restart.
+- **Wearable readings aren't emitted as FHIR `Observation` resources yet** — mapping them to LOINC-coded Observations is the next interoperability step.
+- **No Cantonese LLM fine-tuning and no vector-database memory** — structured long-term context *is* injected into calls (history + alerts + FHIR CarePlan), but it isn't a fine-tuned Cantonese model or a vector store.
+- **No real blood pressure** — Garmin watches have no BP sensor, so no BP reading exists in the system.

@@ -2,6 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
+import { LiveCallTranscript } from "./LiveCallTranscript";
+
+// A call is worth watching live only if it was just placed: an "initiated" call
+// triggered within this window. Older "initiated" records are stale (no webhook
+// updates the status), so we go straight to the post-call view instead of opening
+// a monitor socket that would immediately fall through.
+const LIVE_WINDOW_MS = 15 * 60 * 1000;
+
+function isPotentiallyLive(r: CallRecord): boolean {
+  return (
+    r.status === "initiated" &&
+    Date.now() - new Date(r.triggered_at).getTime() < LIVE_WINDOW_MS
+  );
+}
 
 // How often we re-check for a finished call's analysis while a patient is open.
 const POLL_MS = 6000;
@@ -37,6 +51,10 @@ export function CallPanel({
 
   const onCallCompletedRef = useRef(onCallCompleted);
   onCallCompletedRef.current = onCallCompleted;
+
+  // Call ids whose live stream has ended this session — flip them to the
+  // post-call view even though their record still reads "initiated".
+  const [liveEnded, setLiveEnded] = useState<Set<number>>(new Set());
 
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
@@ -388,9 +406,18 @@ export function CallPanel({
                       {r.status}
                     </span>
                   </div>
-                  {open && hasConversation && (
-                    <CallConversation patientId={patient.id} callId={r.id} />
-                  )}
+                  {open && hasConversation &&
+                    (isPotentiallyLive(r) && !liveEnded.has(r.id) ? (
+                      <LiveCallTranscript
+                        patientId={patient.id}
+                        callId={r.id}
+                        onEnded={() =>
+                          setLiveEnded((prev) => new Set(prev).add(r.id))
+                        }
+                      />
+                    ) : (
+                      <CallConversation patientId={patient.id} callId={r.id} />
+                    ))}
                 </li>
               );
             })}

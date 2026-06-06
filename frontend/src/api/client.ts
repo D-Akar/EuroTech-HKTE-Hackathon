@@ -143,6 +143,10 @@ export const api = {
     ),
   callAudioUrl: (patientId: number, callId: number) =>
     `${BASE_URL}/patients/${patientId}/calls/${callId}/audio`,
+  // Live transcript SSE stream for an in-progress call. Open with
+  // `new EventSource(api.liveCallUrl(...))`; listen for `turn` and `end` events.
+  liveCallUrl: (patientId: number, callId: number) =>
+    `${BASE_URL}/patients/${patientId}/calls/${callId}/live`,
   listSchedules: (patientId: number) =>
     getJSON<ScheduledCall[]>(`/patients/${patientId}/calls/schedules`),
   cancelSchedule: (patientId: number, scheduleId: number) =>

@@ -1,3 +1,21 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Env
+.env
+*.local
+
+# Editor / OS
+.DS_Store
+
 # Data directory
 data/
 

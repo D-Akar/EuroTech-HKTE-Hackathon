@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type Theme = "dark" | "light";
 
-const STORAGE_KEY = "sentinel-theme";
+const STORAGE_KEY = "careloop-theme";
 
 function initialTheme(): Theme {
   if (typeof window === "undefined") return "dark";

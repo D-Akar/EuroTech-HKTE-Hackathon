@@ -9,14 +9,36 @@ const FIELD_LABELS: Record<string, string> = {
   new_symptoms: "New symptoms",
   sleep_quality: "Sleep",
   needs_followup: "Follow-up",
+  // Cognitive-screening biomarkers
+  word_registration_count: "Word registration",
+  delayed_recall_count: "Delayed recall",
+  orientation_score: "Orientation",
+  animal_fluency_count: "Verbal fluency",
+  word_finding_difficulty: "Word-finding difficulty",
+  repetition_observed: "Repetition",
+  speech_fluency: "Speech fluency",
+  lexical_diversity_note: "Lexical diversity",
+  screening_completed: "Screening completed",
+};
+
+// Friendly labels for the screening agent's Evaluation Criteria.
+const EVAL_LABELS: Record<string, string> = {
+  completed_cognitive_screen: "Screen completed",
+  recall_within_normal_range: "Recall in range",
+  fluency_within_normal_range: "Fluency in range",
+  no_language_red_flags: "No language red flags",
 };
 
 function label(id: string): string {
   return FIELD_LABELS[id] ?? id.replace(/_/g, " ");
 }
 
+function evalLabel(id: string): string {
+  return EVAL_LABELS[id] ?? id.replace(/_/g, " ");
+}
+
 function formatValue(p: ConversationDataPoint): string {
-  if (p.value === null || p.value === "") return "—";
+  if (p.value === null || p.value === "") return "-";
   if (typeof p.value === "boolean") return p.value ? "Yes" : "No";
   if (p.id === "pain_level" && typeof p.value === "number") return `${p.value}/10`;
   return String(p.value);
@@ -129,6 +151,21 @@ export function CallConversation({
 
       {followup?.value === true && typeof followupReason === "string" && followupReason && (
         <p className="conv-followup-reason">Follow-up: {followupReason}</p>
+      )}
+
+      {detail.evaluation_criteria.length > 0 && (
+        <div className="conv-evals">
+          {detail.evaluation_criteria.map((c) => (
+            <span
+              key={c.id}
+              className={`conv-eval conv-eval-${c.result}`}
+              title={c.rationale ?? undefined}
+            >
+              <span className="conv-eval-dot" aria-hidden />
+              <span className="conv-eval-label">{evalLabel(c.id)}</span>
+            </span>
+          ))}
+        </div>
       )}
 
       {detail.transcript.length > 0 && (

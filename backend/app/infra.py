@@ -9,7 +9,7 @@ import-time overlay in ``app.data`` runs before Mongo is healthy and silently bi
 zero slots. Re-applying *after* Mongo is reachable guarantees the featured patients
 show real data without a manual backend restart.
 
-Every step is best-effort and non-fatal — if Docker isn't installed or the stack
+Every step is best-effort and non-fatal - if Docker isn't installed or the stack
 can't start, the app still boots on the full mock dataset. Disable the whole thing
 with ``CARELOOP_AUTOSTART_MONGO=0``.
 """
@@ -38,7 +38,7 @@ log = logging.getLogger("careloop.infra")
 def _start_stack() -> bool:
     """Run ``docker compose up -d`` from the repo root. True on success."""
     if shutil.which("docker") is None:
-        log.warning("Docker not found on PATH — skipping Mongo autostart.")
+        log.warning("Docker not found on PATH - skipping Mongo autostart.")
         return False
     cmd = ["docker", "compose", "up", "-d"]
     try:
@@ -66,7 +66,7 @@ def _wait_for_mongo(timeout: float) -> bool:
         from pymongo import MongoClient
         from pymongo.errors import PyMongoError
     except ImportError:
-        log.warning("pymongo not installed — cannot load real FHIR records.")
+        log.warning("pymongo not installed - cannot load real FHIR records.")
         return False
 
     deadline = time.monotonic() + timeout
@@ -91,7 +91,7 @@ def ensure_mongo_and_overlays() -> None:
                 log.info("MongoDB is accepting connections.")
             else:
                 log.warning(
-                    "MongoDB not reachable after %ss — dashboard may stay on mock data.",
+                    "MongoDB not reachable after %ss - dashboard may stay on mock data.",
                     settings.mongo_ready_timeout,
                 )
 
@@ -99,7 +99,7 @@ def ensure_mongo_and_overlays() -> None:
     if bound:
         log.info("Overlaid %d real FHIR patient(s) onto dashboard slots.", bound)
     else:
-        log.info("No FHIR overlays applied — dashboard running on mock data.")
+        log.info("No FHIR overlays applied - dashboard running on mock data.")
 
     # Re-apply dashboard-edited phone numbers last, so they win over seed and FHIR.
     applied = patient_overrides.apply(data.PATIENTS)

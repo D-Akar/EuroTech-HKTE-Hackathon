@@ -1,7 +1,7 @@
 // A realistic FHIR R4 CarePlan for an elderly outpatient, used by the "Load
 // sample plan" affordance in CarePlanPanel. Exercises the full read-path in
 // backend/app/fhir_careplan.py: contained Conditions (addresses), contained
-// Goals with targets, R4 activity[].detail, period, category and notes — so the
+// Goals with targets, R4 activity[].detail, period, category and notes - so the
 // rendered context handed to the ElevenLabs agent reads like a real plan.
 export const SAMPLE_CARE_PLAN = JSON.stringify(
   {

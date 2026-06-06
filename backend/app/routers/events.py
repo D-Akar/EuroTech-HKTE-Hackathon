@@ -1,4 +1,4 @@
-"""Server-Sent Events stream — real-time push to the dashboard.
+"""Server-Sent Events stream - real-time push to the dashboard.
 
 The frontend opens one ``EventSource('/events')`` and recolors patients the
 instant a ``patient_status`` event arrives (e.g. an escalation flipping a patient
@@ -34,7 +34,7 @@ async def stream(request: Request) -> StreamingResponse:
                 try:
                     yield await asyncio.wait_for(queue.get(), timeout=_HEARTBEAT_SECS)
                 except asyncio.TimeoutError:
-                    yield ": ping\n\n"  # comment frame — keeps the socket warm
+                    yield ": ping\n\n"  # comment frame - keeps the socket warm
         finally:
             events.unregister(queue)
 

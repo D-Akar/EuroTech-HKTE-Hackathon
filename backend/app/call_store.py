@@ -1,6 +1,6 @@
 """In-memory store for call configs, schedules, and call history.
 
-Mirrors the mock-data style of ``app/data.py`` — module-level structures seeded
+Mirrors the mock-data style of ``app/data.py`` - module-level structures seeded
 at import time. Configs and schedules are memory-only; the call *history* is
 additionally persisted to MongoDB (best-effort, like ``app/patient_overrides.py``)
 so the calls shown under a patient's check-in data survive a backend restart.
@@ -99,7 +99,7 @@ def cancel_schedule(schedule_id: int) -> ScheduledCall | None:
 # --- Call history ------------------------------------------------------------
 #
 # Persisted to MongoDB best-effort: if the database is unreachable the record
-# still lands in memory — it just won't survive a restart. Mirrors the pattern in
+# still lands in memory - it just won't survive a restart. Mirrors the pattern in
 # app/patient_overrides.py.
 
 

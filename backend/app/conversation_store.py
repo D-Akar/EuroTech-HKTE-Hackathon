@@ -49,7 +49,7 @@ def _materialize_checkin(detail: ConversationDetail) -> None:
     when = detail.started_at.date() if detail.started_at else record.triggered_at.date()
     try:
         checkin_store.record_from_conversation(detail, record.patient_id, when)
-    except Exception:  # noqa: BLE001 — materialization must never break the read path
+    except Exception:  # noqa: BLE001 - materialization must never break the read path
         log.warning("Could not derive a check-in from conversation %s.", detail.conversation_id)
 
 
@@ -80,7 +80,7 @@ async def latest_digest(patient_id: int) -> str | None:
             continue
         detail = await get_detail(record.conversation_id)
         if detail is None or not detail.ready:
-            return None  # newest call not ready yet — don't skip to an older one
+            return None  # newest call not ready yet - don't skip to an older one
         when = (detail.started_at.date() if detail.started_at
                 else record.triggered_at.date())
         return render_digest(detail, when)

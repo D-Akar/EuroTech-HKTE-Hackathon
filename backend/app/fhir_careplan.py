@@ -1,7 +1,7 @@
 """Parse FHIR CarePlan documents (JSON or XML) into human-readable context.
 
 Pure functions, no I/O. Tolerant of FHIR R4 and R5 shapes and of slightly-off
-real-world exports — we only extract the handful of fields a care agent needs,
+real-world exports - we only extract the handful of fields a care agent needs,
 never validate the whole resource.
 """
 
@@ -36,7 +36,7 @@ def parse_document(raw: str) -> dict:
         except ET.ParseError as e:
             raise CarePlanParseError(f"Invalid XML: {e}") from e
         return _xml_to_dict(root)
-    raise CarePlanParseError("Unrecognized format — expected FHIR JSON or XML.")
+    raise CarePlanParseError("Unrecognized format - expected FHIR JSON or XML.")
 
 
 def _strip_ns(tag: str) -> str:
@@ -324,7 +324,7 @@ def render_care_plan_text(ctx: CarePlanContext) -> str:
         lines.append("Planned activities:")
         for a in ctx.activities:
             status = f"[{a.status}] " if a.status else ""
-            sched = f" — {a.scheduled}" if a.scheduled else ""
+            sched = f" - {a.scheduled}" if a.scheduled else ""
             lines.append(f"- {status}{a.description}{sched}")
     if ctx.notes:
         lines.append("Notes: " + " ".join(ctx.notes))

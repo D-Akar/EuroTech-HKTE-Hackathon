@@ -38,7 +38,7 @@ _PROFILES: dict[int, MedicalProfile] = {}
 def read_featured_ids() -> list[str]:
     """Parse the markdown file into an ordered, de-duplicated list of UUIDs.
 
-    Tolerant of bullets, headings, and blank lines — we just scan each non-heading
+    Tolerant of bullets, headings, and blank lines - we just scan each non-heading
     line for the first UUID-shaped token.
     """
     path = settings.featured_patients_file
@@ -161,7 +161,7 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
     """Overlay real FHIR data onto dashboard slots, in place.
 
     For each UUID listed in the markdown file (in order), the next available patient
-    slot — skipping ``featured_id`` (the live Garmin patient) — gets the real name,
+    slot - skipping ``featured_id`` (the live Garmin patient) - gets the real name,
     age, and a medical profile. Returns the number of slots bound.
     """
     _PROFILES.clear()
@@ -177,7 +177,7 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
     for fhir_id in ids:
         doc = docs.get(fhir_id)
         if doc is None:
-            continue  # listed but not in Mongo — leave that slot mock
+            continue  # listed but not in Mongo - leave that slot mock
         if bound >= len(slots):
             break  # more ids than slots; ignore the overflow
         slot = slots[bound]

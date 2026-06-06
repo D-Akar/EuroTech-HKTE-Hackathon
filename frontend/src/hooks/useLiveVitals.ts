@@ -24,13 +24,34 @@ function demoSnapshot(elapsedSeconds: number): LiveVitals {
   return { ...base, ...assessLive(0, base) };
 }
 
+// A held, operator-set heart rate for demos where the scripted ramp is too slow or
+// you want to land on an exact value on cue (e.g. 110 bpm to trip the urgent line and
+// fire the emergency call). Steps/SpO2/stress shift mildly with HR so the tile stays
+// coherent, but the heart rate is what drives the assessment + escalation.
+function manualSnapshot(hr: number): LiveVitals {
+  const at = new Date().toISOString();
+  const t = Math.max(0, Math.min(1, (hr - 50) / 100)); // 50 bpm -> 0, 150 bpm -> 1
+  const base = {
+    source: "demo" as const,
+    heart_rate: { value: hr, unit: "/min", at },
+    steps: { value: 2400, unit: "steps", at },
+    spo2: { value: Math.round(98 - t * 5), unit: "%", at },
+    stress: { value: Math.round(18 + t * 60), unit: "score", at },
+  };
+  return { ...base, ...assessLive(0, base) };
+}
+
 interface LiveState {
   data: LiveVitals | null;
   loading: boolean;
   error: string | null;
 }
 
-export function useLiveVitals(patientId: number | null, demo: boolean): LiveState {
+export function useLiveVitals(
+  patientId: number | null,
+  demo: boolean,
+  manualHr: number | null = null,
+): LiveState {
   const [state, setState] = useState<LiveState>({ data: null, loading: false, error: null });
 
   useEffect(() => {
@@ -40,6 +61,15 @@ export function useLiveVitals(patientId: number | null, demo: boolean): LiveStat
     }
 
     if (demo) {
+      // Operator pinned an exact heart rate -> hold it (re-emitting so the timestamp
+      // stays fresh) instead of running the auto-ramp.
+      if (manualHr != null) {
+        const emit = () =>
+          setState({ data: manualSnapshot(manualHr), loading: false, error: null });
+        emit();
+        const timer = window.setInterval(emit, DEMO_TICK_MS);
+        return () => window.clearInterval(timer);
+      }
       const start = Date.now();
       setState({ data: demoSnapshot(0), loading: false, error: null });
       const timer = window.setInterval(() => {
@@ -66,7 +96,7 @@ export function useLiveVitals(patientId: number | null, demo: boolean): LiveStat
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [patientId, demo]);
+  }, [patientId, demo, manualHr]);
 
   return state;
 }

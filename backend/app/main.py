@@ -30,7 +30,7 @@ from .routers import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start MongoDB (Docker) and bind real FHIR records onto the featured slots
-    # before serving — closes the boot race that otherwise leaves the dash all-mock.
+    # before serving - closes the boot race that otherwise leaves the dash all-mock.
     infra.ensure_mongo_and_overlays()
     scheduler.start()
     try:

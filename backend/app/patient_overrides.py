@@ -3,12 +3,12 @@
 A practice can edit a patient's check-in number from the dashboard. The new number
 is written to a small Mongo collection (``PHONE_OVERRIDES_COLLECTION``) keyed by the
 dashboard patient slot id, and re-applied onto the live ``Patient`` objects on every
-backend startup — *after* the FHIR overlay (see ``app/infra.py``) — so an edited
+backend startup - *after* the FHIR overlay (see ``app/infra.py``) - so an edited
 number survives restarts and FHIR re-overlays and is used by both 'Call now' and
 scheduled calls (which read ``patient.phone_number``).
 
 All Mongo access is best-effort, matching ``app/fhir_source.py``: if the database is
-unreachable the in-memory edit still takes effect — it just won't survive a restart.
+unreachable the in-memory edit still takes effect - it just won't survive a restart.
 """
 
 from __future__ import annotations

@@ -54,7 +54,7 @@ function useGlowTexture() {
 }
 
 // -----------------------------------------------------------------------------
-// Ground — real Hong Kong satellite imagery (Esri World Imagery) draped on the
+// Ground - real Hong Kong satellite imagery (Esri World Imagery) draped on the
 // model tile. The harbour, coastlines and green hills all come from the photo;
 // the 3D massing model and patient markers sit on top, like a physical city model.
 // -----------------------------------------------------------------------------
@@ -71,13 +71,13 @@ function SatelliteGround() {
 
   return (
     <group>
-      {/* Deep base tray — gives the floating tile a physical, model-like edge */}
+      {/* Deep base tray - gives the floating tile a physical, model-like edge */}
       <mesh position={[0, LAND_TOP - 0.3, 0]} receiveShadow>
         <boxGeometry args={[MAP.w + 0.7, 0.6, MAP.d + 0.7]} />
         <meshStandardMaterial color={BASE_COLOR} roughness={0.85} metalness={0.15} />
       </mesh>
 
-      {/* Hong Kong from above — Victoria Harbour runs across the middle, Kowloon
+      {/* Hong Kong from above - Victoria Harbour runs across the middle, Kowloon
           to the north, Hong Kong Island and the Peak's green hills to the south. */}
       <mesh rotation-x={-Math.PI / 2} position={[0, LAND_TOP, 0]} receiveShadow>
         <planeGeometry args={[MAP.w, MAP.d]} />
@@ -87,24 +87,24 @@ function SatelliteGround() {
   );
 }
 
-// Plain gray ground — the "no satellite" fallback. Same floating model tray, but
+// Plain gray ground - the "no satellite" fallback. Same floating model tray, but
 // a neutral matte surface instead of the satellite photo, so the city reads as a
 // clean schematic when the photoreal tiles are unavailable.
 const PLAIN_GROUND = "#c5cad2";
 const PLAIN_BG = "#dde1e7";
-const PLAIN_BASE = "#aab1bb"; // neutral tray edge for the schematic twin — no black frame
+const PLAIN_BASE = "#aab1bb"; // neutral tray edge for the schematic twin - no black frame
 
 function PlainGround() {
   return (
     <group>
-      {/* Shallow base tray — same physical edge, but neutral gray so the tile reads
+      {/* Shallow base tray - same physical edge, but neutral gray so the tile reads
           as a clean schematic with no dark border. */}
       <mesh position={[0, LAND_TOP - 0.3, 0]}>
         <boxGeometry args={[MAP.w + 0.7, 0.6, MAP.d + 0.7]} />
         <meshStandardMaterial color={PLAIN_BASE} roughness={0.9} metalness={0} />
       </mesh>
 
-      {/* Flat neutral land tile — no imagery. Does NOT receive the directional
+      {/* Flat neutral land tile - no imagery. Does NOT receive the directional
           shadow map (that bands badly on a flat matte surface); building grounding
           comes from ContactShadows, exactly like the satellite tile. */}
       <mesh rotation-x={-Math.PI / 2} position={[0, LAND_TOP, 0]}>
@@ -116,7 +116,7 @@ function PlainGround() {
 }
 
 // -----------------------------------------------------------------------------
-// Buildings — instanced boxes clustered around each district core.
+// Buildings - instanced boxes clustered around each district core.
 // -----------------------------------------------------------------------------
 interface Building {
   position: [number, number, number];
@@ -134,7 +134,7 @@ function useBuildings(): Building[] {
       return (seed - 1) / 2147483646;
     };
     for (const d of Object.values(DISTRICTS)) {
-      if (d.side === "hills") continue; // hill districts stay green — no towers on mountains
+      if (d.side === "hills") continue; // hill districts stay green - no towers on mountains
       const count = Math.round(6 + d.density * 12); // density drives how many towers
       const spread = 1.2 + d.density * 0.5;
       for (let i = 0; i < count; i++) {
@@ -170,7 +170,7 @@ function Buildings() {
 }
 
 // -----------------------------------------------------------------------------
-// Patient marker — beam + status-shaped cap + glow halo. Urgent pulses.
+// Patient marker - beam + status-shaped cap + glow halo. Urgent pulses.
 // -----------------------------------------------------------------------------
 interface MarkerProps {
   placed: ReturnType<typeof placePatient>;
@@ -435,7 +435,7 @@ function Scene({ patients, selectedId, statusFilter, paused, ground, onSelect, o
 }
 
 // -----------------------------------------------------------------------------
-// Public component — the canvas + an in-stage hover tooltip overlay.
+// Public component - the canvas + an in-stage hover tooltip overlay.
 // -----------------------------------------------------------------------------
 interface CityTwinProps {
   patients: Patient[];
@@ -462,7 +462,7 @@ class TilesErrorBoundary extends Component<
   }
 
   componentDidCatch(error: unknown) {
-    console.error("Photorealistic 3D tiles failed — falling back to the gray schematic twin.", error);
+    console.error("Photorealistic 3D tiles failed - falling back to the gray schematic twin.", error);
   }
 
   render() {
@@ -472,7 +472,7 @@ class TilesErrorBoundary extends Component<
 
 export function CityTwin(props: CityTwinProps) {
   // Flips to the gray schematic twin if the photoreal tiles fail at runtime (bad
-  // key, Map Tiles API not enabled, offline) — a 403 is an async fetch error the
+  // key, Map Tiles API not enabled, offline) - a 403 is an async fetch error the
   // error boundary can't see, so GoogleCityTwin reports it via onError.
   const [tilesFailed, setTilesFailed] = useState(false);
   const handleTilesError = useCallback(() => setTilesFailed(true), []);

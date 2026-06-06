@@ -3,7 +3,7 @@
 This is the *mock brain* of the PDF report: it derives short narrative strings and
 per-metric trends from the existing check-in and wearable data using simple,
 deterministic rules. There is no I/O and no PDF dependency here, so the logic can be
-unit-tested on its own — and later swapped for real data or an LLM-written narrative
+unit-tested on its own - and later swapped for real data or an LLM-written narrative
 without touching the renderer or the endpoint.
 
 Check-ins and wearables arrive newest-first (see ``data._build_history``); we reverse
@@ -28,7 +28,7 @@ class Trend(BaseModel):
     unit: str
     current: float
     direction: Direction  # clinical interpretation
-    arrow: str  # "↑" / "↓" / "→" — actual movement of the value
+    arrow: str  # "↑" / "↓" / "→" - actual movement of the value
     series: list[float]  # oldest→newest, for the mini chart
 
 

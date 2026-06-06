@@ -129,6 +129,12 @@ class TriggerRequest(BaseModel):
     questions: list[str] | None = None  # overrides the stored config
 
 
+class EmergencyCallRequest(BaseModel):
+    """Body for the wearable-triggered emergency call (patient -> nurse fallback)."""
+
+    reason: str | None = None  # the out-of-range alert that triggered it
+
+
 class ScheduleRequest(BaseModel):
     """Request body to schedule a call."""
 
@@ -151,7 +157,7 @@ class CallRecord(BaseModel):
     id: int
     patient_id: int
     triggered_at: datetime
-    kind: Literal["instant", "scheduled"]
+    kind: Literal["instant", "scheduled", "auto", "screening"]
     to_number: str
     status: Literal["initiated", "failed"]
     conversation_id: str | None = None
@@ -218,6 +224,18 @@ class ConversationDataPoint(BaseModel):
     rationale: str | None = None
 
 
+class ConversationEvalResult(BaseModel):
+    """One Evaluation Criteria outcome scored by ElevenLabs post-call analysis.
+
+    Used by the cognitive-screening agent to surface pass/fail markers (e.g.
+    delayed recall within range, verbal fluency within range).
+    """
+
+    id: str  # the criteria identifier, e.g. "recall_within_normal_range"
+    result: Literal["success", "failure", "unknown"]
+    rationale: str | None = None
+
+
 class ConversationDetail(BaseModel):
     """What happened in one outbound call, fetched from the ElevenLabs API."""
 
@@ -230,6 +248,7 @@ class ConversationDetail(BaseModel):
     started_at: datetime | None = None
     transcript: list[ConversationTurn] = []
     data_collection: list[ConversationDataPoint] = []
+    evaluation_criteria: list[ConversationEvalResult] = []
 
 
 # --- ElevenLabs server-tool integration --------------------------------------

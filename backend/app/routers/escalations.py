@@ -7,7 +7,7 @@ phone call), a single ``POST /patients/{id}/escalate`` call:
 2. Broadcasts the change over SSE so every open dashboard recolors instantly.
 3. Places an outbound alert call to the on-call nurse with the patient context.
 
-In-memory, like the rest of the wireframe — escalation history resets on restart.
+In-memory, like the rest of the wireframe - escalation history resets on restart.
 """
 
 from __future__ import annotations

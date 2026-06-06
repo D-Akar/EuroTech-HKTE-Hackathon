@@ -76,11 +76,12 @@ def worst_severity(alert_list: list[dict]) -> Optional[str]:
     return max((a.get("severity", "info") for a in alert_list), key=lambda s: order.get(s, 0))
 
 
-# Live (current-reading) escalation thresholds. A sustained high heart rate or a
+# Live (current-reading) escalation thresholds. A raised heart rate or a
 # blood-oxygen drop on a resting elderly patient is the signal that turns the map
-# marker red and prompts a check-in call.
-HR_LIVE_URGENT = 120     # bpm
-HR_LIVE_ELEVATED = 100   # bpm
+# marker red and prompts a check-in call. Tuned low so light exertion during a
+# live demo (real BLE watch data) reliably crosses the urgent line.
+HR_LIVE_URGENT = 100     # bpm
+HR_LIVE_ELEVATED = 85    # bpm
 SPO2_WATCH = 94          # %
 
 _STATUS_BY_SEVERITY = {"critical": "urgent", "warning": "attention", "info": "stable"}

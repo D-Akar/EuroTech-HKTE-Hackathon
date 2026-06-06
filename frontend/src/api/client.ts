@@ -80,7 +80,7 @@ export const api = {
     getJSON<Summary>(`/patients/${patientId}/summary`),
   getAlerts: (patientId: number) =>
     getJSON<Alert[]>(`/patients/${patientId}/alerts`),
-  // Real FHIR clinical record — only for MongoDB-backed patients (404 otherwise).
+  // Real FHIR clinical record - only for MongoDB-backed patients (404 otherwise).
   getProfile: (patientId: number) =>
     getJSON<MedicalProfile>(`/patients/${patientId}/profile`),
 
@@ -97,6 +97,14 @@ export const api = {
     patientId: number,
     body: { to_number?: string; questions?: string[] },
   ) => sendJSON<CallRecord>("POST", `/patients/${patientId}/calls/trigger`, body),
+  // Wearable-triggered emergency call: dials the patient, falls back to the nurse
+  // if they don't answer. Used by the BLE/demo auto-escalation path.
+  emergencyCall: (patientId: number, reason?: string) =>
+    sendJSON<CallRecord | null>("POST", `/patients/${patientId}/calls/emergency`, { reason }),
+  // Cognitive-screening call: dials the patient with the dedicated screening agent
+  // that runs the dementia voice-biomarker protocol.
+  screeningCall: (patientId: number, to_number?: string) =>
+    sendJSON<CallRecord>("POST", `/patients/${patientId}/calls/screening`, { to_number }),
   getCallHistory: (patientId: number) =>
     getJSON<CallRecord[]>(`/patients/${patientId}/calls`),
   getCallConfig: (patientId: number) =>
@@ -138,7 +146,7 @@ export const api = {
   ) =>
     sendJSON<EscalationRecord>("POST", `/patients/${patientId}/escalate`, body),
 
-  // Server-Sent Events stream — open with `new EventSource(api.eventsUrl())`.
+  // Server-Sent Events stream - open with `new EventSource(api.eventsUrl())`.
   eventsUrl: () => `${BASE_URL}/events`,
 
   // --- Care plans ---

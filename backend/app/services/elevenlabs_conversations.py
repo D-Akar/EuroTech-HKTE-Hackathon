@@ -14,7 +14,12 @@ from datetime import datetime, timezone
 import httpx
 
 from ..config import settings
-from ..models import ConversationDataPoint, ConversationDetail, ConversationTurn
+from ..models import (
+    ConversationDataPoint,
+    ConversationDetail,
+    ConversationEvalResult,
+    ConversationTurn,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +52,33 @@ def _data_points(results: dict) -> list[ConversationDataPoint]:
             )
         )
     return points
+
+
+def _eval_results(results: dict) -> list[ConversationEvalResult]:
+    """Parse ``evaluation_criteria_results`` (a dict keyed by criteria id).
+
+    Each entry is ``{criteria_id, result: success|failure|unknown, rationale}``.
+    Unknown ``result`` values are coerced to ``"unknown"`` so a schema drift never
+    breaks the read path.
+    """
+    if not isinstance(results, dict):
+        return []
+    out: list[ConversationEvalResult] = []
+    for key in sorted(results):
+        entry = results.get(key) or {}
+        if not isinstance(entry, dict):
+            continue
+        result = entry.get("result")
+        if result not in ("success", "failure", "unknown"):
+            result = "unknown"
+        out.append(
+            ConversationEvalResult(
+                id=entry.get("criteria_id") or key,
+                result=result,
+                rationale=entry.get("rationale"),
+            )
+        )
+    return out
 
 
 def _turns(transcript) -> list[ConversationTurn]:
@@ -88,13 +120,14 @@ def parse_conversation(conversation_id: str, body: dict) -> ConversationDetail:
         started_at=started_at,
         transcript=_turns(body.get("transcript")),
         data_collection=_data_points(analysis.get("data_collection_results")),
+        evaluation_criteria=_eval_results(analysis.get("evaluation_criteria_results")),
     )
 
 
 async def fetch_conversation(conversation_id: str) -> ConversationDetail | None:
     """Pull one conversation from ElevenLabs. Returns None if not retrievable.
 
-    None means "no data available" (telephony not configured, or an error) — the
+    None means "no data available" (telephony not configured, or an error) - the
     caller treats that as "nothing to show / nothing to add to context". A valid
     but unfinished conversation comes back with ``ready=False``.
     """
@@ -108,6 +141,6 @@ async def fetch_conversation(conversation_id: str) -> ConversationDetail | None:
             resp = await client.get(url, headers=headers)
         resp.raise_for_status()
         return parse_conversation(conversation_id, resp.json())
-    except Exception as exc:  # noqa: BLE001 — never let a fetch failure crash a route
+    except Exception as exc:  # noqa: BLE001 - never let a fetch failure crash a route
         logger.warning("Failed to fetch conversation %s: %s", conversation_id, exc)
         return None

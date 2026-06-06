@@ -92,7 +92,7 @@ export interface CallRecord {
   id: number;
   patient_id: number;
   triggered_at: string; // ISO datetime
-  kind: "instant" | "scheduled";
+  kind: "instant" | "scheduled" | "auto" | "screening";
   to_number: string;
   status: "initiated" | "failed";
   conversation_id: string | null;
@@ -136,6 +136,12 @@ export interface ConversationDataPoint {
   rationale: string | null;
 }
 
+export interface ConversationEvalResult {
+  id: string;
+  result: "success" | "failure" | "unknown";
+  rationale: string | null;
+}
+
 export interface ConversationDetail {
   conversation_id: string;
   status: string; // initiated | in-progress | processing | done | failed
@@ -146,6 +152,7 @@ export interface ConversationDetail {
   started_at: string | null;
   transcript: ConversationTurn[];
   data_collection: ConversationDataPoint[];
+  evaluation_criteria: ConversationEvalResult[];
 }
 
 // --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----

@@ -26,7 +26,7 @@ import { HK_CENTER, patientLatLon, STATUS } from "../city";
 const EARTH_R = 6378137;
 const DEG = Math.PI / 2 / 90;
 
-// Stem heights (metres) — the placemark floats this high so the pin head clears
+// Stem heights (metres) - the placemark floats this high so the pin head clears
 // the skyline, kept under Hong Kong's tallest towers so pins read as markers.
 const BEAM_H: Record<string, number> = { urgent: 330, attention: 280, stable: 220 };
 
@@ -35,7 +35,7 @@ const BULB_R: Record<string, number> = { urgent: 50, attention: 42, stable: 36 }
 
 // Distance-responsive scaling: markers are sized in metres, so they shrink to
 // dots when the camera pulls back. We scale each pin up with camera distance so
-// it keeps a roughly constant on-screen size — like Google Earth placemarks —
+// it keeps a roughly constant on-screen size - like Google Earth placemarks -
 // clamped so close-ups stay natural and far pins stay legible.
 const SCALE_REF = 6000;
 const SCALE_MIN = 1;
@@ -85,8 +85,8 @@ function useGlowTexture() {
 // Google Photorealistic 3D Tiles of Hong Kong.
 // -----------------------------------------------------------------------------
 // Listens for the renderer's root-tileset failure. A `load-error` with
-// `tile === null` means the whole Google dataset is unreachable — an invalid or
-// unauthorized key, the Map Tiles API not enabled on the project, or offline —
+// `tile === null` means the whole Google dataset is unreachable - an invalid or
+// unauthorized key, the Map Tiles API not enabled on the project, or offline -
 // so we surface it to the parent, which swaps to the stylized satellite twin.
 // Per-tile errors (tile !== null) are transient and ignored.
 function TilesErrorListener({ onError }: { onError: () => void }) {
@@ -127,7 +127,7 @@ function HongKongTiles({ apiKey, onError }: { apiKey: string; onError: () => voi
 }
 
 // -----------------------------------------------------------------------------
-// Patient marker — beam + status cap + glow halo, sized in metres.
+// Patient marker - beam + status cap + glow halo, sized in metres.
 // -----------------------------------------------------------------------------
 interface MarkerProps {
   patient: Patient;
@@ -207,7 +207,7 @@ function GeoMarker({ patient, pos, selected, dimmed, reduced, glow, onSelect, on
           <meshBasicMaterial />
         </mesh>
 
-        {/* Ground anchor — ring + dot where the pin "lands" on the city */}
+        {/* Ground anchor - ring + dot where the pin "lands" on the city */}
         <mesh rotation-x={-Math.PI / 2} position={[0, 4, 0]}>
           <ringGeometry args={[bulb * 1.5, bulb * 2.1, 44]} />
           <meshBasicMaterial color={color} transparent opacity={0.5 * opacity} depthWrite={false} />
@@ -228,9 +228,9 @@ function GeoMarker({ patient, pos, selected, dimmed, reduced, glow, onSelect, on
           />
         </mesh>
 
-        {/* Placemark head — teardrop pin (bulb + downward cone), tip at beamH */}
+        {/* Placemark head - teardrop pin (bulb + downward cone), tip at beamH */}
         <group ref={pulseRef} position={[0, beamH, 0]}>
-          {/* Dark contrast shell (BackSide, scaled up) — a crisp outline so the
+          {/* Dark contrast shell (BackSide, scaled up) - a crisp outline so the
               bright pin pops against the busy photoreal city at any background.
               Urgent gets a thicker, near-black halo so red separates hard from
               terracotta rooftops and greenery. */}
@@ -247,7 +247,7 @@ function GeoMarker({ patient, pos, selected, dimmed, reduced, glow, onSelect, on
             <meshBasicMaterial color="#02040a" side={THREE.BackSide} transparent opacity={opacity} />
           </mesh>
 
-          {/* White rim between the dark shell and the colour — a crisp keyline
+          {/* White rim between the dark shell and the colour - a crisp keyline
               that reads at distance, strongest on urgent pins. */}
           <mesh position={[0, bulbY, 0]} scale={isUrgent ? 1.16 : 1.08}>
             <sphereGeometry args={[bulb, 28, 28]} />
@@ -287,7 +287,7 @@ function GeoMarker({ patient, pos, selected, dimmed, reduced, glow, onSelect, on
               metalness={0.12}
             />
           </mesh>
-          {/* Bright specular cap — a small highlight that gives the bulb a glossy,
+          {/* Bright specular cap - a small highlight that gives the bulb a glossy,
               beacon-like read from any orbit angle (cheaper than a camera-facing hole) */}
           <mesh position={[0, bulbY + bulb * 0.34, 0]}>
             <sphereGeometry args={[bulb * 0.42, 18, 18]} />

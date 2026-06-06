@@ -63,7 +63,7 @@ export function CallPanel({
     try {
       const record = await api.triggerCall(patient.id, { to_number: toNumber });
       if (record.status === "initiated") {
-        setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "—"}).`);
+        setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "-"}).`);
       } else {
         setError(record.error ?? "Call failed.");
       }

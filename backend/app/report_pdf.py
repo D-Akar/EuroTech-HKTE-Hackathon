@@ -262,7 +262,7 @@ def _care_plan_section(
         flow.append(Paragraph("<b>Planned activities</b>", styles["body"]))
         for a in care_plan.activities:
             status = f"[{a.status}] " if a.status else ""
-            sched = f" — {a.scheduled}" if a.scheduled else ""
+            sched = f" - {a.scheduled}" if a.scheduled else ""
             flow.append(Paragraph(f"• {status}{a.description}{sched}", styles["cell"]))
     if care_plan.notes:
         flow.append(Paragraph("Notes: " + " ".join(care_plan.notes), styles["body"]))
@@ -285,7 +285,7 @@ def build_report_pdf(
         bottomMargin=16 * mm,
         leftMargin=20 * mm,
         rightMargin=20 * mm,
-        title=f"Clinician report — {patient.name}",
+        title=f"Clinician report - {patient.name}",
     )
     styles = _styles()
     flow: list = []
@@ -297,7 +297,7 @@ def build_report_pdf(
     flow.append(Spacer(1, 6))
     flow.append(_checkins_table(checkins, styles))
 
-    flow.append(Paragraph("Health status — recent trend", styles["section"]))
+    flow.append(Paragraph("Health status - recent trend", styles["section"]))
     flow.append(Paragraph(summary.status_narrative, styles["body"]))
     flow.append(Spacer(1, 6))
     if summary.trends:
@@ -312,7 +312,7 @@ def build_report_pdf(
     flow.append(Spacer(1, 16))
     flow.append(
         Paragraph(
-            "Generated mock report — not for clinical use. "
+            "Generated mock report - not for clinical use. "
             f"Generated {datetime.now():%d %b %Y %H:%M}.",
             styles["footer"],
         )

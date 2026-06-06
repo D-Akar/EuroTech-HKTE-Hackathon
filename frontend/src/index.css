@@ -1,12 +1,12 @@
 /* =============================================================================
-   Sentinel — care command center
+   Careloop - care command center
    Light "operations room" theme: a luminous daylight maquette of Hong Kong sits
    inside calm, precise, near-white product chrome. Color is Restrained in the
    chrome and Committed only on the twin. Status is never carried by hue alone.
    ============================================================================= */
 
 :root {
-  /* Deep-space neutrals (hue ~256) — mission-control night, never pure black */
+  /* Deep-space neutrals (hue ~256) - mission-control night, never pure black */
   --bg: oklch(0.165 0.018 256);
   --surface: oklch(0.215 0.02 256);
   --surface-raised: oklch(0.255 0.022 256);
@@ -19,13 +19,13 @@
   --muted: oklch(0.66 0.018 238);
   --faint: oklch(0.54 0.02 242);
 
-  /* Brand accent — luminous HUD cyan, used for action + selection + glow */
+  /* Brand accent - luminous HUD cyan, used for action + selection + glow */
   --accent: oklch(0.8 0.13 212);
   --accent-strong: oklch(0.87 0.12 206);
   --accent-soft: oklch(0.3 0.06 220);
   --accent-ring: oklch(0.8 0.13 212 / 0.4);
 
-  /* Status — luminous signals on dark; *-soft is a dark translucent tint */
+  /* Status - luminous signals on dark; *-soft is a dark translucent tint */
   --status-stable: oklch(0.8 0.15 165);
   --status-stable-soft: oklch(0.33 0.06 165);
   --status-attention: oklch(0.84 0.15 88);
@@ -33,7 +33,7 @@
   --status-urgent: oklch(0.7 0.2 26);
   --status-urgent-soft: oklch(0.34 0.1 28);
 
-  /* Twin stage — deep space behind/around the lit Earth */
+  /* Twin stage - deep space behind/around the lit Earth */
   --sky-top: oklch(0.21 0.026 256);
   --sky-bottom: oklch(0.115 0.02 258);
 
@@ -54,7 +54,7 @@
   color-scheme: dark;
 }
 
-/* Light "operations room" theme — calm near-white daylight chrome.
+/* Light "operations room" theme - calm near-white daylight chrome.
    Activated by data-theme="light" on <html>; dark is the default. */
 :root[data-theme="light"] {
   --bg: oklch(0.971 0.006 235);
@@ -128,7 +128,7 @@ button {
 }
 
 /* =============================================================================
-   App shell — command bar over a twin / roster / detail layout
+   App shell - command bar over a twin / roster / detail layout
    ============================================================================= */
 
 .app {
@@ -190,7 +190,7 @@ button {
   letter-spacing: 0.01em;
 }
 
-/* Watch strip — live triage summary */
+/* Watch strip - live triage summary */
 .watch-strip {
   display: flex;
   align-items: stretch;
@@ -380,7 +380,7 @@ button {
 }
 
 /* =============================================================================
-   Status indicator — glyph + shape + color (colorblind-safe)
+   Status indicator - glyph + shape + color (colorblind-safe)
    ============================================================================= */
 
 .status-pip {
@@ -438,7 +438,7 @@ button {
 .badge.attention {
   color: oklch(0.46 0.11 75);
 }
-/* Urgent stays unmistakable — the one loud chip */
+/* Urgent stays unmistakable - the one loud chip */
 .badge.urgent {
   background: var(--status-urgent-soft);
   border-color: transparent;
@@ -446,7 +446,7 @@ button {
 }
 
 /* =============================================================================
-   Twin stage — the 3D canvas + floating overlays
+   Twin stage - the 3D canvas + floating overlays
    ============================================================================= */
 
 .stage {
@@ -567,7 +567,7 @@ button {
 }
 
 /* =============================================================================
-   Detail panel — slides over the stage when a patient is selected
+   Detail panel - slides over the stage when a patient is selected
    ============================================================================= */
 
 .detail {
@@ -654,7 +654,7 @@ button {
   opacity: 0.7;
 }
 
-/* Detail tabs — segmented control between conversations and device data */
+/* Detail tabs - segmented control between conversations and device data */
 .detail-tabs {
   display: flex;
   gap: 4px;
@@ -1142,7 +1142,7 @@ button {
 }
 
 /* =============================================================================
-   Care plan — sibling card to the call panel in the check-in tab
+   Care plan - sibling card to the call panel in the check-in tab
    ============================================================================= */
 
 .care-plan-panel {
@@ -1161,7 +1161,7 @@ button {
   max-width: 62ch;
 }
 
-/* Attached state — calm confirmation, the resting case */
+/* Attached state - calm confirmation, the resting case */
 .care-plan-current {
   display: flex;
   flex-direction: column;
@@ -1205,7 +1205,7 @@ button {
   text-transform: capitalize;
 }
 
-/* Empty state — the uploader */
+/* Empty state - the uploader */
 .care-plan-upload {
   display: flex;
   flex-direction: column;
@@ -1282,7 +1282,7 @@ button {
   align-self: center;
 }
 
-/* Quiet text button — no chrome until interacted with */
+/* Quiet text button - no chrome until interacted with */
 .link-btn {
   background: none;
   border: none;
@@ -1310,7 +1310,7 @@ button {
 }
 
 /* =============================================================================
-   Call conversation — expandable post-call detail in the history list
+   Call conversation - expandable post-call detail in the history list
    ============================================================================= */
 
 .call-history-item {
@@ -1409,6 +1409,86 @@ button {
   color: oklch(0.42 0.12 60);
 }
 
+/* Evaluation-criteria pass/fail pills (cognitive screening). */
+.conv-evals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 2px;
+}
+.conv-eval {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.conv-eval-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.conv-eval-success {
+  background: var(--status-stable-soft);
+  border-color: oklch(0.78 0.1 168);
+  color: oklch(0.4 0.1 168);
+}
+.conv-eval-success .conv-eval-dot {
+  background: var(--status-stable);
+}
+.conv-eval-failure {
+  background: var(--status-urgent-soft);
+  border-color: oklch(0.78 0.12 28);
+  color: oklch(0.46 0.16 28);
+}
+.conv-eval-failure .conv-eval-dot {
+  background: var(--status-urgent);
+}
+.conv-eval-unknown {
+  color: var(--muted);
+}
+
+/* Cognitive-screening panel. */
+.screening-panel {
+  margin: 22px 0 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 16px 18px;
+}
+.screening-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 6px;
+}
+.screening-head h3 {
+  font-size: 15px;
+  margin: 0;
+}
+.screening-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.btn-screen {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--accent-strong);
+  flex-shrink: 0;
+}
+.btn-screen:hover {
+  filter: brightness(1.05);
+}
+
 .conv-transcript {
   display: flex;
   flex-direction: column;
@@ -1443,7 +1523,7 @@ button {
 }
 
 /* =============================================================================
-   States — loading, empty, error
+   States - loading, empty, error
    ============================================================================= */
 
 .banner-error {
@@ -1503,7 +1583,7 @@ button {
 }
 
 /* =============================================================================
-   Responsive — collapse to a single column on narrow screens
+   Responsive - collapse to a single column on narrow screens
    ============================================================================= */
 
 @media (max-width: 900px) {
@@ -1525,7 +1605,7 @@ button {
 }
 
 /* =============================================================================
-   Reduced motion — the living city holds still, urgency stays legible
+   Reduced motion - the living city holds still, urgency stays legible
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1539,7 +1619,7 @@ button {
 }
 
 /* =============================================================================
-   Featured patient — live vitals, trends, alerts, and the demo escalation
+   Featured patient - live vitals, trends, alerts, and the demo escalation
    ============================================================================= */
 
 .detail-tags {
@@ -1568,7 +1648,7 @@ button {
   vertical-align: middle;
 }
 
-/* "Real record · FHIR" tag — a distinct violet so it reads apart from the teal accent */
+/* "Real record · FHIR" tag - a distinct violet so it reads apart from the teal accent */
 .fhir-tag {
   display: inline-flex;
   align-items: center;
@@ -1689,6 +1769,22 @@ button {
 .demo-chip.on .demo-dot {
   background: var(--accent);
   animation: source-pulse 1.4s var(--ease) infinite;
+}
+/* Manual heart-rate presets shown while the demo is running. */
+.hr-presets {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hr-preset {
+  padding: 6px 11px;
+  font-variant-numeric: tabular-nums;
+}
+/* The "Urgent" preset reads as danger once pinned, mirroring the red live panel. */
+.hr-preset-urgent.on {
+  background: var(--status-urgent-soft);
+  color: var(--status-urgent-strong, var(--status-urgent));
+  border-color: var(--status-urgent);
 }
 /* Connected watch reads as real/live (green), distinct from the demo's accent. */
 .watch-chip-ble.on {
@@ -2234,7 +2330,7 @@ button {
 }
 
 /* =============================================================================
-   Command bar + roster polish — hierarchy, depth, and a designed triage readout
+   Command bar + roster polish - hierarchy, depth, and a designed triage readout
    ============================================================================= */
 
 /* --- Command bar: a deliberate console header ------------------------------ */
@@ -2393,7 +2489,7 @@ button {
 }
 
 /* Patient rows: the StatusPip already carries triage at a glance, so the row
-   itself stays quiet — a hairline that fills in on hover, a calm tinted plate
+   itself stays quiet - a hairline that fills in on hover, a calm tinted plate
    when selected. No colored side-stripe (status lives in the pip, not a bar). */
 .patient-row {
   position: relative;

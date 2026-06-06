@@ -1,7 +1,7 @@
 """In-process pub/sub for Server-Sent Events.
 
 A lightweight fan-out so a state change (e.g. a patient escalation) can be pushed
-to every connected dashboard in real time. In-memory only — resets on restart,
+to every connected dashboard in real time. In-memory only - resets on restart,
 like the other wireframe stores. Each connected client owns one queue;
 ``broadcast`` puts the same payload onto all of them.
 """
@@ -35,7 +35,7 @@ def broadcast(event: str, data: dict) -> None:
 
     Formats one SSE frame (``event:`` + ``data:``) and enqueues it for each
     subscriber. A full queue (slow client) drops the frame rather than blocking
-    the broadcaster — live state is the source of truth, not the event log.
+    the broadcaster - live state is the source of truth, not the event log.
     """
     payload = f"event: {event}\ndata: {json.dumps(data)}\n\n"
     for queue in list(_subscribers):

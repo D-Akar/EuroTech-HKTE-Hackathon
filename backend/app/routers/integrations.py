@@ -1,4 +1,4 @@
-"""External integrations — ElevenLabs server-tool callbacks."""
+"""External integrations - ElevenLabs server-tool callbacks."""
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 

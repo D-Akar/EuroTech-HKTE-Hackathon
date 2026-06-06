@@ -16,6 +16,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filter, setFilter] = useState<Set<PatientStatus>>(new Set());
   const [demo, setDemo] = useState(false);
+  const [manualHr, setManualHr] = useState<number | null>(null); // demo: operator-pinned HR
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -31,7 +32,7 @@ export default function App() {
   // Real-time escalations: a `POST /patients/{id}/escalate` (e.g. triggered when
   // urgent info surfaces on a phone call) pushes a `patient_status` event over
   // SSE, recoloring that patient green/amber -> red on the twin and roster the
-  // instant it lands — no refresh, no polling. EventSource auto-reconnects.
+  // instant it lands - no refresh, no polling. EventSource auto-reconnects.
   useEffect(() => {
     const es = new EventSource(api.eventsUrl());
     es.addEventListener("patient_status", (e) => {
@@ -51,7 +52,7 @@ export default function App() {
 
   const [theme, toggleTheme] = useTheme();
   const featuredId = meta?.featured_patient_id ?? null;
-  const live = useLiveVitals(featuredId, demo);
+  const live = useLiveVitals(featuredId, demo, manualHr);
   const ble = useBleHeartRate();
 
   // When the watch is streaming over Bluetooth (and we're not running the scripted demo),
@@ -86,6 +87,7 @@ export default function App() {
   // Opening the demo jumps to the featured patient so the escalation is on screen.
   useEffect(() => {
     if (demo && featuredId != null) setSelectedId(featuredId);
+    if (!demo) setManualHr(null); // leaving demo drops any pinned heart rate
   }, [demo, featuredId]);
 
   const counts = useMemo(() => {
@@ -110,9 +112,9 @@ export default function App() {
       <header className="command-bar">
         <div className="brand">
           <span className="brand-mark" aria-hidden>
-            <SentinelMark />
+            <CareloopMark />
           </span>
-          Sentinel
+          Careloop
           <span className="brand-sub">Hong Kong care grid</span>
         </div>
 
@@ -174,6 +176,34 @@ export default function App() {
           <span className="demo-dot" aria-hidden />
           {demo ? "Simulating" : "Demo"}
         </button>
+
+        {demo && (
+          <div className="hr-presets" role="group" aria-label="Manual heart rate (demo)">
+            {[
+              { hr: 60, label: "Resting" },
+              { hr: 90, label: "Elevated" },
+              { hr: 110, label: "Urgent" },
+            ].map(({ hr, label }) => (
+              <button
+                key={hr}
+                className={`demo-chip hr-preset ${hr >= 110 ? "hr-preset-urgent" : ""} ${manualHr === hr ? "on" : ""}`}
+                aria-pressed={manualHr === hr}
+                onClick={() => setManualHr(hr)}
+                title={`Hold the featured patient's heart rate at ${hr} bpm`}
+              >
+                {label} · {hr}
+              </button>
+            ))}
+            <button
+              className={`demo-chip hr-preset ${manualHr === null ? "on" : ""}`}
+              aria-pressed={manualHr === null}
+              onClick={() => setManualHr(null)}
+              title="Resume the automatic exertion ramp"
+            >
+              Ramp
+            </button>
+          </div>
+        )}
 
         <button
           className="theme-toggle"
@@ -276,7 +306,7 @@ function Clock() {
   );
 }
 
-function SentinelMark() {
+function CareloopMark() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
       <circle cx="12" cy="12" r="3.2" fill="white" />

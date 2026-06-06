@@ -74,7 +74,7 @@ function ConversationCard({ checkin }: { checkin: CheckIn }) {
         </>
       ) : (
         <p className="convo-note muted">
-          {checkin.notes || "No answer — voicemail left."}
+          {checkin.notes || "No answer - voicemail left."}
         </p>
       )}
     </article>

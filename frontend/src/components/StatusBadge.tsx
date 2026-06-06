@@ -1,8 +1,8 @@
 import type { PatientStatus } from "../types";
 import { STATUS } from "../city";
 
-// Status is always carried by THREE channels at once — color, glyph, and the
-// pip's silhouette — so it survives any color-vision deficiency or mono screen.
+// Status is always carried by THREE channels at once - color, glyph, and the
+// pip's silhouette - so it survives any color-vision deficiency or mono screen.
 
 export function StatusBadge({ status }: { status: PatientStatus }) {
   const meta = STATUS[status];

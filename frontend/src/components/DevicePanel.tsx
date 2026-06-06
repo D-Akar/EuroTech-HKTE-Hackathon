@@ -98,9 +98,9 @@ function DeviceReadings({
         <li key={w.id} className="reading-row">
           <span className="reading-date num">{fmtDate(w.timestamp)}</span>
           <span className="reading-vals num">
-            {w.heart_rate > 0 ? `${w.heart_rate} bpm` : "—"} ·{" "}
-            {w.steps > 0 ? `${w.steps.toLocaleString()} steps` : "—"} ·{" "}
-            {w.sleep_hours > 0 ? `${w.sleep_hours}h` : "—"}
+            {w.heart_rate > 0 ? `${w.heart_rate} bpm` : "-"} ·{" "}
+            {w.steps > 0 ? `${w.steps.toLocaleString()} steps` : "-"} ·{" "}
+            {w.sleep_hours > 0 ? `${w.sleep_hours}h` : "-"}
           </span>
         </li>
       ))}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type {
   Alert,
@@ -13,6 +13,7 @@ import { CallPanel } from "./CallPanel";
 import { CarePlanPanel } from "./CarePlanPanel";
 import { CheckInPanel } from "./CheckInPanel";
 import { DevicePanel } from "./DevicePanel";
+import { ScreeningPanel } from "./ScreeningPanel";
 import { StatusBadge } from "./StatusBadge";
 
 interface Props {
@@ -92,6 +93,39 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
     }
   }
 
+  // Auto-escalate on frontend-driven vitals (the simulated demo ramp and the
+  // real-time BLE watch stream): when they cross into urgent, fire the emergency
+  // call once (patient -> nurse fallback), re-armed when they recover. The Garmin
+  // /live path is auto-escalated server-side in app/live_monitor.py, so this is
+  // gated to the browser-only sources (demo, ble) to avoid placing the call twice.
+  const autoCalledRef = useRef(false);
+  useEffect(() => {
+    const frontendDriven = live?.source === "demo" || live?.source === "ble";
+    if (!isFeatured || !frontendDriven) return;
+    if (live!.status === "urgent") {
+      if (!autoCalledRef.current) {
+        autoCalledRef.current = true;
+        const reason = live!.alerts.find((a) => a.severity === "critical")?.message;
+        setCallBusy(true);
+        setCallMessage(null);
+        api
+          .emergencyCall(patient.id, reason)
+          .then((rec) =>
+            setCallMessage(
+              rec && rec.status === "failed"
+                ? { text: rec.error ?? "Emergency call failed.", error: true }
+                : { text: "Emergency call placed. Routing to nurse if unanswered.", error: false },
+            ),
+          )
+          .catch((e) => setCallMessage({ text: String(e), error: true }))
+          .finally(() => setCallBusy(false));
+      }
+    } else {
+      autoCalledRef.current = false; // recovered -> re-arm for the next episode
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live?.status, live?.source, isFeatured]);
+
   return (
     <section className="detail" aria-label={`${patient.name} detail`}>
       <div className="detail-scroll">
@@ -155,6 +189,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
             <CallPanel patient={patient} onPatientUpdate={onPatientUpdate} />
+            <ScreeningPanel patient={patient} />
             <CarePlanPanel patient={patient} />
           </>
         ) : tab === "patient" ? (

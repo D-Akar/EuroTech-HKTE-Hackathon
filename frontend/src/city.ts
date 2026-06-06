@@ -27,7 +27,7 @@ export interface District {
   z: number;
   /** Ground height: the southern hills sit higher than the reclaimed waterfront. */
   y: number;
-  /** How many towers spawn here — Mong Kok packs the most, suburbs the fewest. */
+  /** How many towers spawn here - Mong Kok packs the most, suburbs the fewest. */
   density: number;
   /**
    * Tower height multiplier, separate from count. This is what gives the skyline
@@ -38,12 +38,12 @@ export interface District {
   side: "kowloon" | "island" | "hills";
 }
 
-// (name, nx, ny, elevation, density, height, side) — placed to match the real map.
+// (name, nx, ny, elevation, density, height, side) - placed to match the real map.
 // density = how many towers; height = how tall. Tuned for a realistic HK profile.
 const _D: [string, number, number, number, number, number, District["side"]][] = [
-  // Kowloon (top mass) — clustered toward the centre of the peninsula.
+  // Kowloon (top mass) - clustered toward the centre of the peninsula.
   // Packed with buildings but mostly mid-rise residential, except TST.
-  // Northern (New Kowloon) belt across the top edge — dense public housing.
+  // Northern (New Kowloon) belt across the top edge - dense public housing.
   ["Cheung Sha Wan", 0.13, 0.22, 0, 0.85, 0.6, "kowloon"], // NW, dense residential/industrial
   ["Wong Tai Sin", 0.46, 0.15, 0, 0.85, 0.6, "kowloon"], // north-central public housing
   ["Diamond Hill", 0.58, 0.14, 0, 0.8, 0.65, "kowloon"], // NE, dense mid-rise
@@ -51,7 +51,7 @@ const _D: [string, number, number, number, number, number, District["side"]][] =
   ["Mong Kok", 0.34, 0.28, 0, 1.0, 0.7, "kowloon"], // densest count, medium height
   ["Yau Ma Tei", 0.36, 0.38, 0, 0.85, 0.6, "kowloon"],
   ["Tsim Sha Tsui", 0.41, 0.45, 0, 0.95, 1.0, "kowloon"], // waterfront, tall
-  ["West Kowloon", 0.29, 0.41, 0, 0.65, 1.4, "kowloon"], // ICC — tallest tower in HK
+  ["West Kowloon", 0.29, 0.41, 0, 0.65, 1.4, "kowloon"], // ICC - tallest tower in HK
   ["Hung Hom", 0.5, 0.4, 0, 0.8, 0.72, "kowloon"], // harbour-front, east of TST
   ["Kowloon City", 0.5, 0.25, 0, 0.7, 0.4, "kowloon"], // old airport: height-restricted, low
   // Hong Kong Island, north shore (bottom mass, along the harbour). The financial

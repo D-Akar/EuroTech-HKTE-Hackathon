@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load backend/.env (no-op if the file is missing — env vars may be set directly).
+# Load backend/.env (no-op if the file is missing - env vars may be set directly).
 load_dotenv()
 
 # Repo root = three levels up from this file (backend/app/config.py -> repo root).
@@ -68,12 +68,17 @@ class Settings:
     mongo_ready_timeout: int = int(os.getenv("CARELOOP_MONGO_READY_TIMEOUT", "60"))
 
     elevenlabs_api_key: str = os.getenv("ELEVENLABS_API_KEY", "")
-    # Outbound check-in agent — the one this backend dials with (see telephony.py).
+    # Outbound check-in agent - the one this backend dials with (see telephony.py).
     elevenlabs_agent_id: str = os.getenv("ELEVENLABS_AGENT_ID", "")
-    # Inbound agent — answers patient call-backs. Stored for reference/parity;
+    # Inbound agent - answers patient call-backs. Stored for reference/parity;
     # inbound calls are handled by ElevenLabs' dashboard-configured agent, so the
     # backend never dials with this id (it only serves the patient-context tool).
     elevenlabs_inbound_agent_id: str = os.getenv("ELEVENLABS_INBOUND_AGENT_ID", "")
+    # Dedicated cognitive-screening agent (dementia voice-biomarker check). A
+    # separate agent so its scripted Mini-Cog protocol and biomarker Data
+    # Collection / Evaluation Criteria stay isolated from the check-in agent.
+    # Created via scripts/create_screening_agent.py; dialled with kind="screening".
+    elevenlabs_screening_agent_id: str = os.getenv("ELEVENLABS_SCREENING_AGENT_ID", "")
     elevenlabs_agent_phone_number_id: str = os.getenv(
         "ELEVENLABS_AGENT_PHONE_NUMBER_ID", ""
     )
@@ -93,8 +98,13 @@ class Settings:
     # API key for ElevenLabs server-tool callbacks into this service.
     elevenlabs_tool_api_key: str = os.getenv("ELEVENLABS_TOOL_API_KEY", "")
 
-    # Nurse on call — dialled when a patient is escalated to urgent.
+    # Nurse on call - dialled when a patient is escalated to urgent (and when the
+    # patient does not answer their own emergency call).
     nurse_phone_number: str = os.getenv("NURSE_PHONE_NUMBER", "")
+
+    # Override the featured (real-watch) patient's phone number, e.g. so the demo
+    # operator can be the patient and receive the live escalation call themselves.
+    garmin_patient_phone: str = os.getenv("GARMIN_PATIENT_PHONE", "")
 
     @property
     def is_configured(self) -> bool:

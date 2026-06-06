@@ -49,7 +49,7 @@ _SEED: list[tuple[str, int, PatientStatus, str, str]] = [
     ("Vera Stankovic", 85, PatientStatus.attention, "Harbour Care Collective", "Wan Chai"),
 ]
 
-# Synthetic seed numbers all share this prefix. They are NOT dialable — a real
+# Synthetic seed numbers all share this prefix. They are NOT dialable - a real
 # call must never be placed to one (see telephony.place_call guard).
 PLACEHOLDER_PHONE_PREFIX = "+1000000"
 
@@ -183,6 +183,24 @@ _apply_featured_status()
 # Best-effort: a no-op if Mongo is unreachable or the file is empty, so the dashboard
 # still shows the full mock roster. The live Garmin patient keeps its own data.
 fhir_source.apply_overlays(PATIENTS, wearable_source.REAL_PATIENT_ID)
+
+
+def _apply_real_patient_phone() -> None:
+    """Point the featured (real-watch) patient at the configured demo phone, so the
+    operator can be the patient and receive the live escalation call themselves.
+    Applied after the FHIR overlay so it always wins for the demo."""
+    from .config import settings
+
+    number = settings.garmin_patient_phone.strip()
+    if not number:
+        return
+    for p in PATIENTS:
+        if p.id == wearable_source.REAL_PATIENT_ID:
+            p.phone_number = number
+            break
+
+
+_apply_real_patient_phone()
 
 
 def get_patients() -> list[Patient]:

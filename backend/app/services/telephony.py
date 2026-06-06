@@ -52,17 +52,26 @@ def build_clinical_context(patient_id: int) -> list[str]:
     return lines
 
 
-def build_overrides(config: CallConfig) -> dict | None:
-    """ElevenLabs ``conversation_config_override`` from the editable config.
+def build_overrides(
+    config: CallConfig,
+    system_prompt: str | None = None,
+    first_message: str | None = None,
+) -> dict | None:
+    """ElevenLabs ``conversation_config_override`` for the call.
 
+    Explicit ``system_prompt``/``first_message`` (e.g. the nurse-alert persona for
+    an escalation call) take precedence over the patient's editable config, so a
+    call can speak as something other than the default patient check-in agent.
     Only includes fields that are set; requires the matching overrides to be
     enabled in the agent's Security tab. Returns None when nothing to override.
     """
+    sp = (system_prompt or config.system_prompt or "").strip()
+    fm = (first_message or config.greeting or "").strip()
     agent: dict = {}
-    if config.system_prompt and config.system_prompt.strip():
-        agent["prompt"] = {"prompt": config.system_prompt.strip()}
-    if config.greeting and config.greeting.strip():
-        agent["first_message"] = config.greeting.strip()
+    if sp:
+        agent["prompt"] = {"prompt": sp}
+    if fm:
+        agent["first_message"] = fm
     return {"agent": agent} if agent else None
 
 
@@ -127,16 +136,24 @@ async def build_call_payload(
     to_number: str,
     questions: list[str],
     config: CallConfig,
+    system_prompt: str | None = None,
+    first_message: str | None = None,
+    agent_id: str | None = None,
 ) -> dict:
-    """Assemble the ElevenLabs outbound-call request body."""
+    """Assemble the ElevenLabs outbound-call request body.
+
+    ``agent_id`` selects which ElevenLabs agent answers; defaults to the check-in
+    agent. A different agent (e.g. the cognitive-screening agent) dials out through
+    the same registered phone number.
+    """
     client_data: dict = {
         "dynamic_variables": await build_dynamic_variables(patient, questions),
     }
-    overrides = build_overrides(config)
+    overrides = build_overrides(config, system_prompt, first_message)
     if overrides:
         client_data["conversation_config_override"] = overrides
     return {
-        "agent_id": settings.elevenlabs_agent_id,
+        "agent_id": agent_id or settings.elevenlabs_agent_id,
         "agent_phone_number_id": settings.elevenlabs_agent_phone_number_id,
         "to_number": to_number,
         "conversation_initiation_client_data": client_data,
@@ -148,8 +165,16 @@ async def place_call(
     to_number: str,
     questions: list[str],
     kind: str = "instant",
+    system_prompt: str | None = None,
+    first_message: str | None = None,
+    agent_id: str | None = None,
 ) -> CallRecord:
-    """Place an outbound call and record the outcome in the call history."""
+    """Place an outbound call and record the outcome in the call history.
+
+    ``system_prompt``/``first_message`` override the agent persona for this one
+    call (used to brief the nurse instead of speaking as the patient agent).
+    ``agent_id`` selects a non-default agent (e.g. the cognitive-screening agent).
+    """
     triggered_at = datetime.now()
     record_id = call_store.next_record_id()
     # One log line per placement makes "one click -> many calls" diagnosable: a
@@ -180,7 +205,9 @@ async def place_call(
         return _failed("Telephony not configured. Set ELEVENLABS_* vars in backend/.env.")
 
     config = call_store.get_config(patient.id)
-    payload = await build_call_payload(patient, to_number, questions, config)
+    payload = await build_call_payload(
+        patient, to_number, questions, config, system_prompt, first_message, agent_id
+    )
     headers = {"xi-api-key": settings.elevenlabs_api_key}
 
     try:
@@ -202,7 +229,7 @@ async def place_call(
             conversation_id=body.get("conversation_id"),
             call_sid=body.get("callSid"),
         )
-    except Exception as exc:  # noqa: BLE001 — surface any failure to the record
+    except Exception as exc:  # noqa: BLE001 - surface any failure to the record
         record = CallRecord(
             id=record_id,
             patient_id=patient.id,

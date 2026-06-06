@@ -58,7 +58,7 @@ def _build_checkin(
     values = {p.id: p.value for p in detail.data_collection}
 
     mood = values.get("mood")
-    mood = mood.strip() if isinstance(mood, str) and mood.strip() else "—"
+    mood = mood.strip() if isinstance(mood, str) and mood.strip() else "-"
 
     pain = values.get("pain_level")
     pain_level = (

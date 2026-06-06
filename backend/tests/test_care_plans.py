@@ -229,7 +229,7 @@ def test_render_text_includes_sections_and_omits_absent():
     assert "status: active" in text
     assert "Addresses: obesity." in text
     assert "Achieve target BMI (target: BMI: < 25)" in text
-    assert "[in-progress] Weight management classes — three times a week" in text
+    assert "[in-progress] Weight management classes - three times a week" in text
     assert "Patient is motivated to lose weight." in text
 
     bare = _extract({"resourceType": "CarePlan", "title": "Minimal"})

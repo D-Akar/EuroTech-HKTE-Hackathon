@@ -4,8 +4,10 @@ import { CityTwin } from "./components/CityTwin";
 import { PatientDetail } from "./components/PatientDetail";
 import { PatientList } from "./components/PatientList";
 import { useLiveVitals } from "./hooks/useLiveVitals";
+import { useBleHeartRate } from "./hooks/useBleHeartRate";
+import { assessLive } from "./lib/liveAssessment";
 import { STATUS, STATUS_ORDER } from "./city";
-import type { Meta, Patient, PatientStatus } from "./types";
+import type { LiveVitals, Meta, Patient, PatientStatus } from "./types";
 
 export default function App() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -27,17 +29,36 @@ export default function App() {
 
   const featuredId = meta?.featured_patient_id ?? null;
   const live = useLiveVitals(featuredId, demo);
+  const ble = useBleHeartRate();
+
+  // When the watch is streaming over Bluetooth (and we're not running the scripted demo),
+  // its per-second heart rate becomes the featured patient's live HR. Re-running the same
+  // assessment as the backend means the real heartbeat drives the status + escalation, so
+  // running around recolors the patient on the twin in real time.
+  const liveData = useMemo<LiveVitals | null>(() => {
+    const base = live.data;
+    const useBle = !demo && ble.status === "connected" && ble.bpm != null;
+    if (!useBle) return base;
+    const heart_rate = { value: ble.bpm as number, unit: "bpm", at: ble.at };
+    const vitals = {
+      heart_rate,
+      steps: base?.steps ?? null,
+      spo2: base?.spo2 ?? null,
+      stress: base?.stress ?? null,
+    };
+    return { source: "ble", ...vitals, ...assessLive(featuredId ?? 0, vitals) };
+  }, [live.data, ble.status, ble.bpm, ble.at, demo, featuredId]);
 
   // Overlay the featured patient's live-derived status so the roster and twin
   // recolor the moment a live vital crosses a threshold. Only real-time sources
   // override the baseline; stale export values keep the patient's standing status.
   const displayPatients = useMemo(() => {
-    const data = live.data;
-    const realtime = data?.source === "live" || data?.source === "demo";
+    const data = liveData;
+    const realtime = data?.source === "live" || data?.source === "demo" || data?.source === "ble";
     if (featuredId == null || !data || !realtime || data.status === "none") return patients;
     const status = data.status;
     return patients.map((p) => (p.id === featuredId ? { ...p, status } : p));
-  }, [patients, featuredId, live.data]);
+  }, [patients, featuredId, liveData]);
 
   // Opening the demo jumps to the featured patient so the escalation is on screen.
   useEffect(() => {
@@ -93,15 +114,42 @@ export default function App() {
           ))}
         </div>
 
+        {ble.supported && (
+          <button
+            className={`demo-chip watch-chip-ble ${ble.status === "connected" ? "on" : ""}`}
+            aria-pressed={ble.status === "connected"}
+            onClick={() => (ble.status === "connected" ? ble.disconnect() : ble.connect())}
+            disabled={featuredId == null || ble.status === "connecting"}
+            title={
+              ble.status === "connected"
+                ? `Streaming real-time heart rate from ${ble.deviceName ?? "your watch"}. Click to stop.`
+                : "Stream real-time heart rate from your watch over Bluetooth (enable Broadcast Heart Rate on the watch)"
+            }
+          >
+            <span className="demo-dot" aria-hidden />
+            {ble.status === "connected"
+              ? `Watch ${ble.bpm ?? "--"} bpm`
+              : ble.status === "connecting"
+                ? "Connecting..."
+                : ble.status === "error"
+                  ? "Retry watch"
+                  : "Connect watch"}
+          </button>
+        )}
+
         <button
           className={`demo-chip ${demo ? "on" : ""}`}
           aria-pressed={demo}
           onClick={() => setDemo((d) => !d)}
-          title="Simulate a live exertion event for the featured patient"
+          title={
+            demo
+              ? "Simulated exertion ramp is playing (not live device data). Click to return to live."
+              : "Play a simulated exertion ramp for the featured patient (stage demo)"
+          }
           disabled={featuredId == null}
         >
           <span className="demo-dot" aria-hidden />
-          {demo ? "Live demo" : "Demo"}
+          {demo ? "Simulating" : "Demo"}
         </button>
 
         <Clock />
@@ -168,7 +216,7 @@ export default function App() {
               patient={selected}
               onClose={() => setSelectedId(null)}
               featuredId={featuredId}
-              live={live.data}
+              live={liveData}
               liveLoading={live.loading}
             />
           )}

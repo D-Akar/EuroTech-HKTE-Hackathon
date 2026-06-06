@@ -8,13 +8,18 @@ a demo do not hammer Garmin. Never blocks on an interactive MFA prompt.
 
 from __future__ import annotations
 
+import os
 import time
 from datetime import date
 from typing import Optional
 
 from . import wearable_source
 
-_TTL_SECONDS = 60.0
+# How long a fetched live reading is reused before we hit Garmin again. Kept short so the
+# dashboard tracks the cloud closely during a demo; raise it (env) to spare Garmin's rate
+# limit over a long-running session. The dominant freshness limit is Garmin's own
+# watch->phone->cloud sync cadence, not this cache.
+_TTL_SECONDS = float(os.environ.get("LIVE_TTL_SECONDS", "10"))
 _cache: dict = {"at": 0.0, "value": None}
 
 

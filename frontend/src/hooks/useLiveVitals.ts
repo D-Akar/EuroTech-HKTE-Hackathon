@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import { assessLive } from "../lib/liveAssessment";
 import type { LiveVitals } from "../types";
 
-const POLL_MS = 20_000; // Garmin syncs at minute granularity; polling faster wastes calls.
+const POLL_MS = 8_000; // Server caches each live fetch (~10s), so this stays close without hammering Garmin.
 const DEMO_TICK_MS = 1_500;
 const DEMO_RAMP_SECONDS = 45; // resting -> exertion peak; ~24s to elevated, ~30s to urgent
 

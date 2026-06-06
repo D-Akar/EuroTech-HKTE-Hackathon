@@ -93,7 +93,7 @@ export interface CallRecord {
 
 // --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----
 
-export type LiveSource = "live" | "export-fallback" | "demo" | "none";
+export type LiveSource = "live" | "ble" | "export-fallback" | "demo" | "none";
 
 export interface LiveMetric {
   value: number;

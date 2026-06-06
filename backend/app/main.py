@@ -13,6 +13,7 @@ from .routers import (
     alerts,
     calls,
     checkins,
+    integrations,
     live,
     meta,
     patients,
@@ -57,6 +58,7 @@ app.include_router(summary.router)
 app.include_router(live.router)
 app.include_router(calls.router)
 app.include_router(reports.router)
+app.include_router(integrations.router)
 
 
 @app.get("/health", tags=["meta"])

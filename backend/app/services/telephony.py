@@ -3,7 +3,9 @@
 The per-patient context (recent check-ins + wearables) and the practice's
 questions are passed as ElevenLabs *dynamic variables*. The agent's prompt in
 the ElevenLabs dashboard must reference them:
-``{{patient_name}}``, ``{{patient_age}}``, ``{{recent_summary}}``, ``{{questions}}``.
+``{{patient_name}}``, ``{{patient_age}}``, ``{{recent_summary}}``, ``{{questions}}``,
+``{{opening_question}}`` (fixed first question, from opening_question.md), and
+``{{privacy_response}}`` (verbatim data-privacy reply, from privacy_response.md).
 """
 
 from __future__ import annotations
@@ -145,6 +147,26 @@ async def build_recent_summary(patient_id: int) -> str:
     return "\n".join(lines)
 
 
+def _read_markdown_body(path: str) -> str:
+    """Read an editable markdown file, returning just the spoken text.
+
+    Convention (shared with patient_questions_prompt.md): everything above the
+    first ``---`` separator line is an editing note for humans and is ignored; the
+    body below it is what the agent uses. Falls back to the whole file when there
+    is no separator, and to an empty string if the file is missing. Read on demand
+    (not cached) so edits take effect on the next call without a restart.
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            lines = fh.readlines()
+    except OSError:
+        return ""
+    for i, line in enumerate(lines):
+        if line.strip() == "---":
+            return "".join(lines[i + 1:]).strip()
+    return "".join(lines).strip()
+
+
 async def build_dynamic_variables(
     patient: Patient, questions: list[str]
 ) -> dict[str, str]:
@@ -158,6 +180,10 @@ async def build_dynamic_variables(
         "patient_age": str(patient.age),
         "recent_summary": await build_recent_summary(patient.id),
         "questions": numbered,
+        # Fixed opening question (asked first) and the verbatim privacy response,
+        # both editable in their markdown files and read fresh on every call.
+        "opening_question": _read_markdown_body(settings.opening_question_file),
+        "privacy_response": _read_markdown_body(settings.privacy_response_file),
     }
 
 

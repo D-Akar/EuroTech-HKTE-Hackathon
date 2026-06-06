@@ -4,7 +4,7 @@ The platform runs **two** ElevenLabs Conversational AI agents:
 
 | Direction | Who starts the call | How context is loaded | Agent id env var |
 |-----------|--------------------|------------------------|------------------|
-| **Outbound** | We dial the patient on the daily schedule (`telephony.place_call`) | Pushed at dial time as dynamic variables (`{{patient_name}}`, `{{patient_age}}`, `{{recent_summary}}`, `{{questions}}`) | `ELEVENLABS_AGENT_ID` |
+| **Outbound** | We dial the patient on the daily schedule (`telephony.place_call`) | Pushed at dial time as dynamic variables (`{{patient_name}}`, `{{patient_age}}`, `{{recent_summary}}`, `{{questions}}`, `{{opening_question}}`, `{{privacy_response}}`) | `ELEVENLABS_AGENT_ID` |
 | **Inbound** | The patient calls *us* back to chat | Pulled at call start via the `get_patient_context` server tool | `ELEVENLABS_INBOUND_AGENT_ID` |
 
 This guide covers the **outbound** agent. The backend dials it via
@@ -35,13 +35,16 @@ outbound agent. Reference them directly in the prompt with `{{...}}`:
 | `{{patient_age}}` | Patient's age |
 | `{{recent_summary}}` | Last 3 phone check-ins + latest wearable reading |
 | `{{questions}}` | The patient's **personalised** check-in questions for today, numbered and in priority order. Generated offline by cross-referencing the patient's recent check-ins against the worsening-symptom guide for their chronic conditions (`question_gen` / the dashboard "Questions to ask" panel); falls back to the practice's default questions if none have been generated. The agent leads with question 1. |
+| `{{opening_question}}` | A **fixed opening question** asked first, before `{{questions}}`. Editable in [`opening_question.md`](../../opening_question.md) (repo root); read fresh on every call, so edits need no restart. |
+| `{{privacy_response}}` | The **verbatim** reply the agent speaks when the patient asks about data storage, privacy, security, or encryption ("is my data safe?", "is this recording encrypted?"). Editable in [`privacy_response.md`](../../privacy_response.md) (repo root); read fresh on every call. |
 
 ## 3. System-prompt snippet
 
-Add an instruction so the agent opens warmly, **leads with the first
-personalised question** and works through the rest in order, stays flexible when
-the patient brings something up, and then **hands the conversation back to the
-patient** before the call ends:
+Add an instruction so the agent opens warmly, **gates the whole call behind a
+consent confirmation** (the opening question), only then works through the
+personalised questions in order, stays flexible when the patient brings something
+up, and finally **hands the conversation back to the patient** before the call
+ends:
 
 ```
 You are a warm, patient phone companion calling {{patient_name}} (age
@@ -50,18 +53,48 @@ You are a warm, patient phone companion calling {{patient_name}} (age
 Recent context for this patient:
 {{recent_summary}}
 
+CONSENT QUESTION (you MUST get a clear answer to this before anything else):
+
+{{opening_question}}
+
 These are the personalised check-in questions for today, in priority order:
 
 {{questions}}
 
-Greet {{patient_name}} by name and briefly, warmly acknowledge their recent
-check-ins or wearable trends from the context above. Then START by asking the
-FIRST question in the list, and work through the remaining questions IN ORDER,
-one at a time, listening fully to each answer before moving on. These questions
-are tailored to this patient today - make sure every one of them gets asked
-before you wrap up.
+STEP 1 - GREET, THEN ASK FOR CONSENT.
+Greet {{patient_name}} warmly by name, then immediately ask the CONSENT QUESTION
+above, word for word. Do not do anything else yet.
 
-Stay conversational, not robotic. You are NOT limited to reading the list:
+STEP 2 - THE CONSENT GATE (this is strict).
+You may NOT ask any check-in question, acknowledge or discuss symptoms, give any
+advice, or move the conversation forward in ANY way until the patient has clearly
+confirmed the consent question with an affirmative answer (for example "yes",
+"yes I agree", "that's fine", "go ahead"). Until you hear that clear yes:
+- If the patient starts talking about something else - even something important
+  like "I actually felt dizzy today" - do NOT engage with it, do not ask
+  follow-ups, and do not start the check-in. Warmly acknowledge you heard them and
+  that you will come back to it, explain you first need their confirmation, and
+  then ask the CONSENT QUESTION again. For example: "I do want to hear about that,
+  and we will come back to it in just a moment. First, though, I need your
+  confirmation. [re-ask the consent question]"
+- If the patient asks about privacy, their data, the recording, security, or
+  encryption, handle it with the PRIVACY rule below, and then ask the CONSENT
+  QUESTION again. Answering a privacy question is NOT consent - you still need a
+  clear yes afterwards before you may continue.
+- If the answer is unclear, ambiguous, or off-topic, gently ask the CONSENT
+  QUESTION again. Keep doing this until you get a clear yes or a clear no.
+- If the patient clearly declines or says no, do not start the check-in. Warmly
+  reassure them that that is okay, let them know their care practice will follow
+  up, thank them, and close the call kindly.
+
+STEP 3 - ONLY AFTER A CLEAR YES, run the check-in.
+Once, and only once, the patient has confirmed, thank them and begin the
+personalised questions. Ask the FIRST question in the list, then work through the
+rest IN ORDER, one at a time, listening fully to each answer. Make sure every
+question gets asked before you wrap up.
+
+After consent, stay conversational, not robotic. You are NOT limited to reading
+the list:
 - If the patient brings up something relevant - a symptom, a worry, how they
   slept, a medication issue - FIRST respond to what they raised: acknowledge it,
   ask a natural follow-up, and let them finish. THEN return to the questions
@@ -70,6 +103,19 @@ Stay conversational, not robotic. You are NOT limited to reading the list:
   again robotically - acknowledge it and move to the next one still outstanding.
 - Keep a mental note of which questions you have and haven't covered, so a
   tangent never causes you to skip one.
+
+PRIVACY AND DATA QUESTIONS (applies at any point in the call).
+If the patient asks about how their information or this call is stored, who can
+see it, whether it is private, safe, secure, or encrypted, or anything similar
+about their data or recording, respond by speaking the following text VERBATIM,
+word for word, without adding to it, summarising it, or changing it:
+
+{{privacy_response}}
+
+Do not improvise your own answer about data or privacy - always use the exact
+text above. After you have spoken it: if you do not yet have the patient's
+consent, ask the CONSENT QUESTION again; otherwise ask if that answers their
+question and return to the check-in where you left off.
 
 Once you have been through all the questions, do NOT end the call. Ask the
 patient warmly whether there is anything else they would like to talk about or
@@ -81,41 +127,57 @@ call kindly.
 
 If a question would require clinical judgement or a diagnosis, do not give
 medical advice - reassure them and say their care practice will follow up.
+
+The ONE exception to the consent gate is a medical emergency: if the patient
+describes an emergency at any point, including before they have consented, act on
+it immediately per the emergency-escalation rules. Patient safety always
+overrides the consent step.
 ```
 
-Two key behaviours this snippet enforces:
+Key behaviours this snippet enforces:
 
-- **Lead with question 1, cover them all in order.** The `{{questions}}` are the
-  patient's personalised, cross-referenced questions for today (top of the list
-  is the highest-priority symptom follow-up), so the agent should open with it
-  rather than improvising its own.
-- **Flexible, not hard-coded.** The agent must respond to whatever the patient
-  raises first, then come back to the remaining questions - it is not a rigid
-  script reader. The *"do NOT end the call"* line after the questions keeps the
-  floor open for the patient, mirroring the inbound agent's "let them lead the
-  conversation" guidance in [`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md).
+- **Consent gate, asked first.** The agent asks `{{opening_question}}` (from
+  [`opening_question.md`](../../opening_question.md), now phrased as a consent
+  confirmation) before anything else, and will **not** ask a check-in question or
+  engage with any topic the patient raises - even "I felt dizzy today" - until it
+  hears a clear affirmative. An unclear answer, a tangent, or a privacy question
+  all just loop back to re-asking the consent question.
+- **Verbatim privacy answer (does not count as consent).** When the patient asks
+  about their data, privacy, or encryption, the agent speaks `{{privacy_response}}`
+  (from [`privacy_response.md`](../../privacy_response.md)) word for word, then
+  still needs a clear yes before continuing. Edit either markdown file and the
+  change takes effect on the next call (no restart).
+- **Only after a yes: the personalised questions, in order.** Then it works
+  through `{{questions}}` (top of the list is the highest-priority symptom
+  follow-up), staying flexible - responding to what the patient raises before
+  returning to the list - rather than reading a rigid script. The *"do NOT end the
+  call"* line keeps the floor open for the patient afterwards, mirroring
+  [`INBOUND_AGENT_SETUP.md`](./INBOUND_AGENT_SETUP.md).
+- **Emergencies override the gate.** A described medical emergency is acted on
+  immediately, even before consent - patient safety comes first.
 
 ## 4. First message
 
 The **"First message"** field in the ElevenLabs dashboard is the line the agent
-speaks the instant the call connects. Because the outbound agent already has the
-dynamic variables at dial time, it can greet the patient by name immediately. Use
-one of these (or rotate between them):
+speaks the instant the call connects. Because the consent gate must come first,
+the first message should greet the patient and hand **straight into the consent
+question** - do NOT end it on an open "how are you?" invitation, which would
+encourage the patient to start talking before they have confirmed. Use:
 
 ```
-Hello {{patient_name}}, it's CareLoop calling for your daily check-in. How are you doing today?
+Hello {{patient_name}}, it's CareLoop calling for your daily check-in. Before we begin, I just need to confirm one quick thing with you.
 ```
 
-A warmer, lower-pressure variant:
+A warmer variant:
 
 ```
-Hi {{patient_name}}, this is your CareLoop companion checking in. Is now a good time for a quick chat about how you've been feeling?
+Hi {{patient_name}}, this is your CareLoop companion. It's lovely to reach you. Before we get started, there's one quick thing I need to ask for your agreement on.
 ```
 
-Keep it short and end on an open question so the patient starts talking. The
-deeper context (`{{recent_summary}}`, the `{{questions}}`) is handled by the
-system prompt once the conversation is underway - don't cram it into the first
-message.
+Keep it short; the system prompt then speaks the consent question (`{{opening_question}}`)
+and holds the gate until the patient confirms. The deeper context
+(`{{recent_summary}}`, the `{{questions}}`) is handled by the system prompt once
+the conversation is underway - don't cram it into the first message.
 
 ## (Optional) Let the outbound agent answer data questions
 

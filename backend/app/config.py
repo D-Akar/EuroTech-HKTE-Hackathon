@@ -51,6 +51,18 @@ class Settings:
     featured_patients_file: str = os.getenv(
         "FEATURED_PATIENTS_FILE", str(_REPO_ROOT / "featured_patients.md")
     )
+    # Markdown file holding the fixed opening question the outbound agent asks FIRST,
+    # before the patient's personalised questions (injected as {{opening_question}}).
+    # Read fresh on every call, so edits take effect without a restart.
+    opening_question_file: str = os.getenv(
+        "OPENING_QUESTION_FILE", str(_REPO_ROOT / "opening_question.md")
+    )
+    # Markdown file holding the verbatim privacy / data-security response the agent
+    # speaks when the patient asks how their data is stored, whether it's safe,
+    # encrypted, etc. (injected as {{privacy_response}}). Also read fresh per call.
+    privacy_response_file: str = os.getenv(
+        "PRIVACY_RESPONSE_FILE", str(_REPO_ROOT / "privacy_response.md")
+    )
 
     # --- Local infra bootstrap (run on `uvicorn` startup) ---
     # Repo root holding docker-compose.yml; `docker compose` runs from here.

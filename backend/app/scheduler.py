@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 
-from . import call_store, data
+from . import call_store, checkin_agent, data
 from .models import ScheduledCall
 from .services import telephony
 
@@ -34,11 +34,18 @@ async def _run_schedule(schedule_id: int) -> None:
     # Re-resolve at fire time so a recurring daily call always asks the freshest
     # personalised questions; falls back to config if none have been generated.
     questions = telephony.resolve_questions(schedule.patient_id)
+    # Same consent-gated persona as the instant "Call now" path, unless the patient
+    # has a custom prompt/greeting configured.
+    config = call_store.get_config(schedule.patient_id)
+    system_prompt = None if config.system_prompt else checkin_agent.system_prompt(patient)
+    first_message = None if config.greeting else checkin_agent.first_message(patient)
     await telephony.place_call(
         patient,
         to_number=patient.phone_number,
         questions=questions,
         kind="scheduled",
+        system_prompt=system_prompt,
+        first_message=first_message,
     )
     # A one-off has done its job; hide it from the upcoming list.
     if not schedule.recurring:

@@ -5,6 +5,7 @@ from fastapi.responses import StreamingResponse
 
 from .. import (
     call_store,
+    checkin_agent,
     cognitive_demo,
     conversation_store,
     data,
@@ -46,7 +47,21 @@ async def trigger_call(patient_id: int, body: TriggerRequest) -> CallRecord:
     # Hand the agent the patient's personalised generated questions (falling back
     # to the practice config), unless the caller passed an explicit override.
     questions = telephony.resolve_questions(patient_id, override=body.questions)
-    return await telephony.place_call(patient, to_number, questions, kind="instant")
+    # Drive the call with the consent-gated check-in persona so the agent always
+    # asks for consent first and speaks the privacy response verbatim, without
+    # depending on the ElevenLabs dashboard prompt. A patient-specific custom
+    # prompt/greeting in the call config still wins (place_call -> build_overrides).
+    config = call_store.get_config(patient_id)
+    system_prompt = None if config.system_prompt else checkin_agent.system_prompt(patient)
+    first_message = None if config.greeting else checkin_agent.first_message(patient)
+    return await telephony.place_call(
+        patient,
+        to_number,
+        questions,
+        kind="instant",
+        system_prompt=system_prompt,
+        first_message=first_message,
+    )
 
 
 @router.post("/screening", response_model=CallRecord)

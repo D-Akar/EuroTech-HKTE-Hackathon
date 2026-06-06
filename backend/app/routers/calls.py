@@ -2,11 +2,12 @@
 
 from fastapi import APIRouter, HTTPException
 
-from .. import call_store, data, scheduler
+from .. import call_store, conversation_store, data, scheduler
 from ..models import (
     CallConfig,
     CallRecord,
     ConfigUpdate,
+    ConversationDetail,
     ScheduledCall,
     ScheduleRequest,
     TriggerRequest,
@@ -40,6 +41,25 @@ def list_calls(patient_id: int) -> list[CallRecord]:
     return call_store.list_call_records(patient_id)
 
 
+@router.get("/{call_id}/conversation", response_model=ConversationDetail)
+async def get_call_conversation(patient_id: int, call_id: int) -> ConversationDetail:
+    """Pull the transcript + extracted check-in data for one completed call.
+
+    Fetched on demand from ElevenLabs. Returns ``status: processing`` (200) while
+    ElevenLabs is still analysing the call, so the UI can show a "check back" state.
+    """
+    _require_patient(patient_id)
+    record = call_store.get_call_record(patient_id, call_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+    if not record.conversation_id:
+        raise HTTPException(status_code=404, detail="No conversation for this call")
+    detail = await conversation_store.get_detail(record.conversation_id)
+    if detail is None:
+        raise HTTPException(status_code=404, detail="Conversation data unavailable")
+    return detail
+
+
 @router.get("/config", response_model=CallConfig)
 def get_config(patient_id: int) -> CallConfig:
     _require_patient(patient_id)
@@ -49,7 +69,9 @@ def get_config(patient_id: int) -> CallConfig:
 @router.put("/config", response_model=CallConfig)
 def update_config(patient_id: int, body: ConfigUpdate) -> CallConfig:
     _require_patient(patient_id)
-    return call_store.set_config(patient_id, body.questions, body.greeting)
+    return call_store.set_config(
+        patient_id, body.questions, body.greeting, body.system_prompt
+    )
 
 
 @router.post("/schedules", response_model=ScheduledCall)

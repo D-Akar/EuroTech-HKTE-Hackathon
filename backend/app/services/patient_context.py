@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from .. import alerts, call_store, data, summary, wearable_source
-from ..models import Patient, PatientContextResponse
+from .. import alerts, call_store, care_plan_store, data, summary, wearable_source
+from ..models import CarePlanContext, Patient, PatientContextResponse
 
 
 def build_context_summary(
@@ -12,6 +12,7 @@ def build_context_summary(
     wearables: list,
     alert_list: list[dict],
     call_config,
+    care_plan: CarePlanContext | None = None,
 ) -> str:
     """Human-readable summary the agent can use during the call."""
     lines = [
@@ -51,6 +52,10 @@ def build_context_summary(
     if call_config.greeting:
         lines.append(f"Custom greeting: {call_config.greeting}")
 
+    if care_plan is not None:
+        lines.append("")
+        lines.append(care_plan.rendered_text)
+
     return "\n".join(lines)
 
 
@@ -67,6 +72,8 @@ def build_patient_context(patient: Patient) -> PatientContextResponse:
     alert_list = alerts.alerts_for(patient_id, wearables, vitals)
     summary_stats = summary.compute_summary(wearables, vitals)
     call_config = call_store.get_config(patient_id)
+    stored_plan = care_plan_store.get(patient_id)
+    care_plan = stored_plan.care_plan if stored_plan else None
 
     return PatientContextResponse(
         patient=patient,
@@ -76,7 +83,8 @@ def build_patient_context(patient: Patient) -> PatientContextResponse:
         summary=summary_stats,
         vitals=vitals,
         call_config=call_config,
+        care_plan=care_plan,
         context_summary=build_context_summary(
-            patient, checkins, wearables, alert_list, call_config
+            patient, checkins, wearables, alert_list, call_config, care_plan
         ),
     )

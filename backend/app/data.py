@@ -9,7 +9,7 @@ and its status is derived from real alerts.
 import random
 from datetime import date, datetime, timedelta
 
-from . import alerts, wearable_source
+from . import alerts, fhir_source, wearable_source
 from .models import CheckIn, Patient, PatientStatus, WearableReading
 
 _TODAY = date(2026, 6, 6)
@@ -49,6 +49,10 @@ _SEED: list[tuple[str, int, PatientStatus, str, str]] = [
     ("Vera Stankovic", 85, PatientStatus.attention, "Harbour Care Collective", "Wan Chai"),
 ]
 
+# Synthetic seed numbers all share this prefix. They are NOT dialable — a real
+# call must never be placed to one (see telephony.place_call guard).
+PLACEHOLDER_PHONE_PREFIX = "+1000000"
+
 PATIENTS: list[Patient] = [
     Patient(
         id=i + 1,
@@ -57,10 +61,15 @@ PATIENTS: list[Patient] = [
         status=status,
         practice=practice,
         district=district,
-        phone_number=f"+1000000{i + 1:04d}",
+        phone_number=f"{PLACEHOLDER_PHONE_PREFIX}{i + 1:04d}",
     )
     for i, (name, age, status, practice, district) in enumerate(_SEED)
 ]
+
+
+def is_placeholder_phone(number: str | None) -> bool:
+    """True if the number is one of the synthetic seed numbers (not dialable)."""
+    return bool(number) and _normalize_phone(number).startswith(PLACEHOLDER_PHONE_PREFIX)
 
 
 # Mood / pain / wearable ranges keyed by status, so seeded numbers match the patient flag.
@@ -170,6 +179,11 @@ def _apply_featured_status() -> None:
 
 _apply_featured_status()
 
+# Overlay real FHIR records (MongoDB) onto the slots listed in featured_patients.md.
+# Best-effort: a no-op if Mongo is unreachable or the file is empty, so the dashboard
+# still shows the full mock roster. The live Garmin patient keeps its own data.
+fhir_source.apply_overlays(PATIENTS, wearable_source.REAL_PATIENT_ID)
+
 
 def get_patients() -> list[Patient]:
     return PATIENTS
@@ -196,6 +210,14 @@ def get_patient_by_phone(phone_number: str) -> Patient | None:
         (p for p in PATIENTS if _normalize_phone(p.phone_number) == normalized),
         None,
     )
+
+
+def get_patient_by_subject(display: str) -> Patient | None:
+    """Match a FHIR CarePlan.subject.display against a patient name."""
+    if not display:
+        return None
+    target = display.strip().casefold()
+    return next((p for p in PATIENTS if p.name.strip().casefold() == target), None)
 
 
 def get_checkins(patient_id: int) -> list[CheckIn]:

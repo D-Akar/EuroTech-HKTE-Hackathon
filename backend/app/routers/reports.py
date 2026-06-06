@@ -4,7 +4,7 @@ from datetime import date
 
 from fastapi import APIRouter, HTTPException, Response
 
-from .. import data
+from .. import care_plan_store, data
 from ..report_pdf import build_report_pdf
 from ..report_summary import build_summary
 
@@ -25,7 +25,9 @@ def patient_report_pdf(patient_id: int) -> Response:
     checkins = data.get_checkins(patient_id)
     wearables = data.get_wearables(patient_id)
     summary = build_summary(checkins, wearables)
-    pdf = build_report_pdf(patient, summary, checkins, wearables)
+    stored_plan = care_plan_store.get(patient_id)
+    care_plan = stored_plan.care_plan if stored_plan else None
+    pdf = build_report_pdf(patient, summary, checkins, wearables, care_plan=care_plan)
 
     filename = f"patient-{patient_id}-report-{date.today():%Y-%m-%d}.pdf"
     return Response(

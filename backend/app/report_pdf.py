@@ -24,7 +24,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from .models import CheckIn, Patient, WearableReading
+from .models import CarePlanContext, CheckIn, Patient, WearableReading
 from .report_summary import ReportSummary, Trend
 
 # Colorblind-safe-leaning status palette; always paired with the text label.
@@ -233,11 +233,48 @@ def _vitals_row(wearables: list[WearableReading], styles: dict[str, ParagraphSty
     return table
 
 
+def _care_plan_section(
+    care_plan: CarePlanContext, styles: dict[str, ParagraphStyle]
+) -> list:
+    flow: list = [Paragraph("Care plan", styles["section"])]
+    meta = []
+    if care_plan.status:
+        meta.append(f"status {care_plan.status}")
+    if care_plan.intent:
+        meta.append(f"intent {care_plan.intent}")
+    title = care_plan.title or "Care plan"
+    heading = f"<b>{title}</b>" + (f" ({', '.join(meta)})" if meta else "")
+    flow.append(Paragraph(heading, styles["body"]))
+    if care_plan.description:
+        flow.append(Paragraph(care_plan.description, styles["body"]))
+    if care_plan.period_start or care_plan.period_end:
+        flow.append(Paragraph(
+            f"Covers {care_plan.period_start or 'unknown'} to "
+            f"{care_plan.period_end or 'ongoing'}.", styles["body"]))
+    if care_plan.addresses:
+        flow.append(Paragraph("Addresses: " + ", ".join(care_plan.addresses), styles["body"]))
+    if care_plan.goals:
+        flow.append(Paragraph("<b>Goals</b>", styles["body"]))
+        for g in care_plan.goals:
+            target = f" (target: {g.target})" if g.target else ""
+            flow.append(Paragraph(f"• {g.description}{target}", styles["cell"]))
+    if care_plan.activities:
+        flow.append(Paragraph("<b>Planned activities</b>", styles["body"]))
+        for a in care_plan.activities:
+            status = f"[{a.status}] " if a.status else ""
+            sched = f" — {a.scheduled}" if a.scheduled else ""
+            flow.append(Paragraph(f"• {status}{a.description}{sched}", styles["cell"]))
+    if care_plan.notes:
+        flow.append(Paragraph("Notes: " + " ".join(care_plan.notes), styles["body"]))
+    return flow
+
+
 def build_report_pdf(
     patient: Patient,
     summary: ReportSummary,
     checkins: list[CheckIn],
     wearables: list[WearableReading],
+    care_plan: CarePlanContext | None = None,
 ) -> bytes:
     """Assemble the report and return the PDF as bytes."""
     buf = BytesIO()
@@ -268,6 +305,9 @@ def build_report_pdf(
 
     flow.append(Paragraph("At-a-glance vitals", styles["section"]))
     flow.append(_vitals_row(wearables, styles))
+
+    if care_plan is not None:
+        flow += _care_plan_section(care_plan, styles)
 
     flow.append(Spacer(1, 16))
     flow.append(

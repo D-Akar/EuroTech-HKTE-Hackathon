@@ -10,6 +10,45 @@ export interface Patient {
   practice: string;
   district: string;
   phone_number: string;
+  fhir_id: string | null; // set when backed by a real MongoDB FHIR record
+}
+
+// --- Real FHIR medical profile (MongoDB-backed patients) ---
+
+export interface Condition {
+  name: string;
+  onset_date: string | null;
+}
+
+export interface Medication {
+  name: string;
+  frequency: string | null;
+  prescribed_date: string | null;
+}
+
+export interface Allergy {
+  substance: string;
+  type: string | null;
+  criticality: string | null;
+}
+
+export interface Procedure {
+  name: string;
+  date: string | null;
+}
+
+export interface MedicalProfile {
+  patient_id: number;
+  fhir_id: string;
+  gender: string | null;
+  birth_date: string | null;
+  preferred_language: string | null;
+  phone_number: string | null;
+  chronic_conditions: Condition[];
+  allergies: Allergy[];
+  active_medications: Medication[];
+  past_medications: Medication[];
+  recent_procedures: Procedure[];
 }
 
 export interface CheckIn {
@@ -37,6 +76,7 @@ export interface CallConfig {
   patient_id: number;
   questions: string[];
   greeting: string | null;
+  system_prompt: string | null;
 }
 
 export interface ScheduledCall {
@@ -82,6 +122,30 @@ export interface PatientStatusEvent {
   reason: string;
   source: string;
   at: string;
+}
+
+export interface ConversationTurn {
+  role: "user" | "agent";
+  message: string | null;
+  time_in_call_secs: number | null;
+}
+
+export interface ConversationDataPoint {
+  id: string;
+  value: string | number | boolean | null;
+  rationale: string | null;
+}
+
+export interface ConversationDetail {
+  conversation_id: string;
+  status: string; // initiated | in-progress | processing | done | failed
+  ready: boolean;
+  transcript_summary: string | null;
+  call_successful: string | null; // success | failure | unknown
+  call_duration_secs: number | null;
+  started_at: string | null;
+  transcript: ConversationTurn[];
+  data_collection: ConversationDataPoint[];
 }
 
 // --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----
@@ -137,4 +201,31 @@ export interface Summary {
 export interface Meta {
   featured_patient_id: number;
   live_data: boolean;
+}
+
+export interface CarePlanGoal {
+  description: string;
+  target: string | null;
+}
+
+export interface CarePlanActivity {
+  description: string;
+  status: string | null;
+  scheduled: string | null;
+}
+
+export interface CarePlanContext {
+  title: string | null;
+  status: string | null;
+  intent: string | null;
+  description: string | null;
+  categories: string[];
+  subject_display: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  addresses: string[];
+  goals: CarePlanGoal[];
+  activities: CarePlanActivity[];
+  notes: string[];
+  rendered_text: string;
 }

@@ -1,0 +1,41 @@
+# CareLoop local infrastructure.
+#
+#   docker compose up -d            # start MongoDB AND load the patient records
+#   docker compose up -d --wait     # ...and block until everything is ready
+#   docker compose down             # stop (data is kept in the named volume)
+#   docker compose down -v          # stop AND wipe the database volume
+#
+# The `importer` service auto-loads the FHIR records once Mongo is healthy, so a
+# plain `docker compose up` always leaves you with a populated database. No manual
+# import step needed.
+services:
+  mongo:
+    build: ./docker/mongo
+    image: careloop-mongo:7
+    container_name: careloop-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      # Named volume keeps the 555 patient records across container restarts.
+      - careloop-mongo-data:/data/db
+    restart: unless-stopped
+
+  # One-shot job: waits for Mongo to pass its healthcheck, upserts every patient
+  # record, then exits 0. Idempotent, so it runs harmlessly on every `up`.
+  importer:
+    build: ./docker/importer
+    image: careloop-importer
+    container_name: careloop-importer
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./backend/scripts:/app/scripts:ro
+      - ./data/fhir_processed:/app/data:ro
+    restart: "no"
+
+volumes:
+  careloop-mongo-data:
+    # Pin the real volume name so Compose reuses the existing data (the 555
+    # records) instead of creating a project-prefixed volume from scratch.
+    name: careloop-mongo-data

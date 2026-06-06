@@ -39,8 +39,18 @@ def get_config(patient_id: int) -> CallConfig:
     return config
 
 
-def set_config(patient_id: int, questions: list[str], greeting: str | None) -> CallConfig:
-    config = CallConfig(patient_id=patient_id, questions=questions, greeting=greeting)
+def set_config(
+    patient_id: int,
+    questions: list[str],
+    greeting: str | None,
+    system_prompt: str | None = None,
+) -> CallConfig:
+    config = CallConfig(
+        patient_id=patient_id,
+        questions=questions,
+        greeting=greeting,
+        system_prompt=system_prompt,
+    )
     CALL_CONFIGS[patient_id] = config
     return config
 
@@ -94,3 +104,10 @@ def next_record_id() -> int:
 
 def list_call_records(patient_id: int) -> list[CallRecord]:
     return [r for r in CALL_HISTORY if r.patient_id == patient_id]
+
+
+def get_call_record(patient_id: int, call_id: int) -> CallRecord | None:
+    return next(
+        (r for r in CALL_HISTORY if r.id == call_id and r.patient_id == patient_id),
+        None,
+    )

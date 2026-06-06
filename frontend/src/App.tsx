@@ -250,6 +250,11 @@ export default function App() {
               featuredId={featuredId}
               live={liveData}
               liveLoading={live.loading}
+              onPatientUpdate={(updated) =>
+                setPatients((prev) =>
+                  prev.map((p) => (p.id === updated.id ? updated : p))
+                )
+              }
             />
           )}
         </div>

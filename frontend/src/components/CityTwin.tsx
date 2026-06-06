@@ -391,11 +391,12 @@ interface SceneProps {
   patients: Patient[];
   selectedId: number | null;
   statusFilter: Set<string> | null;
+  paused: boolean;
   onSelect: (id: number) => void;
   onHover: (p: Patient | null) => void;
 }
 
-function Scene({ patients, selectedId, statusFilter, onSelect, onHover }: SceneProps) {
+function Scene({ patients, selectedId, statusFilter, paused, onSelect, onHover }: SceneProps) {
   const reduced = usePrefersReducedMotion();
   const glow = useGlowTexture();
   const controls = useRef<any>(null);
@@ -460,7 +461,7 @@ function Scene({ patients, selectedId, statusFilter, onSelect, onHover }: SceneP
         maxDistance={58}
         minPolarAngle={0.15}
         maxPolarAngle={Math.PI / 2.15}
-        autoRotate={!reduced && selectedId === null}
+        autoRotate={!reduced && selectedId === null && !paused}
         autoRotateSpeed={0.35}
         enableDamping
         dampingFactor={0.08}
@@ -496,6 +497,7 @@ export function CityTwin({ patients, selectedId, statusFilter, onSelect }: CityT
         patients={patients}
         selectedId={selectedId}
         statusFilter={statusFilter}
+        paused={hovered !== null}
         onSelect={onSelect}
         onHover={setHovered}
       />

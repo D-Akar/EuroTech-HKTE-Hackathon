@@ -17,6 +17,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
+    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -24,8 +25,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from .models import CarePlanContext, CheckIn, Patient, WearableReading
-from .report_summary import ReportSummary, Trend
+from .models import CarePlanContext, CheckIn, MedicalProfile, Patient, WearableReading
+from .report_summary import ReportSummary, Trend, VitalCard
 
 # Colorblind-safe-leaning status palette; always paired with the text label.
 _STATUS_COLOR = {
@@ -37,6 +38,11 @@ _DIRECTION_COLOR = {
     "improving": colors.HexColor("#2E7D32"),
     "worsening": colors.HexColor("#C62828"),
     "stable": colors.HexColor("#5F6368"),
+}
+_SEVERITY_COLOR = {
+    "critical": colors.HexColor("#C62828"),
+    "warning": colors.HexColor("#B26A00"),
+    "info": colors.HexColor("#5F6368"),
 }
 _INK = colors.HexColor("#1A1A1A")
 _MUTED = colors.HexColor("#5F6368")
@@ -197,27 +203,21 @@ def _trends_table(trends: list[Trend], styles: dict[str, ParagraphStyle]) -> Tab
     return table
 
 
-def _vitals_row(wearables: list[WearableReading], styles: dict[str, ParagraphStyle]) -> Table | Paragraph:
-    if not wearables:
+def _vitals_cards(cards: list[VitalCard], styles: dict[str, ParagraphStyle]) -> Table | Paragraph:
+    """A single row of equal-width "current value" cards (HR/Sleep/Steps + SpO2/Stress)."""
+    if not cards:
         return Paragraph("No wearable data available.", styles["body"])
-    latest = wearables[0]  # newest-first
 
-    def card(value: str, label: str):
+    def cell(c: VitalCard):
+        value = f"{c.value}{(' ' + c.unit) if c.unit else ''}"
         return [
-            Paragraph(f"<b>{value}</b>", ParagraphStyle("v", fontSize=16, textColor=_INK)),
-            Paragraph(label, styles["meta"]),
+            Paragraph(f"<b>{value}</b>", ParagraphStyle("v", fontSize=15, textColor=_INK)),
+            Paragraph(c.label, styles["meta"]),
         ]
 
-    table = Table(
-        [
-            [
-                card(f"{latest.heart_rate} bpm", "Heart rate"),
-                card(f"{latest.steps:,}", "Steps (latest)"),
-                card(f"{latest.sleep_hours} h", "Sleep"),
-            ]
-        ],
-        colWidths=[57 * mm, 57 * mm, 56 * mm],
-    )
+    content_width = 170 * mm
+    col = content_width / len(cards)
+    table = Table([[cell(c) for c in cards]], colWidths=[col] * len(cards))
     table.setStyle(
         TableStyle(
             [
@@ -233,10 +233,83 @@ def _vitals_row(wearables: list[WearableReading], styles: dict[str, ParagraphSty
     return table
 
 
+def _snapshot(
+    summary: ReportSummary,
+    alerts: list[dict] | None,
+    styles: dict[str, ParagraphStyle],
+) -> list:
+    """The page-1 "Current status" band: headline, active alerts, vital cards."""
+    flow: list = [Paragraph("Current status", styles["section"])]
+    flow.append(
+        Paragraph(
+            f"<b>{summary.headline}</b>",
+            ParagraphStyle("headline", parent=styles["body"], fontSize=12, leading=16),
+        )
+    )
+
+    active = [a for a in (alerts or []) if a.get("severity") in _SEVERITY_COLOR]
+    if active:
+        flow.append(Spacer(1, 4))
+        for a in active:
+            color = _SEVERITY_COLOR[a["severity"]]
+            flow.append(
+                Paragraph(
+                    f'<font color="{_h(color)}"><b>{a["severity"].upper()}</b></font> '
+                    f'{a.get("message", "")}',
+                    styles["cell"],
+                )
+            )
+
+    flow.append(Spacer(1, 8))
+    flow.append(_vitals_cards(summary.snapshot_vitals, styles))
+    return flow
+
+
+def _clinical_context(
+    profile: MedicalProfile, styles: dict[str, ParagraphStyle]
+) -> list:
+    """Chronic conditions, active medications and allergies from the FHIR record."""
+    flow: list = [Paragraph("Clinical context", styles["section"])]
+
+    if profile.chronic_conditions:
+        items = ", ".join(
+            f"{c.name}{f' (since {c.onset_date})' if c.onset_date else ''}"
+            for c in profile.chronic_conditions
+        )
+        flow.append(Paragraph(f"<b>Chronic conditions:</b> {items}", styles["body"]))
+    if profile.active_medications:
+        items = ", ".join(
+            f"{m.name}{f' — {m.frequency}' if m.frequency else ''}"
+            for m in profile.active_medications
+        )
+        flow.append(Paragraph(f"<b>Active medications:</b> {items}", styles["body"]))
+    if profile.allergies:
+        items = ", ".join(
+            f"{a.substance}{f' ({a.criticality})' if a.criticality else ''}"
+            for a in profile.allergies
+        )
+        flow.append(Paragraph(f"<b>Allergies:</b> {items}", styles["body"]))
+
+    # Heading only with no rows reads as an error; show an explicit empty state instead.
+    if len(flow) == 1:
+        flow.append(Paragraph("No clinical record details available.", styles["body"]))
+    return flow
+
+
 def _care_plan_section(
-    care_plan: CarePlanContext, styles: dict[str, ParagraphStyle]
+    care_plan: CarePlanContext,
+    styles: dict[str, ParagraphStyle],
+    progress: str | None = None,
 ) -> list:
     flow: list = [Paragraph("Care plan", styles["section"])]
+    if progress:
+        color = _DIRECTION_COLOR["worsening"] if "off track" in progress else (
+            _DIRECTION_COLOR["improving"] if "on track" in progress else _MUTED
+        )
+        flow.append(
+            Paragraph(f'<font color="{_h(color)}"><b>{progress}</b></font>', styles["body"])
+        )
+        flow.append(Spacer(1, 4))
     meta = []
     if care_plan.status:
         meta.append(f"status {care_plan.status}")
@@ -274,9 +347,16 @@ def build_report_pdf(
     summary: ReportSummary,
     checkins: list[CheckIn],
     wearables: list[WearableReading],
+    *,
+    profile: MedicalProfile | None = None,
+    alerts: list[dict] | None = None,
     care_plan: CarePlanContext | None = None,
 ) -> bytes:
-    """Assemble the report and return the PDF as bytes."""
+    """Assemble the report and return the PDF as bytes.
+
+    Page 1 leads with current status + trends; page 2 carries check-ins, clinical
+    context and the care plan.
+    """
     buf = BytesIO()
     doc = SimpleDocTemplate(
         buf,
@@ -290,24 +370,29 @@ def build_report_pdf(
     styles = _styles()
     flow: list = []
 
+    # --- Page 1: current status & trends --------------------------------------
     flow += _header(patient, styles)
+    flow += _snapshot(summary, alerts, styles)
 
-    flow.append(Paragraph("Latest check-ins", styles["section"]))
-    flow.append(Paragraph(summary.checkins_narrative, styles["body"]))
-    flow.append(Spacer(1, 6))
-    flow.append(_checkins_table(checkins, styles))
-
-    flow.append(Paragraph("Health status - recent trend", styles["section"]))
+    flow.append(Paragraph("Health trends — recent window", styles["section"]))
     flow.append(Paragraph(summary.status_narrative, styles["body"]))
     flow.append(Spacer(1, 6))
     if summary.trends:
         flow.append(_trends_table(summary.trends, styles))
 
-    flow.append(Paragraph("At-a-glance vitals", styles["section"]))
-    flow.append(_vitals_row(wearables, styles))
+    flow.append(PageBreak())
+
+    # --- Page 2: detail & context ---------------------------------------------
+    flow.append(Paragraph("Recent check-ins", styles["section"]))
+    flow.append(Paragraph(summary.checkins_narrative, styles["body"]))
+    flow.append(Spacer(1, 6))
+    flow.append(_checkins_table(checkins, styles))
+
+    if profile is not None:
+        flow += _clinical_context(profile, styles)
 
     if care_plan is not None:
-        flow += _care_plan_section(care_plan, styles)
+        flow += _care_plan_section(care_plan, styles, progress=summary.careplan_progress)
 
     flow.append(Spacer(1, 16))
     flow.append(

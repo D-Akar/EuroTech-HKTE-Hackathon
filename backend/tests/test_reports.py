@@ -5,7 +5,16 @@ from datetime import date, datetime
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.models import CheckIn, Patient, PatientStatus, WearableReading
+from app.models import (
+    Allergy,
+    CheckIn,
+    Condition,
+    MedicalProfile,
+    Medication,
+    Patient,
+    PatientStatus,
+    WearableReading,
+)
 from app.report_pdf import build_report_pdf
 from app.report_summary import build_summary
 
@@ -82,6 +91,35 @@ def test_empty_history_is_handled():
     assert "No check-in" in summary.checkins_narrative
 
 
+# --- snapshot, headline, and care-plan progress -------------------------------
+
+
+def test_headline_names_worsening_metric():
+    # newest-first: pain rose from 2 (oldest) to 8 (newest) → worsening
+    checkins = [_checkin(0, 8), _checkin(1, 6), _checkin(2, 3), _checkin(3, 2)]
+    summary = build_summary(checkins, [])
+    assert summary.headline
+    assert "pain level" in summary.headline.lower()
+    assert "worsening" in summary.headline.lower()
+
+
+def test_snapshot_vitals_populated_from_latest_reading():
+    wearables = [_wearable(d, 72, 7.0, 3400) for d in range(4)]
+    summary = build_summary([], wearables)
+    labels = {c.label for c in summary.snapshot_vitals}
+    assert {"Heart rate", "Sleep", "Steps"} <= labels
+    hr = next(c for c in summary.snapshot_vitals if c.label == "Heart rate")
+    assert hr.value == "72" and hr.unit == "bpm"
+
+
+def test_careplan_progress_only_with_plan():
+    wearables = [_wearable(d, 72, 7.0, 3400) for d in range(4)]
+    assert build_summary([], wearables).careplan_progress is None
+    with_plan = build_summary([], wearables, care_plan=object())
+    assert with_plan.careplan_progress is not None
+    assert "care-plan goals" in with_plan.careplan_progress
+
+
 # --- build_report_pdf renderer ------------------------------------------------
 
 
@@ -95,6 +133,29 @@ def test_build_report_pdf_returns_pdf_bytes():
     summary = build_summary(checkins, wearables)
     pdf = build_report_pdf(patient, summary, checkins, wearables)
     assert isinstance(pdf, bytes)
+    assert pdf.startswith(b"%PDF")
+    assert len(pdf) > 1000
+
+
+def test_build_report_pdf_with_profile_and_alerts_renders():
+    patient = Patient(
+        id=1, name="Test Patient", age=80, status=PatientStatus.attention,
+        practice="Test Clinic", district="Central",
+    )
+    checkins = [_checkin(0, 5), _checkin(1, 4), _checkin(2, 3), _checkin(3, 2)]
+    wearables = [_wearable(d, 80, 6.0, 1200) for d in range(4)]
+    profile = MedicalProfile(
+        patient_id=1,
+        fhir_id="uuid-1",
+        chronic_conditions=[Condition(name="Hypertension", onset_date="2019")],
+        active_medications=[Medication(name="Amlodipine", frequency="daily")],
+        allergies=[Allergy(substance="Penicillin", criticality="high")],
+    )
+    alert_list = [{"severity": "warning", "message": "Only 6.0 h sleep last night"}]
+    summary = build_summary(checkins, wearables, alerts=alert_list)
+    pdf = build_report_pdf(
+        patient, summary, checkins, wearables, profile=profile, alerts=alert_list
+    )
     assert pdf.startswith(b"%PDF")
     assert len(pdf) > 1000
 

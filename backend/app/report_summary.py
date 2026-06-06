@@ -17,6 +17,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from .models import CheckIn, WearableReading
+from .summary import compute_summary
 
 Direction = Literal["improving", "worsening", "stable"]
 
@@ -32,10 +33,21 @@ class Trend(BaseModel):
     series: list[float]  # oldest→newest, for the mini chart
 
 
+class VitalCard(BaseModel):
+    """A pre-formatted "current status" snapshot card for the report's first page."""
+
+    label: str
+    value: str
+    unit: str
+
+
 class ReportSummary(BaseModel):
+    headline: str  # one-line, plain-language "what matters right now"
+    snapshot_vitals: list[VitalCard]
     checkins_narrative: str
     status_narrative: str
     trends: list[Trend]
+    careplan_progress: str | None = None  # only set when a care plan exists
 
 
 def _classify(series: list[float], higher_is_better: bool) -> tuple[Direction, str]:
@@ -131,11 +143,88 @@ def _join(items: list[str]) -> str:
     return ", ".join(items[:-1]) + " and " + items[-1]
 
 
+def _headline(trends: list[Trend], alerts: list[dict] | None) -> str:
+    """The single "what matters right now" line that opens the report."""
+    critical = [a for a in (alerts or []) if a.get("severity") == "critical"]
+    if critical:
+        return f"{critical[0].get('message', 'Critical alert')} — needs attention."
+
+    worsening = [t.label.lower() for t in trends if t.direction == "worsening"]
+    improving = [t.label.lower() for t in trends if t.direction == "improving"]
+    if worsening:
+        tail = f" {_join(improving)} improving." if improving else ""
+        return f"{_join(worsening).capitalize()} worsening.{tail}"
+    if improving:
+        return f"{_join(improving).capitalize()} improving; no metrics worsening."
+    return "Indicators broadly stable across the recent window."
+
+
+def _snapshot_vitals(
+    wearables: list[WearableReading],
+    vitals: list[dict] | None,
+) -> list[VitalCard]:
+    """Latest dailies (HR/sleep/steps) plus rich-vital averages (SpO2/stress) when present."""
+    cards: list[VitalCard] = []
+    if wearables:
+        latest = wearables[0]  # newest-first
+        cards.append(VitalCard(label="Heart rate", value=str(latest.heart_rate), unit="bpm"))
+        cards.append(VitalCard(label="Sleep", value=f"{latest.sleep_hours:g}", unit="h"))
+        cards.append(VitalCard(label="Steps", value=f"{latest.steps:,}", unit=""))
+
+    stats = compute_summary(wearables, vitals or [])
+    spo2 = stats.get("spo2")
+    if spo2:
+        cards.append(VitalCard(label="SpO2 (avg)", value=f"{spo2['avg']:g}", unit="%"))
+    stress = stats.get("stress")
+    if stress:
+        cards.append(VitalCard(label="Stress (avg)", value=f"{stress['avg']:g}", unit=""))
+    return cards
+
+
+def _careplan_progress(trends: list[Trend], alerts: list[dict] | None) -> str:
+    """A transparent heuristic read of whether monitoring supports the care-plan goals.
+
+    Not a clinical determination — it weighs how the monitored metrics are moving and
+    whether any vital crossed a critical threshold.
+    """
+    critical = [a for a in (alerts or []) if a.get("severity") == "critical"]
+    worsening = [t.label.lower() for t in trends if t.direction == "worsening"]
+    improving = [t.label.lower() for t in trends if t.direction == "improving"]
+
+    if critical or (len(worsening) >= 2 and not improving):
+        detail = (
+            f"{_join(worsening)} moving the wrong way"
+            if worsening
+            else "active critical alerts"
+        )
+        return (
+            "Based on recent monitoring, the patient appears off track relative to "
+            f"care-plan goals ({detail})."
+        )
+    if improving and len(improving) >= len(worsening):
+        return (
+            "Based on recent monitoring, the patient appears on track relative to "
+            f"care-plan goals ({_join(improving)} improving)."
+        )
+    return (
+        "Based on recent monitoring, the patient is showing mixed progress relative to "
+        "care-plan goals."
+    )
+
+
 def build_summary(
     checkins: list[CheckIn],
     wearables: list[WearableReading],
+    vitals: list[dict] | None = None,
+    *,
+    care_plan: object | None = None,
+    alerts: list[dict] | None = None,
 ) -> ReportSummary:
-    """Derive narratives + trends from a patient's recent history (newest-first input)."""
+    """Derive narratives + trends from a patient's recent history (newest-first input).
+
+    ``vitals`` are the rich Garmin samples (SpO2/stress) used for the snapshot; ``alerts``
+    and ``care_plan`` feed the headline and care-plan progress read when available.
+    """
     # Oldest→newest for trend reasoning and charts.
     checkins_old_to_new = list(reversed(checkins))
     wearables_old_to_new = list(reversed(wearables))
@@ -159,7 +248,12 @@ def build_summary(
         trends.append(_trend("Call answer rate", "", answer, higher_is_better=True))
 
     return ReportSummary(
+        headline=_headline(trends, alerts),
+        snapshot_vitals=_snapshot_vitals(wearables, vitals),
         checkins_narrative=_checkins_narrative(checkins),
         status_narrative=_status_narrative(trends),
         trends=trends,
+        careplan_progress=(
+            _careplan_progress(trends, alerts) if care_plan is not None else None
+        ),
     )

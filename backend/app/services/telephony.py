@@ -112,6 +112,9 @@ async def build_dynamic_variables(
     """Build the ElevenLabs dynamic-variable map injected into the call."""
     numbered = "\n".join(f"{i}. {q}" for i, q in enumerate(questions, start=1))
     return {
+        # patient_id is opaque to the prompt but is the value the escalate_emergency
+        # tool sends back to /integrations/elevenlabs/escalate to identify the patient.
+        "patient_id": str(patient.id),
         "patient_name": patient.name,
         "patient_age": str(patient.age),
         "recent_summary": await build_recent_summary(patient.id),

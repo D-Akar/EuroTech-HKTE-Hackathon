@@ -30,6 +30,7 @@ outbound agent. Reference them directly in the prompt with `{{...}}`:
 
 | Variable | Contents |
 |----------|----------|
+| `{{patient_id}}` | Opaque patient identifier. **Not for the prompt** — it is the value the `escalate_emergency` tool sends back so the backend knows which patient to escalate. |
 | `{{patient_name}}` | Patient's name |
 | `{{patient_age}}` | Patient's age |
 | `{{recent_summary}}` | Last 3 phone check-ins + latest wearable reading |
@@ -109,11 +110,84 @@ in the context above, call the `get_patient_context` tool to look it up before
 answering.
 ```
 
+## 5. Emergency-escalation tool (`escalate_emergency`)
+
+This lets the agent raise an urgent clinical escalation **mid-call** when the
+patient reports an emergency. Calling it flips the patient to **URGENT** on every
+dashboard in real time (over SSE) and places an immediate alert call to the
+on-call nurse — the same path as the dashboard's manual escalate button, behind
+`POST /integrations/elevenlabs/escalate`.
+
+### Attach the tool
+
+1. Import [`elevenlabs-escalate_emergency.tool.json`](./elevenlabs-escalate_emergency.tool.json),
+   or recreate it as a **Webhook** server tool.
+2. Set the tool `url` to your public host:
+   `https://<your-public-host>/integrations/elevenlabs/escalate`
+   (use a tunnel such as ngrok against port 8000 when developing locally).
+3. Set the `X-API-Key` request header to your `ELEVENLABS_TOOL_API_KEY` value —
+   the **same** key as the `get_patient_context` tool.
+4. The request body has two fields:
+   - `patient_id` — bound to the **dynamic variable** `{{patient_id}}` (injected
+     at dial time; the LLM must **not** fill or ask for it).
+   - `reason` — filled by the LLM with what the patient just reported.
+
+### When the agent should call it — trigger conditions
+
+Be explicit in the prompt, because the cost of a false negative (missing a real
+emergency) and a false positive (a nurse scrambled for nothing) are both high.
+Add this block to the system prompt:
+
+```
+EMERGENCY ESCALATION
+You have a tool called `escalate_emergency`. Call it IMMEDIATELY, mid-sentence if
+necessary, the moment the patient describes any of the following:
+- Chest pain, pressure, or tightness; difficulty breathing.
+- Signs of a stroke: face drooping, arm weakness, slurred or confused speech.
+- A fall with injury, inability to get up, or hitting their head.
+- Heavy or uncontrolled bleeding.
+- Fainting, loss of consciousness, or a seizure.
+- Thoughts of harming themselves.
+- Any symptom they describe as severe, sudden, or frightening, or that you judge
+  needs a clinician right now.
+
+When you call it:
+- Put what the patient said into `reason`, in their own words, one or two
+  sentences. Do NOT ask them for an ID or any reference number.
+- Do not wait to finish the check-in questions — the escalation comes first.
+- After the tool returns, stay on the line. Calmly tell the patient you have
+  alerted their care team and a nurse will follow up right away. Keep them
+  company and, if appropriate, suggest they also call local emergency services.
+
+Do NOT escalate for routine or mild concerns (a slightly poor night's sleep, a
+mild ache, general low mood with no risk of self-harm, a medication question).
+For those, reassure them and note that their practice will follow up. When in
+genuine doubt about severity, escalate.
+```
+
+Place this block **after** the check-in instructions but make clear it overrides
+them — escalation interrupts the normal flow. The `{{patient_id}}` plumbing is
+invisible to the patient; the agent never speaks or requests it.
+
 ## Verify end to end
 
 1. Run the backend (`uvicorn app.main:app --reload`) with the `ELEVENLABS_*`
-   vars set in `backend/.env`.
-2. Trigger an instant call to a seeded patient from the dashboard (or POST to the
-   calls endpoint).
-3. Confirm the agent greets by name, works through the configured questions, and
-   then invites the patient to ask their own questions before hanging up.
+   vars set in `backend/.env`, and expose it publicly (e.g. `ngrok http 8000`)
+   so the tool URLs are reachable.
+2. **Tool smoke test (no call):** in the ElevenLabs tool builder, use the
+   **Test** button on `escalate_emergency` with `patient_id` = a seeded id and a
+   sample `reason`. Equivalently, from a terminal:
+   ```powershell
+   $body = @{ patient_id = 1; reason = "Reports crushing chest pain now." } | ConvertTo-Json
+   Invoke-RestMethod -Uri "https://<your-public-host>/integrations/elevenlabs/escalate" `
+     -Method Post -ContentType "application/json" `
+     -Headers @{ "X-API-Key" = "<ELEVENLABS_TOOL_API_KEY>" } -Body $body
+   ```
+   → `200` with `"status": "urgent"`, the patient recolors to red on an open
+   dashboard, and the nurse alert call is placed (if `NURSE_PHONE_NUMBER` is set).
+3. **Full call:** trigger an instant call to a seeded patient, then act out one
+   of the trigger symptoms above. Confirm the agent invokes `escalate_emergency`,
+   the patient flips to urgent live on the dashboard, the nurse is called, and the
+   agent reassures the patient that their care team has been alerted.
+4. Confirm the check-in flow still works normally when no emergency is mentioned
+   (agent greets by name, works through the questions, invites open questions).

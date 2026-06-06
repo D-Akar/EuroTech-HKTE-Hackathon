@@ -164,9 +164,9 @@ button {
   display: grid;
   place-items: center;
   border-radius: 8px;
-  background: linear-gradient(150deg, var(--accent), var(--accent-strong));
+  background: var(--accent);
   color: white;
-  box-shadow: 0 0 0 1px oklch(0.5 0.1 224 / 0.3), 0 2px 8px -2px var(--accent-ring);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.16);
 }
 
 .brand-sub {
@@ -420,8 +420,11 @@ button {
   font-size: 12.5px;
   font-weight: 600;
   padding: 3px 10px 3px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
+  /* Neutral chip; the glyph + colored label carry status (calm until it counts) */
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
 }
 
 .badge-glyph {
@@ -430,15 +433,15 @@ button {
 }
 
 .badge.stable {
-  background: var(--status-stable-soft);
   color: oklch(0.42 0.1 168);
 }
 .badge.attention {
-  background: var(--status-attention-soft);
   color: oklch(0.46 0.11 75);
 }
+/* Urgent stays unmistakable — the one loud chip */
 .badge.urgent {
   background: var(--status-urgent-soft);
+  border-color: transparent;
   color: oklch(0.48 0.16 28);
 }
 
@@ -635,19 +638,20 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent);
-  border-radius: 8px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--muted);
   text-decoration: none;
-  transition: background 0.16s var(--ease), box-shadow 0.16s var(--ease);
+  border-bottom: 1px solid transparent;
+  transition: color 0.16s var(--ease), border-color 0.16s var(--ease);
 }
 .report-link:hover {
-  background: var(--surface-raised);
-  box-shadow: 0 0 0 3px var(--accent-ring);
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-ring);
+}
+.report-link svg {
+  opacity: 0.7;
 }
 
 /* Detail tabs — segmented control between conversations and device data */
@@ -704,14 +708,14 @@ button {
   margin-top: 18px;
 }
 .convo-card {
-  background: var(--surface-sunken);
+  background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--status-stable);
   border-radius: var(--radius);
   padding: 12px 14px;
 }
 .convo-card.convo-missed {
-  border-left-color: var(--border-strong);
+  background: transparent;
+  border-style: dashed;
   opacity: 0.82;
 }
 .convo-head {
@@ -735,9 +739,9 @@ button {
   font-size: 11.5px;
   font-weight: 600;
   color: var(--text-soft);
-  background: var(--surface-raised);
+  background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   padding: 3px 9px;
 }
 .convo-chip.warm {
@@ -793,30 +797,34 @@ button {
 }
 
 /* Vitals */
+/* One readout plate, hairline-divided cells, left-aligned (no nested cards,
+   no centered hero-metric tiles). */
 .vitals {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
   margin: 20px 0;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .vital-card {
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 12px;
-  text-align: center;
+  padding: 13px 14px;
+}
+.vital-card + .vital-card {
+  border-left: 1px solid var(--border);
 }
 
 .vital-value {
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 680;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
 .vital-unit {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   font-weight: 500;
   margin-left: 2px;
@@ -824,11 +832,12 @@ button {
 
 .vital-label {
   display: block;
-  font-size: 11.5px;
-  color: var(--muted);
-  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-top: 5px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .section-label {
@@ -948,9 +957,9 @@ button {
 
 .call-panel {
   margin: 22px 0 4px;
-  background: var(--surface-sunken);
+  background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: 16px 16px 18px;
 }
 
@@ -1008,7 +1017,7 @@ button {
   border-radius: var(--radius-sm);
   font: inherit;
   font-size: 14px;
-  background: var(--surface-raised);
+  background: var(--surface-sunken);
   color: var(--text);
   width: 100%;
   transition: border-color 0.16s var(--ease), box-shadow 0.16s var(--ease);
@@ -1138,9 +1147,9 @@ button {
 
 .care-plan-panel {
   margin: 16px 0 4px;
-  background: var(--surface-sunken);
+  background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: 16px 16px 18px;
 }
 
@@ -1159,8 +1168,8 @@ button {
   gap: 12px;
   align-items: flex-start;
   padding: 13px 14px;
-  background: var(--status-stable-soft);
-  border: 1px solid oklch(0.86 0.06 168);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
@@ -1212,7 +1221,7 @@ button {
   text-align: center;
   border: 1.5px dashed var(--border-strong);
   border-radius: var(--radius);
-  background: var(--surface-raised);
+  background: var(--surface-sunken);
   color: var(--muted);
   cursor: pointer;
   transition: border-color 0.16s var(--ease), background 0.16s var(--ease),
@@ -1548,7 +1557,7 @@ button {
   font-weight: 650;
   letter-spacing: 0.02em;
   padding: 2px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
@@ -1567,7 +1576,7 @@ button {
   font-weight: 650;
   letter-spacing: 0.02em;
   padding: 2px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: oklch(0.95 0.04 300);
   color: oklch(0.48 0.16 300);
 }
@@ -1610,8 +1619,8 @@ button {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 10px;
-  background: var(--surface-sunken);
+  padding: 7px 11px;
+  background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 13px;
@@ -1633,7 +1642,7 @@ button {
 .med-chip.allergy {
   font-size: 12px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--status-attention-soft);
   color: oklch(0.45 0.1 70);
   border: 1px solid oklch(0.85 0.08 80);
@@ -1697,14 +1706,12 @@ button {
   margin: 18px 0 4px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: 14px 16px 16px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+  transition: border-color 0.25s var(--ease);
 }
 .live-urgent {
-  border-color: oklch(0.8 0.08 30);
-  background: linear-gradient(180deg, var(--status-urgent-soft), var(--surface-raised) 62%);
+  border-color: var(--status-urgent);
 }
 
 .live-head {
@@ -1733,19 +1740,18 @@ button {
   font-weight: 650;
   letter-spacing: 0.03em;
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
 }
 .source-pill.live {
-  background: var(--status-stable-soft);
   color: oklch(0.42 0.1 168);
 }
 .source-pill.demo {
-  background: var(--accent-soft);
   color: var(--accent-strong);
 }
 .source-pill.fallback {
-  background: var(--surface-sunken);
   color: var(--muted);
 }
 .source-dot {
@@ -1763,20 +1769,25 @@ button {
 .live-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
 }
 .live-tile {
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 12px;
+  padding: 12px 0 2px;
 }
 .live-tile:first-child {
   grid-column: 1 / -1; /* heart rate is the live hero */
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
 }
-.live-tile.tone-urgent {
-  background: var(--status-urgent-soft);
-  border-color: oklch(0.82 0.07 30);
+/* vertical hairlines between the secondary readouts (cols 2 & 3) */
+.live-tile:not(:first-child):not(:nth-child(2)) {
+  border-left: 1px solid var(--border);
+  padding-left: 14px;
+}
+/* urgent: the value goes red, the plate stays calm (color = meaning) */
+.live-tile.tone-urgent .num {
+  color: var(--status-urgent);
 }
 .live-tile-value {
   display: flex;
@@ -1798,11 +1809,12 @@ button {
 }
 .live-tile-label {
   display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-top: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 .beat {
   width: 9px;
@@ -1977,18 +1989,8 @@ button {
   gap: 10px;
   padding: 9px 11px;
   border-radius: var(--radius);
-  background: var(--surface-sunken);
+  background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-left-width: 3px;
-}
-.alert-item.urgent {
-  border-left-color: var(--status-urgent);
-}
-.alert-item.attention {
-  border-left-color: var(--status-attention);
-}
-.alert-item.info {
-  border-left-color: var(--accent);
 }
 .alert-pip {
   width: 11px;
@@ -2244,9 +2246,9 @@ button {
   box-shadow: 0 1px 0 var(--border), 0 8px 22px -18px oklch(0.4 0.06 256 / 0.35);
 }
 .brand-mark {
-  width: 29px;
-  height: 29px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
 }
 .brand-sub {
   text-transform: uppercase;
@@ -2390,47 +2392,25 @@ button {
   color: oklch(0.42 0.1 168);
 }
 
-/* Patient rows: hover lift + a left status accent that grows in ------------- */
+/* Patient rows: the StatusPip already carries triage at a glance, so the row
+   itself stays quiet — a hairline that fills in on hover, a calm tinted plate
+   when selected. No colored side-stripe (status lives in the pip, not a bar). */
 .patient-row {
   position: relative;
-  padding: 11px 12px;
+  padding: 10px 12px;
+  border-color: transparent;
 }
-.patient-row::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  /* Always-on status accent so the rail reads triage at a glance, dimmed at
-     rest and lit up on hover/selection. */
-  background: var(--row-accent, var(--border-strong));
-  opacity: 0.5;
-  transition: opacity 0.16s var(--ease), width 0.16s var(--ease), box-shadow 0.16s var(--ease);
+.patient-row:hover {
+  background: var(--surface-sunken);
+  border-color: var(--border);
 }
-.row-stable {
-  --row-accent: var(--status-stable);
+.patient-row.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
-.row-attention {
-  --row-accent: var(--status-attention);
-}
-.row-urgent {
-  --row-accent: var(--status-urgent);
-}
-.patient-row:hover::before {
-  opacity: 0.9;
-  width: 4px;
-}
-.patient-row.selected::before {
-  opacity: 1;
-  width: 4px;
-}
-:root[data-theme="dark"] .patient-row.selected::before {
-  box-shadow: 0 0 12px 0 var(--row-accent, var(--accent));
-}
-:root[data-theme="dark"] .row-urgent::before {
-  opacity: 0.7;
+:root[data-theme="dark"] .patient-row.selected {
+  border-color: oklch(0.7 0.1 215 / 0.55);
+  box-shadow: inset 0 0 0 1px oklch(0.7 0.1 215 / 0.2);
 }
 .patient-name {
   font-weight: 620;

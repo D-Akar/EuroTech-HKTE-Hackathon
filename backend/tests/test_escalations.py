@@ -64,6 +64,51 @@ def test_escalate_without_nurse_notification_skips_call():
         data.get_patient(pid).status = original
 
 
+def test_agent_webhook_escalates_with_valid_key(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "elevenlabs_tool_api_key", "secret")
+    pid = _find_stable_patient()
+    original = data.get_patient(pid).status
+    try:
+        resp = client.post(
+            "/integrations/elevenlabs/escalate",
+            json={"patient_id": pid, "reason": "Reports crushing chest pain now."},
+            headers={"X-API-Key": "secret"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["patient_id"] == pid
+        assert body["status"] == "urgent"
+        assert body["source"] == "ai_phone_call"
+        assert client.get(f"/patients/{pid}").json()["status"] == "urgent"
+    finally:
+        data.get_patient(pid).status = original
+
+
+def test_agent_webhook_rejects_missing_key(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "elevenlabs_tool_api_key", "secret")
+    resp = client.post(
+        "/integrations/elevenlabs/escalate",
+        json={"patient_id": _find_stable_patient(), "reason": "x"},
+    )
+    assert resp.status_code == 401
+
+
+def test_agent_webhook_unknown_patient_404(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "elevenlabs_tool_api_key", "secret")
+    resp = client.post(
+        "/integrations/elevenlabs/escalate",
+        json={"patient_id": 9999, "reason": "x"},
+        headers={"X-API-Key": "secret"},
+    )
+    assert resp.status_code == 404
+
+
 def test_escalation_appears_in_openapi_schema():
     """Swagger/OpenAPI is generated from the routers, so the new path is present."""
     schema = client.get("/openapi.json").json()

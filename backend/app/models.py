@@ -171,6 +171,20 @@ class EscalationRequest(BaseModel):
     nurse_number: str | None = None  # overrides the configured nurse line
 
 
+class AgentEscalationRequest(BaseModel):
+    """Webhook body the ElevenLabs outbound agent posts mid-call to escalate.
+
+    ``patient_id`` is bound to the ``patient_id`` dynamic variable we inject at
+    dial time (see ``telephony.build_dynamic_variables``); ``reason`` is filled
+    by the agent from what the patient just said. Strings coerce to int so the
+    dynamic-variable value ("3") resolves cleanly.
+    """
+
+    patient_id: int  # which patient the agent is currently calling
+    reason: str  # what the patient reported that makes this urgent
+    source: str = "ai_phone_call"  # where the urgent info came from
+
+
 class EscalationRecord(BaseModel):
     """The outcome of an escalation: status flip + the nurse alert call."""
 

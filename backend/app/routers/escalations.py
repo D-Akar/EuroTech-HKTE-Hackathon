@@ -39,12 +39,19 @@ def _nurse_briefing(patient: Patient, reason: str) -> list[str]:
     ]
 
 
-@router.post("/patients/{patient_id}/escalate", response_model=EscalationRecord)
-async def escalate(patient_id: int, body: EscalationRequest) -> EscalationRecord:
-    patient = data.get_patient(patient_id)
-    if patient is None:
-        raise HTTPException(status_code=404, detail="Patient not found")
+async def perform_escalation(
+    patient: Patient,
+    reason: str,
+    source: str = "phone_call",
+    notify_nurse: bool = True,
+    nurse_number: str | None = None,
+) -> EscalationRecord:
+    """Run the escalation for an already-resolved patient.
 
+    Shared by the dashboard route (``POST /patients/{id}/escalate``) and the
+    ElevenLabs agent webhook (``POST /integrations/elevenlabs/escalate``): flip
+    status -> urgent, push the recolor over SSE, and alert the on-call nurse.
+    """
     previous = patient.status
     patient.status = PatientStatus.urgent  # stable/attention -> red
 
@@ -57,21 +64,21 @@ async def escalate(patient_id: int, body: EscalationRequest) -> EscalationRecord
             "patient_id": patient.id,
             "status": patient.status.value,
             "previous_status": previous.value,
-            "reason": body.reason,
-            "source": body.source,
+            "reason": reason,
+            "source": source,
             "at": now.isoformat(),
         },
     )
 
     # Alert the on-call nurse (best-effort; the call outcome is recorded either way).
     nurse_call = None
-    if body.notify_nurse:
-        nurse_number = body.nurse_number or settings.nurse_phone_number
-        if nurse_number:
+    if notify_nurse:
+        target = nurse_number or settings.nurse_phone_number
+        if target:
             nurse_call = await telephony.place_call(
                 patient,
-                nurse_number,
-                _nurse_briefing(patient, body.reason),
+                target,
+                _nurse_briefing(patient, reason),
                 kind="instant",
             )
 
@@ -79,8 +86,8 @@ async def escalate(patient_id: int, body: EscalationRequest) -> EscalationRecord
         id=next(_escalation_ids),
         patient_id=patient.id,
         patient_name=patient.name,
-        reason=body.reason,
-        source=body.source,
+        reason=reason,
+        source=source,
         previous_status=previous,
         status=patient.status,
         triggered_at=now,
@@ -88,6 +95,20 @@ async def escalate(patient_id: int, body: EscalationRequest) -> EscalationRecord
     )
     ESCALATIONS.insert(0, record)
     return record
+
+
+@router.post("/patients/{patient_id}/escalate", response_model=EscalationRecord)
+async def escalate(patient_id: int, body: EscalationRequest) -> EscalationRecord:
+    patient = data.get_patient(patient_id)
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return await perform_escalation(
+        patient,
+        reason=body.reason,
+        source=body.source,
+        notify_nurse=body.notify_nurse,
+        nurse_number=body.nurse_number,
+    )
 
 
 @router.get("/escalations", response_model=list[EscalationRecord])

@@ -105,18 +105,18 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
               <StatusBadge status={patient.status} />
               {isFeatured && <span className="you-tag">Demo · live device</span>}
               {isFhirBacked && <span className="fhir-tag">Real record · FHIR</span>}
-              <a
-                className="report-link"
-                href={api.reportUrl(patient.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download clinician report
-              </a>
             </div>
+            <a
+              className="report-link"
+              href={api.reportUrl(patient.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <DownloadGlyph /> Clinician report
+            </a>
           </div>
           <button className="detail-close" onClick={onClose} aria-label="Close patient detail">
-            X
+            <CloseGlyph />
           </button>
         </div>
 
@@ -293,6 +293,28 @@ function MedGroup({
         </ul>
       )}
     </div>
+  );
+}
+
+function CloseGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function DownloadGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

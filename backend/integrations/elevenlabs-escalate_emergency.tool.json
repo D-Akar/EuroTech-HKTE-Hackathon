@@ -1,0 +1,33 @@
+{
+  "type": "webhook",
+  "name": "escalate_emergency",
+  "description": "Raise an urgent clinical escalation for the patient currently on this call. Calling this flips the patient to URGENT on every care-practice dashboard in real time and places an immediate alert call to the on-call nurse. Use ONLY for genuine emergencies or red-flag symptoms that need a clinician now — not for routine concerns. After calling it, stay on the line, reassure the patient, and tell them a nurse has been alerted and will follow up.",
+  "api_schema": {
+    "url": "https://YOUR_PUBLIC_API_HOST/integrations/elevenlabs/escalate",
+    "method": "POST",
+    "request_headers": [
+      {
+        "type": "value",
+        "name": "X-API-Key",
+        "value": "YOUR_ELEVENLABS_TOOL_API_KEY"
+      }
+    ],
+    "request_body_schema": {
+      "type": "object",
+      "required": ["patient_id", "reason"],
+      "properties": {
+        "patient_id": {
+          "type": "string",
+          "description": "Identifier of the patient on this call. Do not invent or ask for this — it is supplied automatically.",
+          "dynamic_variable": "patient_id"
+        },
+        "reason": {
+          "type": "string",
+          "description": "One or two sentences, in the patient's own terms, describing exactly what they reported that makes this urgent (e.g. 'Reports sudden crushing chest pain and shortness of breath for the last ten minutes')."
+        }
+      }
+    }
+  },
+  "response_timeout_secs": 20,
+  "tool_error_handling_mode": "summarized"
+}

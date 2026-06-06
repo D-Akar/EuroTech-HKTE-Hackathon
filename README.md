@@ -8,6 +8,25 @@ patient.
 > This repo is currently an early scaffold: a React dashboard and a FastAPI backend
 > serving mostly mock data, plus a MongoDB store (Docker) holding processed FHIR patient
 > records. See `docs/superpowers/specs/` for the design.
+>
+> **What's real vs. mocked:** see [`HONESTY.md`](HONESTY.md) — a candid, living map of
+> which capabilities work end to end, which are synthetic/seed data, and which are
+> vision-doc claims not yet built. Check it before making any external claim.
+
+## Hong Kong eHealth context
+
+The target market is the Hong Kong government (healthcare track). The strategic opening:
+HK's **eHRSS / eHealth+** system is strong on public-hospital data but **>99% of its
+records come from public providers** — the private/outpatient edge and
+patient-generated/wearable data barely feed in, a gap the government has publicly named and
+is **funding** (eHealth+ Connectivity Support & Accreditation Schemes). HL7 **FHIR is
+eHealth's stated direction** ("Advancing from HL7 to FHIR", 2021) but **not yet mandated**,
+and eHRSS connection is **gated behind government accreditation** — so no third party can
+integrate today.
+
+Our honest position is therefore **"the on-ramp before the highway opens"**: build FHIR
+R4–native and accreditation-ready now, integrate when the spec opens. Full market brief,
+funding vehicles, policy hooks, and the build roadmap: **[`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md)**.
 
 ## Structure
 
@@ -247,4 +266,7 @@ pytest
 ## Not yet built (planned)
 
 Practices entity, authentication, a real database, write endpoints, and real
-telephony / wearable-device integrations.
+telephony / wearable-device integrations. The FHIR/eHRSS integration, PDPO/encryption,
+and Cantonese-AI claims from `PROJECT.md` are **roadmap, not current capability** — see
+[`HONESTY.md`](HONESTY.md) for the full real-vs-mocked breakdown and
+[`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md) for the eHRSS engagement plan.

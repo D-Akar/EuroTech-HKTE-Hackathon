@@ -105,3 +105,19 @@ class CallRecord(BaseModel):
     conversation_id: str | None = None
     call_sid: str | None = None
     error: str | None = None
+
+
+# --- ElevenLabs server-tool integration --------------------------------------
+
+
+class PatientContextResponse(BaseModel):
+    """Full patient health context returned to the ElevenLabs agent."""
+
+    patient: Patient
+    checkins: list[CheckIn]
+    wearables: list[WearableReading]
+    alerts: list[dict]
+    summary: dict
+    vitals: list[dict]
+    call_config: CallConfig
+    context_summary: str

@@ -22,7 +22,7 @@ interface Props {
   liveLoading: boolean;
 }
 
-type DetailTab = "checkins" | "device";
+type DetailTab = "checkins" | "device" | "patient";
 
 export function PatientDetail({ patient, onClose, featuredId, live, liveLoading }: Props) {
   const isFeatured = featuredId != null && patient.id === featuredId;
@@ -137,23 +137,32 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading 
           >
             <PulseGlyph /> Device data
           </button>
+          {isFhirBacked && (
+            <button
+              role="tab"
+              aria-selected={tab === "patient"}
+              className={`detail-tab ${tab === "patient" ? "on" : ""}`}
+              onClick={() => setTab("patient")}
+            >
+              <RecordGlyph /> Patient data
+            </button>
+          )}
         </div>
 
         {tab === "checkins" ? (
           <>
             <CheckInPanel checkins={checkins} loading={loading} />
             <CallPanel patient={patient} />
-            {isFhirBacked && (
-              <>
-                <div className="section-label">Medical profile · from records</div>
-                {loading ? (
-                  <div className="skeleton skeleton-row" />
-                ) : profile ? (
-                  <MedicalProfileSection profile={profile} />
-                ) : (
-                  <p className="muted">Record unavailable.</p>
-                )}
-              </>
+          </>
+        ) : tab === "patient" ? (
+          <>
+            <div className="section-label">Patient record · from FHIR</div>
+            {loading ? (
+              <div className="skeleton skeleton-row" />
+            ) : profile ? (
+              <MedicalProfileSection profile={profile} />
+            ) : (
+              <p className="muted">Record unavailable.</p>
             )}
           </>
         ) : (
@@ -180,6 +189,7 @@ function MedicalProfileSection({ profile }: { profile: MedicalProfile }) {
     profile.gender,
     profile.birth_date ? `b. ${profile.birth_date}` : null,
     profile.preferred_language ? `speaks ${profile.preferred_language}` : null,
+    profile.phone_number,
   ].filter(Boolean);
 
   return (
@@ -203,6 +213,26 @@ function MedicalProfileSection({ profile }: { profile: MedicalProfile }) {
           key: m.name + i,
           label: m.name,
           sub: m.frequency,
+        }))}
+      />
+
+      <MedGroup
+        title="Past medications"
+        empty="No past medications."
+        items={profile.past_medications.map((m, i) => ({
+          key: m.name + i,
+          label: m.name,
+          sub: m.prescribed_date ? `prescribed ${m.prescribed_date}` : null,
+        }))}
+      />
+
+      <MedGroup
+        title="Recent procedures"
+        empty="No recorded procedures."
+        items={profile.recent_procedures.map((p, i) => ({
+          key: p.name + i,
+          label: p.name,
+          sub: p.date ? `on ${p.date}` : null,
         }))}
       />
 
@@ -272,6 +302,16 @@ function PhoneGlyph() {
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function RecordGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M9 3.5h6V6H9z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M8.5 11h7M8.5 15h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }

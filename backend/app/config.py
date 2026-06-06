@@ -30,6 +30,21 @@ class Settings:
         "FEATURED_PATIENTS_FILE", str(_REPO_ROOT / "featured_patients.md")
     )
 
+    # --- Local infra bootstrap (run on `uvicorn` startup) ---
+    # Repo root holding docker-compose.yml; `docker compose` runs from here.
+    repo_root: str = str(_REPO_ROOT)
+    # Auto-run `docker compose up -d` on app startup so MongoDB is ready before the
+    # FHIR overlays apply. Set CARELOOP_AUTOSTART_MONGO=0 to skip (CI/tests/no Docker).
+    autostart_mongo: bool = os.getenv("CARELOOP_AUTOSTART_MONGO", "1").lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+    # Max seconds to wait for `docker compose up` to return.
+    mongo_autostart_timeout: int = int(os.getenv("CARELOOP_MONGO_AUTOSTART_TIMEOUT", "180"))
+    # Max seconds to poll for Mongo to accept connections before applying overlays.
+    mongo_ready_timeout: int = int(os.getenv("CARELOOP_MONGO_READY_TIMEOUT", "60"))
+
     elevenlabs_api_key: str = os.getenv("ELEVENLABS_API_KEY", "")
     # Outbound check-in agent — the one this backend dials with (see telephony.py).
     elevenlabs_agent_id: str = os.getenv("ELEVENLABS_AGENT_ID", "")

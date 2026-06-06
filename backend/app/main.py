@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import scheduler
+from . import infra, scheduler
 from .routers import (
     alerts,
     calls,
@@ -26,6 +26,9 @@ from .routers import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Start MongoDB (Docker) and bind real FHIR records onto the featured slots
+    # before serving — closes the boot race that otherwise leaves the dash all-mock.
+    infra.ensure_mongo_and_overlays()
     scheduler.start()
     try:
         yield

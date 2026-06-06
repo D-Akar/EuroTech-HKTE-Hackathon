@@ -32,15 +32,23 @@ export interface Allergy {
   criticality: string | null;
 }
 
+export interface Procedure {
+  name: string;
+  date: string | null;
+}
+
 export interface MedicalProfile {
   patient_id: number;
   fhir_id: string;
   gender: string | null;
   birth_date: string | null;
   preferred_language: string | null;
+  phone_number: string | null;
   chronic_conditions: Condition[];
   allergies: Allergy[];
   active_medications: Medication[];
+  past_medications: Medication[];
+  recent_procedures: Procedure[];
 }
 
 export interface CheckIn {

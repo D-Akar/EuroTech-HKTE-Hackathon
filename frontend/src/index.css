@@ -1233,6 +1233,12 @@ button {
   background: oklch(0.95 0.04 300);
   color: oklch(0.48 0.16 300);
 }
+.patient-name .fhir-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
 
 /* Medical profile (MongoDB-backed patients) */
 .med-profile {

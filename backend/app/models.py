@@ -52,6 +52,11 @@ class Allergy(BaseModel):
     criticality: str | None = None
 
 
+class Procedure(BaseModel):
+    name: str
+    date: str | None = None
+
+
 class MedicalProfile(BaseModel):
     """The clinical record pulled from a patient's FHIR document in MongoDB."""
 
@@ -60,9 +65,12 @@ class MedicalProfile(BaseModel):
     gender: str | None = None
     birth_date: str | None = None
     preferred_language: str | None = None
+    phone_number: str | None = None
     chronic_conditions: list[Condition] = []
     allergies: list[Allergy] = []
     active_medications: list[Medication] = []
+    past_medications: list[Medication] = []
+    recent_procedures: list[Procedure] = []
 
 
 class CheckIn(BaseModel):

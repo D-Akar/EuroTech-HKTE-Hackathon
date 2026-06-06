@@ -17,7 +17,12 @@ import re
 from datetime import date
 
 from .config import settings
-from .models import Allergy, Condition, MedicalProfile, Medication, Patient
+from .models import Allergy, Condition, MedicalProfile, Medication, Patient, Procedure
+
+# Cap the long historical lists so the /profile payload stays small; we keep the
+# most recent entries (FHIR records can carry hundreds of procedures).
+_MAX_PAST_MEDICATIONS = 15
+_MAX_RECENT_PROCEDURES = 20
 
 _TODAY = date(2026, 6, 6)
 
@@ -105,12 +110,23 @@ def _age_from(birth_date: str | None) -> int | None:
 
 def _build_profile(patient_id: int, fhir_id: str, doc: dict) -> MedicalProfile:
     demo = doc.get("demographics") or {}
+    past_meds = sorted(
+        (m for m in doc.get("past_medications", []) if m.get("name")),
+        key=lambda m: m.get("prescribed_date") or "",
+        reverse=True,
+    )
+    procedures = sorted(
+        (p for p in doc.get("recent_procedures", []) if p.get("name")),
+        key=lambda p: p.get("date") or "",
+        reverse=True,
+    )
     return MedicalProfile(
         patient_id=patient_id,
         fhir_id=fhir_id,
         gender=demo.get("gender"),
         birth_date=demo.get("birth_date"),
         preferred_language=demo.get("preferred_language"),
+        phone_number=demo.get("phone_number"),
         chronic_conditions=[
             Condition(name=c["name"], onset_date=c.get("onset_date"))
             for c in doc.get("chronic_conditions", [])
@@ -129,6 +145,14 @@ def _build_profile(patient_id: int, fhir_id: str, doc: dict) -> MedicalProfile:
             Medication(name=m["name"], frequency=m.get("frequency"))
             for m in doc.get("active_medications", [])
             if m.get("name")
+        ],
+        past_medications=[
+            Medication(name=m["name"], prescribed_date=m.get("prescribed_date"))
+            for m in past_meds[:_MAX_PAST_MEDICATIONS]
+        ],
+        recent_procedures=[
+            Procedure(name=p["name"], date=p.get("date"))
+            for p in procedures[:_MAX_RECENT_PROCEDURES]
         ],
     )
 
@@ -165,6 +189,8 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
         age = _age_from(demo.get("birth_date"))
         if age is not None:
             slot.age = age
+        if demo.get("phone_number"):
+            slot.phone_number = demo["phone_number"]
         slot.fhir_id = fhir_id
         _PROFILES[slot.id] = _build_profile(slot.id, fhir_id, doc)
 

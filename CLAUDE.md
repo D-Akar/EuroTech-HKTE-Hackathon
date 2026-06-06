@@ -56,6 +56,13 @@ Dashboard: http://localhost:5173 · API docs: http://localhost:8000/docs
 Run from the repo root via Docker Compose. `docker compose up` starts MongoDB **and**
 auto-loads the FHIR records via the one-shot `importer` service — no manual import step.
 
+**Auto-started by the backend:** on `uvicorn` startup `app/infra.py` runs `docker compose
+up -d`, waits for Mongo to accept connections, then applies the FHIR overlays — so the
+featured patients show real data without a manual `docker compose up` or a backend
+restart. Best-effort: no Docker / Mongo down → the app still boots on mock data. Disable
+with `CARELOOP_AUTOSTART_MONGO=0` (tunables: `CARELOOP_MONGO_AUTOSTART_TIMEOUT`,
+`CARELOOP_MONGO_READY_TIMEOUT` in `app/config.py`).
+
 ```bash
 docker compose up -d --wait     # start mongo + import, block until healthy
 docker compose down             # stop (data kept in named volume careloop-mongo-data)

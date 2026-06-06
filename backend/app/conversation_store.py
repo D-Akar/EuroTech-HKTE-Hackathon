@@ -8,11 +8,14 @@ without touching readers. Resets on restart.
 
 from __future__ import annotations
 
+import logging
 from datetime import date
 
-from . import call_store
+from . import call_store, checkin_store
 from .models import ConversationDetail
 from .services import elevenlabs_conversations as _conversations
+
+log = logging.getLogger("careloop.conversation_store")
 
 # conversation_id -> ConversationDetail (only terminal results are kept)
 _CACHE: dict[str, ConversationDetail] = {}
@@ -20,10 +23,39 @@ _CACHE: dict[str, ConversationDetail] = {}
 _TERMINAL = {"done", "failed"}
 
 
+def _remember(detail: ConversationDetail) -> None:
+    """Cache a terminal result and, when the call completed, turn it into a check-in.
+
+    The single choke point for both the on-demand fetch (``get_detail``) and a
+    future post-call webhook (``prime``): a completed call materializes one
+    persisted check-in here, so it appears in the patient's check-in history
+    without anyone having to open the call row.
+    """
+    if detail.status not in _TERMINAL:
+        return
+    _CACHE[detail.conversation_id] = detail
+    if detail.status == "done":
+        _materialize_checkin(detail)
+
+
+def _materialize_checkin(detail: ConversationDetail) -> None:
+    """Best-effort: derive a CheckIn from a completed call. Never breaks reads."""
+    record = next(
+        (r for r in call_store.CALL_HISTORY if r.conversation_id == detail.conversation_id),
+        None,
+    )
+    if record is None:
+        return  # no owning call -> can't attribute it to a patient
+    when = detail.started_at.date() if detail.started_at else record.triggered_at.date()
+    try:
+        checkin_store.record_from_conversation(detail, record.patient_id, when)
+    except Exception:  # noqa: BLE001 — materialization must never break the read path
+        log.warning("Could not derive a check-in from conversation %s.", detail.conversation_id)
+
+
 def prime(detail: ConversationDetail) -> None:
     """Populate the cache directly (e.g. from a future post-call webhook)."""
-    if detail.status in _TERMINAL:
-        _CACHE[detail.conversation_id] = detail
+    _remember(detail)
 
 
 async def get_detail(conversation_id: str) -> ConversationDetail | None:
@@ -36,8 +68,8 @@ async def get_detail(conversation_id: str) -> ConversationDetail | None:
     if cached is not None:
         return cached
     detail = await _conversations.fetch_conversation(conversation_id)
-    if detail is not None and detail.status in _TERMINAL:
-        _CACHE[conversation_id] = detail
+    if detail is not None:
+        _remember(detail)
     return detail
 
 

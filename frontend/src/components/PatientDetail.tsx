@@ -103,7 +103,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
             </div>
             <div className="detail-tags">
               <StatusBadge status={patient.status} />
-              {isFeatured && <span className="you-tag">You · live device</span>}
+              {isFeatured && <span className="you-tag">Demo · live device</span>}
               {isFhirBacked && <span className="fhir-tag">Real record · FHIR</span>}
               <a
                 className="report-link"

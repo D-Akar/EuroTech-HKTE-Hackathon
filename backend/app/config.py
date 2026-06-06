@@ -31,6 +31,22 @@ class Settings:
     phone_overrides_collection: str = os.getenv(
         "PHONE_OVERRIDES_COLLECTION", "patient_phone_overrides"
     )
+    # Placed/attempted check-in calls, keyed by record id. Persisted so the call
+    # history (shown under a patient's check-in data) survives restarts. See
+    # app/call_store.py.
+    call_history_collection: str = os.getenv(
+        "CALL_HISTORY_COLLECTION", "patient_call_history"
+    )
+    # Uploaded FHIR care plans, keyed by patient slot id. Persisted so an uploaded
+    # care plan survives restarts. See app/care_plan_store.py.
+    care_plans_collection: str = os.getenv(
+        "CARE_PLANS_COLLECTION", "patient_care_plans"
+    )
+    # Check-ins derived from completed AI calls, keyed by conversation id. Persisted
+    # so a call-derived check-in survives restarts. See app/checkin_store.py.
+    checkins_collection: str = os.getenv(
+        "CHECKINS_COLLECTION", "patient_checkins"
+    )
     # Markdown file listing the patient UUIDs to surface as real data on the dashboard.
     featured_patients_file: str = os.getenv(
         "FEATURED_PATIENTS_FILE", str(_REPO_ROOT / "featured_patients.md")

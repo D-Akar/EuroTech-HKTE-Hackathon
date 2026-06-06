@@ -21,7 +21,15 @@ import shutil
 import subprocess
 import time
 
-from . import data, fhir_source, patient_overrides, wearable_source
+from . import (
+    call_store,
+    care_plan_store,
+    checkin_store,
+    data,
+    fhir_source,
+    patient_overrides,
+    wearable_source,
+)
 from .config import settings
 
 log = logging.getLogger("careloop.infra")
@@ -97,3 +105,14 @@ def ensure_mongo_and_overlays() -> None:
     applied = patient_overrides.apply(data.PATIENTS)
     if applied:
         log.info("Applied %d saved phone-number override(s).", applied)
+
+    # Reload persisted call history + uploaded care plans so they survive restarts.
+    calls = call_store.load_persisted()
+    if calls:
+        log.info("Loaded %d persisted call record(s).", calls)
+    plans = care_plan_store.load_persisted()
+    if plans:
+        log.info("Loaded %d persisted care plan(s).", plans)
+    derived_checkins = checkin_store.load_persisted()
+    if derived_checkins:
+        log.info("Loaded %d persisted call-derived check-in(s).", derived_checkins)

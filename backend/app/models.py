@@ -157,3 +157,46 @@ class PatientContextResponse(BaseModel):
     vitals: list[dict]
     call_config: CallConfig
     context_summary: str
+    care_plan: "CarePlanContext | None" = None
+
+
+# --- FHIR care plans ---------------------------------------------------------
+
+
+class CarePlanGoal(BaseModel):
+    description: str
+    target: str | None = None
+
+
+class CarePlanActivity(BaseModel):
+    description: str
+    status: str | None = None
+    scheduled: str | None = None
+
+
+class CarePlanContext(BaseModel):
+    """Human-relevant fields extracted from a FHIR CarePlan."""
+
+    title: str | None = None
+    status: str | None = None
+    intent: str | None = None
+    description: str | None = None
+    categories: list[str] = []
+    subject_display: str | None = None  # used to auto-match a patient
+    period_start: str | None = None
+    period_end: str | None = None
+    addresses: list[str] = []  # conditions the plan targets
+    goals: list[CarePlanGoal] = []
+    activities: list[CarePlanActivity] = []
+    notes: list[str] = []
+    rendered_text: str  # deterministic prose for the agent
+
+
+class StoredCarePlan(BaseModel):
+    care_plan: CarePlanContext
+    raw: str  # original uploaded document
+    uploaded_at: datetime
+
+
+# Resolve forward reference in PatientContextResponse now that CarePlanContext is defined.
+PatientContextResponse.model_rebuild()

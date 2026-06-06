@@ -12,6 +12,7 @@ from . import scheduler
 from .routers import (
     alerts,
     calls,
+    care_plans,
     checkins,
     integrations,
     live,
@@ -58,6 +59,7 @@ app.include_router(summary.router)
 app.include_router(live.router)
 app.include_router(calls.router)
 app.include_router(reports.router)
+app.include_router(care_plans.router)
 app.include_router(integrations.router)
 
 

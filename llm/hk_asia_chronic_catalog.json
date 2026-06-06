@@ -1,0 +1,117 @@
+{
+  "model": "gemma-4-26b-a4b-it",
+  "conditions": [
+    {
+      "name": "Essential hypertension",
+      "weight": 100
+    },
+    {
+      "name": "Dyslipidaemia",
+      "weight": 90
+    },
+    {
+      "name": "Osteoarthritis",
+      "weight": 85
+    },
+    {
+      "name": "Type 2 diabetes mellitus",
+      "weight": 80
+    },
+    {
+      "name": "Chronic kidney disease",
+      "weight": 60
+    },
+    {
+      "name": "Osteoporosis",
+      "weight": 55
+    },
+    {
+      "name": "Chronic hepatitis B",
+      "weight": 50
+    },
+    {
+      "name": "Cerebrovascular disease",
+      "weight": 50
+    },
+    {
+      "name": "Coronary heart disease",
+      "weight": 45
+    },
+    {
+      "name": "Benign prostatic hyperplasia",
+      "weight": 45
+    },
+    {
+      "name": "Cataract",
+      "weight": 40
+    },
+    {
+      "name": "Chronic low back pain",
+      "weight": 40
+    },
+    {
+      "name": "Non-alcoholic fatty liver disease",
+      "weight": 35
+    },
+    {
+      "name": "COPD",
+      "weight": 35
+    },
+    {
+      "name": "Atrial fibrillation",
+      "weight": 30
+    },
+    {
+      "name": "Dementia",
+      "weight": 30
+    },
+    {
+      "name": "Glaucoma",
+      "weight": 25
+    },
+    {
+      "name": "Hypothyroidism",
+      "weight": 25
+    },
+    {
+      "name": "Heart failure",
+      "weight": 25
+    },
+    {
+      "name": "Asthma",
+      "weight": 20
+    },
+    {
+      "name": "Gout",
+      "weight": 20
+    },
+    {
+      "name": "Age-related macular degeneration",
+      "weight": 20
+    },
+    {
+      "name": "Depression",
+      "weight": 20
+    },
+    {
+      "name": "Rheumatoid arthritis",
+      "weight": 15
+    },
+    {
+      "name": "Parkinson's disease",
+      "weight": 15
+    },
+    {
+      "name": "Allergic rhinitis",
+      "weight": 15
+    },
+    {
+      "name": "Generalised anxiety disorder",
+      "weight": 15
+    },
+    {
+      "name": "Chronic gastritis",
+      "weight": 15
+    }
+  ]
+}

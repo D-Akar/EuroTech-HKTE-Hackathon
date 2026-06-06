@@ -1,0 +1,603 @@
+{
+  "model": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+  "prompt_file": "/home/juhasz/Desktop/Projects/Project_Hong_Kong/EuroTech-HKTE-Hackathon/chronic_conditions_prompt.md",
+  "decisions": {
+    "Acute bacterial sinusitis (disorder)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Acute bronchitis (disorder)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Acute pulmonary embolism (disorder)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Acute respiratory distress syndrome (disorder)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Acute respiratory failure (disorder)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Acute viral pharyngitis (disorder)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Alcoholism": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Alzheimer's disease (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Anemia (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Appendicitis": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Asthma": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "At risk for suicide (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Atopic dermatitis": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Atrial Fibrillation": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Bleeding from anus": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Body mass index 30+ - obesity (finding)": {
+      "keep": false,
+      "reason": "lifestyle finding"
+    },
+    "Body mass index 40+ - severely obese (finding)": {
+      "keep": false,
+      "reason": "lifestyle finding"
+    },
+    "Brain damage - traumatic": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Bullet wound": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "COVID-19": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Carcinoma in situ of prostate (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Cardiac Arrest": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Cerebral palsy (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Child attention deficit disorder": {
+      "keep": false,
+      "reason": "lifestyle finding"
+    },
+    "Childhood asthma": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chill (finding)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Chronic congestive heart failure (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic intractable migraine without aura": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic kidney disease stage 1 (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic kidney disease stage 2 (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic low back pain (finding)": {
+      "keep": false,
+      "reason": "lifestyle finding"
+    },
+    "Chronic neck pain (finding)": {
+      "keep": false,
+      "reason": "lifestyle finding"
+    },
+    "Chronic obstructive bronchitis (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic pain": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic paralysis due to lesion of spinal cord": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Chronic sinusitis (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Coronary Heart Disease": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Cough (finding)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Diabetes": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Diabetic renal disease (disorder)": {
+      "keep": true,
+      "reason": "chronic condition"
+    },
+    "Diabetic retinopathy associated with type II diabetes mellitus (disorder)": {
+      "keep": true,
+      "reason": "chronic eye disorder"
+    },
+    "Diarrhea symptom (finding)": {
+      "keep": false,
+      "reason": "acute symptom"
+    },
+    "Dislocation of hip joint (disorder)": {
+      "keep": false,
+      "reason": "acute injury"
+    },
+    "Drug overdose": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Epilepsy": {
+      "keep": true,
+      "reason": "chronic neurological disorder"
+    },
+    "Epilepsy (disorder)": {
+      "keep": true,
+      "reason": "chronic neurological disorder"
+    },
+    "Familial Alzheimer's disease of early onset (disorder)": {
+      "keep": true,
+      "reason": "chronic neurodegenerative disorder"
+    },
+    "Fatigue (finding)": {
+      "keep": false,
+      "reason": "acute symptom"
+    },
+    "Fever (finding)": {
+      "keep": false,
+      "reason": "acute symptom"
+    },
+    "Fibromyalgia (disorder)": {
+      "keep": true,
+      "reason": "chronic pain disorder"
+    },
+    "Fracture of ankle": {
+      "keep": false,
+      "reason": "acute injury"
+    },
+    "Full-time employment (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Gastroesophageal reflux disease (disorder)": {
+      "keep": true,
+      "reason": "chronic digestive disorder"
+    },
+    "Gout": {
+      "keep": true,
+      "reason": "chronic inflammatory arthritis"
+    },
+    "Has a criminal record (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Headache (finding)": {
+      "keep": false,
+      "reason": "acute symptom"
+    },
+    "History of appendectomy": {
+      "keep": false,
+      "reason": "past surgery"
+    },
+    "History of cardiac arrest (situation)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "History of myocardial infarction (situation)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "History of single seizure (situation)": {
+      "keep": false,
+      "reason": "acute event"
+    },
+    "Homeless (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Housing unsatisfactory (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Hyperglycemia (disorder)": {
+      "keep": true,
+      "reason": "chronic metabolic disorder"
+    },
+    "Hyperlipidemia": {
+      "keep": true,
+      "reason": "chronic lipid disorder"
+    },
+    "Hypertension": {
+      "keep": true,
+      "reason": "chronic blood pressure disorder"
+    },
+    "Hypertriglyceridemia (disorder)": {
+      "keep": true,
+      "reason": "chronic lipid disorder"
+    },
+    "Hypoxemia (disorder)": {
+      "keep": true,
+      "reason": "chronic respiratory disorder"
+    },
+    "Idiopathic atrophic hypothyroidism": {
+      "keep": true,
+      "reason": "chronic thyroid disorder"
+    },
+    "Impacted molars": {
+      "keep": false,
+      "reason": "acute dental issue"
+    },
+    "Injury of kidney (disorder)": {
+      "keep": false,
+      "reason": "acute injury"
+    },
+    "Intellectual disability (disorder)": {
+      "keep": true,
+      "reason": "chronic cognitive disorder"
+    },
+    "Laceration of forearm": {
+      "keep": false,
+      "reason": "acute injury"
+    },
+    "Lack of access to transportation (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Limited social contact (finding)": {
+      "keep": false,
+      "reason": "social determinant"
+    },
+    "Localized, primary osteoarthritis of the hand": {
+      "keep": true,
+      "reason": "chronic joint disorder"
+    },
+    "Macular edema and retinopathy due to type 2 diabetes mellitus (disorder)": {
+      "keep": true,
+      "reason": "chronic eye disorder"
+    },
+    "Malignant neoplasm of breast (disorder)": {
+      "keep": true,
+      "reason": "chronic cancer"
+    },
+    "Malignant tumor of colon": {
+      "keep": true,
+      "reason": "chronic cancer"
+    },
+    "Metabolic syndrome X (disorder)": {
+      "keep": true,
+      "reason": "chronic metabolic disorder"
+    },
+    "Metastasis from malignant tumor of prostate (disorder)": {
+      "keep": true,
+      "reason": "chronic cancer"
+    },
+    "Microalbuminuria due to type 2 diabetes mellitus (disorder)": {
+      "keep": true,
+      "reason": "Diabetic complication"
+    },
+    "Miscarriage in first trimester": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Misuses drugs (finding)": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Myocardial Infarction": {
+      "keep": true,
+      "reason": "Heart attack"
+    },
+    "Neoplasm of prostate": {
+      "keep": true,
+      "reason": "Cancer"
+    },
+    "Neuropathy due to type 2 diabetes mellitus (disorder)": {
+      "keep": true,
+      "reason": "Diabetic complication"
+    },
+    "Non-small cell carcinoma of lung, TNM stage 1 (disorder)": {
+      "keep": true,
+      "reason": "Cancer"
+    },
+    "Non-small cell lung cancer (disorder)": {
+      "keep": true,
+      "reason": "Cancer"
+    },
+    "Nonproliferative diabetic retinopathy due to type 2 diabetes mellitus (disorder)": {
+      "keep": true,
+      "reason": "Diabetic complication"
+    },
+    "Normal pregnancy": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Not in labor force (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Only received primary school education (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Opioid abuse (disorder)": {
+      "keep": true,
+      "reason": "Addiction disorder"
+    },
+    "Osteoarthritis of hip": {
+      "keep": true,
+      "reason": "Joint disease"
+    },
+    "Osteoarthritis of knee": {
+      "keep": true,
+      "reason": "Joint disease"
+    },
+    "Osteoporosis (disorder)": {
+      "keep": true,
+      "reason": "Bone disease"
+    },
+    "Otitis media": {
+      "keep": false,
+      "reason": "Acute infection"
+    },
+    "Overlapping malignant neoplasm of colon": {
+      "keep": true,
+      "reason": "Cancer"
+    },
+    "Pain (finding)": {
+      "keep": false,
+      "reason": "Acute symptom"
+    },
+    "Part-time employment (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Perennial allergic rhinitis": {
+      "keep": true,
+      "reason": "Chronic allergy"
+    },
+    "Perennial allergic rhinitis with seasonal variation": {
+      "keep": true,
+      "reason": "Chronic allergy"
+    },
+    "Pneumonia": {
+      "keep": false,
+      "reason": "Acute infection"
+    },
+    "Pneumonia (disorder)": {
+      "keep": false,
+      "reason": "Acute infection"
+    },
+    "Polyp of colon": {
+      "keep": false,
+      "reason": "Procedural history"
+    },
+    "Poor muscle tone (finding)": {
+      "keep": false,
+      "reason": "Acute symptom"
+    },
+    "Prediabetes": {
+      "keep": true,
+      "reason": "Precondition"
+    },
+    "Primary fibromyalgia syndrome": {
+      "keep": true,
+      "reason": "Chronic pain"
+    },
+    "Proliferative diabetic retinopathy due to type II diabetes mellitus (disorder)": {
+      "keep": true,
+      "reason": "Diabetic complication"
+    },
+    "Protracted diarrhea": {
+      "keep": false,
+      "reason": "Acute symptom"
+    },
+    "Pulmonary emphysema (disorder)": {
+      "keep": true,
+      "reason": "Chronic lung disease"
+    },
+    "Received certificate of high school equivalency (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Received higher education (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Recurrent rectal polyp": {
+      "keep": false,
+      "reason": "Procedural history"
+    },
+    "Recurrent urinary tract infection": {
+      "keep": false,
+      "reason": "Acute infection"
+    },
+    "Refugee (person)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Reports of violence in the environment (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Respiratory distress (finding)": {
+      "keep": false,
+      "reason": "Acute symptom"
+    },
+    "Rheumatoid arthritis": {
+      "keep": true,
+      "reason": "Autoimmune disease"
+    },
+    "Risk activity involvement (finding)": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Rupture of appendix": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Seasonal allergic rhinitis": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Secondary malignant neoplasm of colon": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Seizure disorder": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Sepsis (disorder)": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Sepsis caused by virus (disorder)": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Septic shock (disorder)": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Served in armed forces (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Severe anxiety (panic) (finding": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Shock (disorder)": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Sinusitis (disorder)": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Smokes tobacco daily": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Social isolation (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Sore throat symptom (finding)": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Spasticity (finding)": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Spina bifida occulta (disorder)": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Sprain of wrist": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Sputum finding (finding)": {
+      "keep": false,
+      "reason": "Administrative finding"
+    },
+    "Stress (finding)": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Stroke": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Suspected lung cancer (situation)": {
+      "keep": false,
+      "reason": "Administrative finding"
+    },
+    "Transformed migraine (disorder)": {
+      "keep": true,
+      "reason": "Chronic condition"
+    },
+    "Transport problems (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Tubal pregnancy": {
+      "keep": false,
+      "reason": "Acute event"
+    },
+    "Unemployed (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Unhealthy alcohol drinking behavior (finding)": {
+      "keep": false,
+      "reason": "Lifestyle finding"
+    },
+    "Victim of intimate partner abuse (finding)": {
+      "keep": false,
+      "reason": "Social determinant"
+    },
+    "Viral sinusitis (disorder)": {
+      "keep": true,
+      "reason": "Chronic condition"
+    }
+  },
+  "summary": {
+    "distinct_labels": 148,
+    "kept": 67,
+    "dropped": 81
+  }
+}

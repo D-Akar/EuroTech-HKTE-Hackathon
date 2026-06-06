@@ -1,0 +1,5 @@
+# Force CUDA 12.8 torch builds (driver 570.x caps at CUDA 12.8).
+# Used with: --extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.9.0+cu128
+torchvision==0.24.0+cu128
+torchaudio==2.9.0+cu128

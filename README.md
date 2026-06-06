@@ -83,13 +83,46 @@ with `VITE_API_URL` — see `frontend/.env.example`).
 | GET    | `/patients`                       | List all patients with status   |
 | GET    | `/patients/{id}`                  | Single patient detail           |
 | GET    | `/patients/{id}/checkins`         | Daily check-in history          |
-| GET    | `/patients/{id}/wearables`        | Wearable readings               |
+| GET    | `/patients/{id}/wearables`        | Wearable readings (daily)       |
+| GET    | `/patients/{id}/vitals`           | Rich Garmin vitals (stress, SpO2, etc.) |
 | POST   | `/patients/{id}/calls/trigger`    | Place an instant check-in call  |
 | GET    | `/patients/{id}/calls`            | Call history                    |
 | GET/PUT| `/patients/{id}/calls/config`     | Read/update the questions asked  |
 | POST   | `/patients/{id}/calls/schedules`  | Schedule a call (one-off/daily) |
 | GET    | `/patients/{id}/calls/schedules`  | List upcoming schedules         |
 | DELETE | `/patients/{id}/calls/schedules/{sid}` | Cancel a schedule          |
+
+## Real Garmin wearable data (patient 5)
+
+Patient id 5 ("Dario Monopoli - live Garmin") is backed by real data pulled from a Garmin
+account, not mock seed data. It shows the wearable pipeline working end to end. The four
+elderly patients above stay mock.
+
+How it fits together:
+
+- Extraction: `backend/garmin_pipeline/` pulls vitals from Garmin (heart rate, resting HR,
+  stress, sleep, SpO2, respiration, body battery, steps) and exports them as sample dicts.
+  Needs `pip install garminconnect curl_cffi` and the account owner's own login.
+- Serving: `app/wearable_source.py` aggregates those sample dicts per day into the existing
+  `WearableReading` model, so `GET /patients/5/wearables` returns real daily vitals with no
+  frontend change. The richer per-reading data is at `GET /patients/5/vitals?kind=<kind>`
+  (e.g. `stress`, `spo2`, `sleep_stage`), in the same sample-dict shape used for FHIR mapping.
+- Data source: it reads `$GARMIN_SAMPLES` if set, otherwise `backend/data/garmin_samples.json`
+  (the real export, gitignored so the data stays local), otherwise
+  `backend/app/sample_data/garmin_fallback.json` (a committed synthetic file, source
+  "synthetic", so a fresh clone still has data to show).
+
+Refresh the real data (on the machine with the Garmin login):
+
+```bash
+cd backend
+python -m garmin_pipeline.cli login            # once; enter the emailed code if asked
+python -m garmin_pipeline.cli backfill --days 30
+python -m garmin_pipeline.cli export --out data/garmin_samples.json
+# restart the backend to pick it up
+```
+
+Blood pressure is not included: Garmin watches have no blood-pressure sensor.
 
 ## Outbound check-in calls (ElevenLabs + Twilio)
 

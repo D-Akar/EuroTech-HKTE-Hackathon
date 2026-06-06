@@ -3,13 +3,16 @@ import { api } from "./api/client";
 import { CityTwin } from "./components/CityTwin";
 import { PatientDetail } from "./components/PatientDetail";
 import { PatientList } from "./components/PatientList";
+import { useLiveVitals } from "./hooks/useLiveVitals";
 import { STATUS, STATUS_ORDER } from "./city";
-import type { Patient, PatientStatus } from "./types";
+import type { Meta, Patient, PatientStatus } from "./types";
 
 export default function App() {
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [meta, setMeta] = useState<Meta | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filter, setFilter] = useState<Set<PatientStatus>>(new Set());
+  const [demo, setDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -19,15 +22,35 @@ export default function App() {
       .then((p) => setPatients(p))
       .catch((e) => setError(String(e)))
       .finally(() => setLoaded(true));
+    api.getMeta().then(setMeta).catch(() => {});
   }, []);
+
+  const featuredId = meta?.featured_patient_id ?? null;
+  const live = useLiveVitals(featuredId, demo);
+
+  // Overlay the featured patient's live-derived status so the roster and twin
+  // recolor the moment a live vital crosses a threshold. Only real-time sources
+  // override the baseline; stale export values keep the patient's standing status.
+  const displayPatients = useMemo(() => {
+    const data = live.data;
+    const realtime = data?.source === "live" || data?.source === "demo";
+    if (featuredId == null || !data || !realtime || data.status === "none") return patients;
+    const status = data.status;
+    return patients.map((p) => (p.id === featuredId ? { ...p, status } : p));
+  }, [patients, featuredId, live.data]);
+
+  // Opening the demo jumps to the featured patient so the escalation is on screen.
+  useEffect(() => {
+    if (demo && featuredId != null) setSelectedId(featuredId);
+  }, [demo, featuredId]);
 
   const counts = useMemo(() => {
     const c: Record<PatientStatus, number> = { stable: 0, attention: 0, urgent: 0 };
-    for (const p of patients) c[p.status]++;
+    for (const p of displayPatients) c[p.status]++;
     return c;
-  }, [patients]);
+  }, [displayPatients]);
 
-  const selected = patients.find((p) => p.id === selectedId) ?? null;
+  const selected = displayPatients.find((p) => p.id === selectedId) ?? null;
   const activeFilter = filter.size === 0 ? null : (filter as Set<string>);
 
   function toggleStatus(s: PatientStatus) {
@@ -70,6 +93,17 @@ export default function App() {
           ))}
         </div>
 
+        <button
+          className={`demo-chip ${demo ? "on" : ""}`}
+          aria-pressed={demo}
+          onClick={() => setDemo((d) => !d)}
+          title="Simulate a live exertion event for the featured patient"
+          disabled={featuredId == null}
+        >
+          <span className="demo-dot" aria-hidden />
+          {demo ? "Live demo" : "Demo"}
+        </button>
+
         <Clock />
       </header>
 
@@ -81,16 +115,17 @@ export default function App() {
 
       <div className="layout">
         <PatientList
-          patients={patients}
+          patients={displayPatients}
           selectedId={selectedId}
+          featuredId={featuredId}
           statusFilter={activeFilter}
           onSelect={setSelectedId}
         />
 
         <div className="stage">
-          {patients.length > 0 && (
+          {displayPatients.length > 0 && (
             <CityTwin
-              patients={patients}
+              patients={displayPatients}
               selectedId={selectedId}
               statusFilter={activeFilter}
               onSelect={setSelectedId}
@@ -101,7 +136,7 @@ export default function App() {
             <div className="stage-title">
               <h2>Live care twin · Hong Kong</h2>
               <p>
-                {patients.length} patients monitored ·{" "}
+                {displayPatients.length} patients monitored ·{" "}
                 {counts.urgent > 0
                   ? `${counts.urgent} needing immediate care`
                   : "all under watch"}
@@ -117,7 +152,7 @@ export default function App() {
             </div>
           </div>
 
-          {loaded && patients.length === 0 && !error && (
+          {loaded && displayPatients.length === 0 && !error && (
             <div className="stage-empty">
               <div>
                 <h2>No patients yet</h2>
@@ -129,7 +164,13 @@ export default function App() {
           <div className="stage-hint">Drag to orbit · scroll to zoom · click a light</div>
 
           {selected && (
-            <PatientDetail patient={selected} onClose={() => setSelectedId(null)} />
+            <PatientDetail
+              patient={selected}
+              onClose={() => setSelectedId(null)}
+              featuredId={featuredId}
+              live={live.data}
+              liveLoading={live.loading}
+            />
           )}
         </div>
       </div>

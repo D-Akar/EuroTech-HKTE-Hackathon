@@ -3,3 +3,9 @@ uvicorn[standard]==0.34.0
 httpx==0.28.1
 apscheduler==3.11.0
 python-dotenv==1.0.1
+# MongoDB is the platform datastore (Garmin vitals pipeline + dashboard reads).
+pymongo>=4.6
+# Live Garmin fetch for the featured patient (best-effort; the app falls back to the
+# exported data if these are absent). garminconnect>=0.3.5 needs Python 3.12+.
+garminconnect>=0.3.2
+curl_cffi

@@ -1,23 +1,21 @@
-"""In-memory mock dataset.
+"""In-memory dataset: patients, daily check-ins, and seeded wearables.
 
-Seeded at import time so the API has realistic-looking data without a database.
-Resets on every restart. Replace with a real datastore later.
-
-The roster is sized and spread across Hong Kong districts so the dashboard's city
-"digital twin" reads as genuinely city-scale. Per-patient check-ins and wearable
-readings are generated deterministically from the patient id, so every patient a
-coordinator clicks into shows believable history (and the same history every restart).
+Patients, phone check-ins, and wearable readings are seeded deterministically so the
+dashboard shows stable, believable history at city scale. ONE featured patient
+(wearable_source.REAL_PATIENT_ID) is backed by the real Garmin device instead of the seed,
+and its status is derived from real alerts.
 """
 
 import random
 from datetime import date, datetime, timedelta
 
+from . import alerts, wearable_source
 from .models import CheckIn, Patient, PatientStatus, WearableReading
 
 _TODAY = date(2026, 6, 6)
 
-# (name, age, status, practice, district) — the seed roster.
-# Districts are real Hong Kong neighbourhoods; the frontend maps them onto the twin.
+# (name, age, status, practice, district) seed roster. Districts are real Hong Kong
+# neighbourhoods; the frontend maps them onto the city twin.
 _SEED: list[tuple[str, int, PatientStatus, str, str]] = [
     ("Margaret Holloway", 82, PatientStatus.stable, "Riverside Geriatric Care", "Central"),
     ("Arthur Chen", 77, PatientStatus.attention, "Riverside Geriatric Care", "Wan Chai"),
@@ -65,11 +63,7 @@ PATIENTS: list[Patient] = [
 ]
 
 
-# --- Procedural per-patient history -----------------------------------------
-#
-# Mood / pain / wearable ranges keyed by status, so the numbers a coordinator
-# sees line up with the patient's flag. Seeded by patient id for stability.
-
+# Mood / pain / wearable ranges keyed by status, so seeded numbers match the patient flag.
 _PROFILE = {
     PatientStatus.stable: {
         "moods": ["cheerful", "content", "upbeat", "calm", "content"],
@@ -138,11 +132,7 @@ def _build_history() -> tuple[list[CheckIn], list[WearableReading]]:
                     mood=rng.choice(prof["moods"]),
                     pain_level=rng.randint(*prof["pain"]),
                     answered=answered,
-                    notes=(
-                        rng.choice(prof["notes"])
-                        if answered
-                        else "No answer — left voicemail."
-                    ),
+                    notes=rng.choice(prof["notes"]) if answered else "No answer - left voicemail.",
                 )
             )
             wearables.append(
@@ -161,6 +151,26 @@ def _build_history() -> tuple[list[CheckIn], list[WearableReading]]:
 CHECKINS, WEARABLES = _build_history()
 
 
+def _apply_featured_status() -> None:
+    """Drive the featured patient's status flag from its real alerts."""
+    fid = wearable_source.REAL_PATIENT_ID
+    readings = wearable_source.daily_readings(fid)
+    if not readings:
+        return
+    severity = alerts.worst_severity(alerts.alerts_for(fid, readings, wearable_source.raw_samples()))
+    mapping = {"critical": PatientStatus.urgent, "warning": PatientStatus.attention}
+    new_status = mapping.get(severity)
+    if new_status is None:
+        return
+    for p in PATIENTS:
+        if p.id == fid:
+            p.status = new_status
+            break
+
+
+_apply_featured_status()
+
+
 def get_patients() -> list[Patient]:
     return PATIENTS
 
@@ -174,4 +184,9 @@ def get_checkins(patient_id: int) -> list[CheckIn]:
 
 
 def get_wearables(patient_id: int) -> list[WearableReading]:
+    # Featured patient -> real Garmin trends; everyone else -> seeded data.
+    if patient_id == wearable_source.REAL_PATIENT_ID:
+        real = wearable_source.daily_readings(patient_id)
+        if real:
+            return real
     return [w for w in WEARABLES if w.patient_id == patient_id]

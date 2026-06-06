@@ -59,3 +59,58 @@ export interface CallRecord {
   call_sid: string | null;
   error: string | null;
 }
+
+// --- Live vitals, trends, and alerts (the featured Garmin-backed patient) ----
+
+export type LiveSource = "live" | "export-fallback" | "demo" | "none";
+
+export interface LiveMetric {
+  value: number;
+  unit: string | null;
+  at: string | null; // ISO datetime of the reading
+}
+
+export type AlertSeverity = "info" | "warning" | "critical";
+
+export interface Alert {
+  patient_id: number;
+  kind: string;
+  severity: AlertSeverity;
+  message: string;
+  value: number;
+  unit: string;
+  at: string | null;
+}
+
+export interface LiveVitals {
+  source: LiveSource;
+  heart_rate: LiveMetric | null;
+  stress: LiveMetric | null;
+  spo2: LiveMetric | null;
+  steps: LiveMetric | null;
+  status: PatientStatus | "none";
+  alerts: Alert[];
+}
+
+export interface StatBlock {
+  min: number;
+  max: number;
+  avg: number;
+  n: number;
+  low_events?: number;
+  high_events?: number;
+}
+
+export interface Summary {
+  days: number;
+  heart_rate: StatBlock | null;
+  sleep_hours: StatBlock | null;
+  steps: StatBlock | null;
+  spo2?: StatBlock;
+  stress?: StatBlock;
+}
+
+export interface Meta {
+  featured_patient_id: number;
+  live_data: boolean;
+}

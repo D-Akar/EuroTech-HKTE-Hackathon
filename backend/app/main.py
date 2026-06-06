@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import scheduler
-from .routers import calls, checkins, patients, wearables
+from .routers import alerts, calls, checkins, live, meta, patients, summary, vitals, wearables
 
 
 @asynccontextmanager
@@ -37,8 +37,13 @@ app.add_middleware(
 )
 
 app.include_router(patients.router)
+app.include_router(meta.router)
 app.include_router(checkins.router)
 app.include_router(wearables.router)
+app.include_router(vitals.router)
+app.include_router(alerts.router)
+app.include_router(summary.router)
+app.include_router(live.router)
 app.include_router(calls.router)
 
 

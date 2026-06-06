@@ -1,9 +1,13 @@
 import type {
+  Alert,
   CallConfig,
   CallRecord,
   CheckIn,
+  LiveVitals,
+  Meta,
   Patient,
   ScheduledCall,
+  Summary,
   WearableReading,
 } from "../types";
 
@@ -42,10 +46,17 @@ async function sendJSON<T>(
 
 export const api = {
   listPatients: () => getJSON<Patient[]>("/patients"),
+  getMeta: () => getJSON<Meta>("/meta"),
   getCheckins: (patientId: number) =>
     getJSON<CheckIn[]>(`/patients/${patientId}/checkins`),
   getWearables: (patientId: number) =>
     getJSON<WearableReading[]>(`/patients/${patientId}/wearables`),
+  getLive: (patientId: number) =>
+    getJSON<LiveVitals>(`/patients/${patientId}/live`),
+  getSummary: (patientId: number) =>
+    getJSON<Summary>(`/patients/${patientId}/summary`),
+  getAlerts: (patientId: number) =>
+    getJSON<Alert[]>(`/patients/${patientId}/alerts`),
 
   // --- Calls ---
   triggerCall: (

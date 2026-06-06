@@ -6,11 +6,12 @@ import { StatusPip } from "./StatusBadge";
 interface Props {
   patients: Patient[];
   selectedId: number | null;
+  featuredId: number | null;
   statusFilter: Set<string> | null;
   onSelect: (id: number) => void;
 }
 
-export function PatientList({ patients, selectedId, statusFilter, onSelect }: Props) {
+export function PatientList({ patients, selectedId, featuredId, statusFilter, onSelect }: Props) {
   const [query, setQuery] = useState("");
 
   // Filter by the active watch-chip status and the search box, then group by
@@ -85,7 +86,10 @@ export function PatientList({ patients, selectedId, statusFilter, onSelect }: Pr
                 >
                   <StatusPip status={p.status} />
                   <div className="patient-row-body">
-                    <div className="patient-name">{p.name}</div>
+                    <div className="patient-name">
+                      {p.name}
+                      {p.id === featuredId && <span className="you-tag">You</span>}
+                    </div>
                     <div className="patient-row-sub">
                       {p.district} · Age {p.age}
                     </div>

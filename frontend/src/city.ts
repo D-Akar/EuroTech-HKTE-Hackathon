@@ -10,6 +10,17 @@
 
 import type { Patient, PatientStatus } from "./types";
 
+// The twin is laid out on a fixed rectangular tile. Everything (coastlines,
+// districts, patient markers) is authored in normalized map coordinates
+// (nx, ny) with the origin at the top-left, nx→east, ny→south, matching how you
+// read the printed Hong Kong map. `toWorld` converts to Three.js world space
+// (X→east, Z→south, Kowloon north / island south).
+export const MAP = { w: 25, d: 18.75 }; // 4:3 rectangle, like the map print
+
+export function toWorld(nx: number, ny: number): { x: number; z: number } {
+  return { x: (nx - 0.5) * MAP.w, z: (ny - 0.5) * MAP.d };
+}
+
 export interface District {
   name: string;
   x: number;
@@ -21,25 +32,34 @@ export interface District {
   side: "kowloon" | "island" | "hills";
 }
 
-export const DISTRICTS: Record<string, District> = {
-  // --- Kowloon (north of the harbour) ---
-  "Sham Shui Po": { name: "Sham Shui Po", x: -6.5, z: -8.2, y: 0, density: 0.8, side: "kowloon" },
-  "Mong Kok": { name: "Mong Kok", x: -2.2, z: -8.6, y: 0, density: 1.0, side: "kowloon" },
-  "Yau Ma Tei": { name: "Yau Ma Tei", x: -3.6, z: -6.8, y: 0, density: 0.85, side: "kowloon" },
-  "Kowloon City": { name: "Kowloon City", x: 3.2, z: -8.0, y: 0, density: 0.7, side: "kowloon" },
-  "Tsim Sha Tsui": { name: "Tsim Sha Tsui", x: 0.2, z: -5.2, y: 0, density: 0.95, side: "kowloon" },
-  // --- Hong Kong Island, north shore (just south of the harbour) ---
-  "Sheung Wan": { name: "Sheung Wan", x: -6.4, z: 0.8, y: 0, density: 0.8, side: "island" },
-  "Central": { name: "Central", x: -3.0, z: 0.4, y: 0, density: 1.0, side: "island" },
-  "Wan Chai": { name: "Wan Chai", x: 0.4, z: 0.9, y: 0, density: 0.95, side: "island" },
-  "Causeway Bay": { name: "Causeway Bay", x: 3.4, z: 1.2, y: 0, density: 0.9, side: "island" },
-  "North Point": { name: "North Point", x: 6.4, z: 1.6, y: 0, density: 0.75, side: "island" },
-  "Quarry Bay": { name: "Quarry Bay", x: 8.8, z: 2.2, y: 0, density: 0.7, side: "island" },
-  // --- The hills and southern side ---
-  "The Peak": { name: "The Peak", x: -2.4, z: 5.2, y: 1.9, density: 0.3, side: "hills" },
-  "Aberdeen": { name: "Aberdeen", x: -4.6, z: 7.4, y: 0.5, density: 0.5, side: "hills" },
-  "Stanley": { name: "Stanley", x: 5.4, z: 8.2, y: 0.4, density: 0.4, side: "hills" },
-};
+// (name, nx, ny, elevation, density, side) — placed to match the real map.
+const _D: [string, number, number, number, number, District["side"]][] = [
+  // Kowloon (top mass) — clustered toward the centre of the peninsula
+  ["Sham Shui Po", 0.28, 0.2, 0, 0.8, "kowloon"],
+  ["Mong Kok", 0.36, 0.28, 0, 1.0, "kowloon"],
+  ["Yau Ma Tei", 0.36, 0.38, 0, 0.85, "kowloon"],
+  ["Tsim Sha Tsui", 0.41, 0.45, 0, 0.95, "kowloon"],
+  ["Kowloon City", 0.5, 0.25, 0, 0.7, "kowloon"],
+  // Hong Kong Island, north shore (bottom mass, along the harbour)
+  ["Sheung Wan", 0.2, 0.63, 0, 0.8, "island"],
+  ["Central", 0.3, 0.645, 0, 1.0, "island"],
+  ["Wan Chai", 0.42, 0.645, 0, 0.95, "island"],
+  ["Causeway Bay", 0.52, 0.645, 0, 0.9, "island"],
+  ["North Point", 0.66, 0.605, 0, 0.75, "island"],
+  ["Quarry Bay", 0.78, 0.565, 0, 0.7, "island"],
+  // The hills and southern side of the island. Elevation stays 0 so markers rest
+  // on the map floor, not floating where the old large hills used to be.
+  ["The Peak", 0.31, 0.74, 0, 0.3, "hills"],
+  ["Aberdeen", 0.24, 0.86, 0, 0.5, "hills"],
+  ["Stanley", 0.7, 0.88, 0, 0.4, "hills"],
+];
+
+export const DISTRICTS: Record<string, District> = Object.fromEntries(
+  _D.map(([name, nx, ny, y, density, side]) => {
+    const { x, z } = toWorld(nx, ny);
+    return [name, { name, x, z, y, density, side }];
+  }),
+);
 
 /** Fallback so an unknown district still lands somewhere sensible. */
 const DEFAULT_DISTRICT: District = DISTRICTS["Central"];

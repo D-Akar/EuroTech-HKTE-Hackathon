@@ -25,7 +25,7 @@ from ..models import GeneratedQuestion, Patient, PatientQuestions
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 QUESTIONS_FILE = _REPO_ROOT / "llm" / "patient_questions.json"
 SYMPTOMS_FILE = _REPO_ROOT / "llm" / "worsening_symptoms.json"
-PROMPT_FILE = "patient_questions_prompt.md"  # resolved against repo root by llm.config
+PROMPT_FILE = "Prompts/patient_questions_prompt.md"  # resolved against repo root by llm.config
 HISTORY_DAYS = 4
 
 # Writes to the JSON store are serialised so the batch CLI and a regenerate request

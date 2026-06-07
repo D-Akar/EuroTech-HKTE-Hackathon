@@ -185,8 +185,8 @@ confirmed at the start of every call**, and it is **implemented in code today**.
   **not** treated as consent.
 - The consent question and the privacy statement are **plain-text, operator-editable**
   files, read fresh on every call (no redeploy needed):
-  [`opening_question.md`](opening_question.md) (the consent prompt) and
-  [`privacy_response.md`](privacy_response.md) (the verbatim privacy statement).
+  [`opening_question.md`](Prompts/opening_question.md) (the consent prompt) and
+  [`privacy_response.md`](Prompts/privacy_response.md) (the verbatim privacy statement).
 - Enforced in code at the call layer in
   [`backend/app/checkin_agent.py`](backend/app/checkin_agent.py); see
   [`backend/integrations/OUTBOUND_AGENT_SETUP.md`](backend/integrations/OUTBOUND_AGENT_SETUP.md).

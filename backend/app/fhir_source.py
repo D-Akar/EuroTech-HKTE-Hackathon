@@ -1,6 +1,6 @@
 """Bind real FHIR patient records (MongoDB) onto dashboard patient slots.
 
-A markdown file (``FEATURED_PATIENTS_FILE``, default ``<repo>/featured_patients.md``)
+A markdown file (``FEATURED_PATIENTS_FILE``, default ``<repo>/Prompts/featured_patients.md``)
 lists MongoDB patient ``_id``s. Each listed id is bound, in listing order, to a
 dashboard patient slot (skipping the live Garmin patient), so that slot shows the
 real person's demographics + medical profile pulled from Mongo. Everything not

@@ -35,8 +35,8 @@ outbound agent. Reference them directly in the prompt with `{{...}}`:
 | `{{patient_age}}` | Patient's age |
 | `{{recent_summary}}` | Last 3 phone check-ins + latest wearable reading |
 | `{{questions}}` | The patient's **personalised** check-in questions for today, numbered and in priority order. Generated offline by cross-referencing the patient's recent check-ins against the worsening-symptom guide for their chronic conditions (`question_gen` / the dashboard "Questions to ask" panel); falls back to the practice's default questions if none have been generated. The agent leads with question 1. |
-| `{{opening_question}}` | A **fixed opening question** asked first, before `{{questions}}`. Editable in [`opening_question.md`](../../opening_question.md) (repo root); read fresh on every call, so edits need no restart. |
-| `{{privacy_response}}` | The **verbatim** reply the agent speaks when the patient asks about data storage, privacy, security, or encryption ("is my data safe?", "is this recording encrypted?"). Editable in [`privacy_response.md`](../../privacy_response.md) (repo root); read fresh on every call. |
+| `{{opening_question}}` | A **fixed opening question** asked first, before `{{questions}}`. Editable in [`opening_question.md`](../../Prompts/opening_question.md) (in Prompts/); read fresh on every call, so edits need no restart. |
+| `{{privacy_response}}` | The **verbatim** reply the agent speaks when the patient asks about data storage, privacy, security, or encryption ("is my data safe?", "is this recording encrypted?"). Editable in [`privacy_response.md`](../../Prompts/privacy_response.md) (in Prompts/); read fresh on every call. |
 
 ## 3. System-prompt snippet
 
@@ -137,14 +137,14 @@ overrides the consent step.
 Key behaviours this snippet enforces:
 
 - **Consent gate, asked first.** The agent asks `{{opening_question}}` (from
-  [`opening_question.md`](../../opening_question.md), now phrased as a consent
+  [`opening_question.md`](../../Prompts/opening_question.md), now phrased as a consent
   confirmation) before anything else, and will **not** ask a check-in question or
   engage with any topic the patient raises - even "I felt dizzy today" - until it
   hears a clear affirmative. An unclear answer, a tangent, or a privacy question
   all just loop back to re-asking the consent question.
 - **Verbatim privacy answer (does not count as consent).** When the patient asks
   about their data, privacy, or encryption, the agent speaks `{{privacy_response}}`
-  (from [`privacy_response.md`](../../privacy_response.md)) word for word, then
+  (from [`privacy_response.md`](../../Prompts/privacy_response.md)) word for word, then
   still needs a clear yes before continuing. Edit either markdown file and the
   change takes effect on the next call (no restart).
 - **Only after a yes: the personalised questions, in order.** Then it works

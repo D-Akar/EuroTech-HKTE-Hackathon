@@ -1,6 +1,6 @@
 """Offline batch: generate personalised daily check-in questions for the featured patients.
 
-For each patient listed in ``featured_patients.md`` this builds the 3 tailored
+For each patient listed in ``Prompts/featured_patients.md`` this builds the 3 tailored
 questions the ElevenLabs voice agent should ask next, by cross-referencing three
 inputs: the last few days of phone check-ins, the patient's chronic conditions (from
 their MongoDB FHIR record), and the worsening-symptom guide
@@ -60,7 +60,7 @@ def main() -> None:
     if not bound:
         sys.exit(
             "No featured patients are bound to FHIR records. Is MongoDB up and populated "
-            "(docker compose up -d), and does featured_patients.md list ids in Mongo?"
+            "(docker compose up -d), and does Prompts/featured_patients.md list ids in Mongo?"
         )
     if args.limit is not None:
         bound = bound[: args.limit]

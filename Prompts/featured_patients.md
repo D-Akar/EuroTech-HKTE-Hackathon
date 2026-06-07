@@ -4,7 +4,7 @@ List the MongoDB patient `_id`s (the patient UUIDs) you want shown as **real dat
 on the dashboard, one per `-` bullet below. Each id is bound, top to bottom, to a
 dashboard patient slot: the first id becomes patient 1, the second patient 2, and so
 on (skipping the live Garmin patient). Those slots show the real name, age, and
-medical profile pulled from MongoDB; every other patient stays mock.
+medical profile pulled from MongoDB.
 
 Notes:
 - The database must be running and populated (`docker compose up`) for this to take

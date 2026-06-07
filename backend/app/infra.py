@@ -2,7 +2,7 @@
 
 When the backend boots we (1) bring up the MongoDB + FHIR-importer stack via Docker
 Compose, (2) wait until Mongo actually accepts connections, then (3) (re)apply the
-real FHIR overlays onto the dashboard slots listed in ``featured_patients.md``.
+real FHIR overlays onto the dashboard slots listed in ``Prompts/featured_patients.md``.
 
 This closes the startup race that otherwise leaves the dashboard all-mock: the
 import-time overlay in ``app.data`` runs before Mongo is healthy and silently binds

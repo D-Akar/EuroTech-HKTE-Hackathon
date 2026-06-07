@@ -97,11 +97,32 @@ def _fetch(ids: list[str]) -> dict[str, dict]:
         return {}
 
 
-def _display_name(raw: str) -> str:
-    """Strip Synthea's numeric suffixes, e.g. 'Josefina523 Deckow585' -> 'Josefina Deckow'."""
-    parts = [re.sub(r"\d+$", "", token) for token in raw.split()]
-    cleaned = " ".join(p for p in parts if p)
-    return cleaned or raw
+# The featured FHIR records are synthetic (Synthea) and carry Western names. For the
+# Hong Kong elderly-care demo we overlay authentic local names instead, written
+# surname-first in the usual romanised-Cantonese style. Names are picked by the
+# record's gender (so name and gender stay consistent) and assigned in stable bind
+# order, so each slot keeps the same name across restarts.
+_HK_NAMES_FEMALE = [
+    "Wong Mei-ling", "Chan Lai-kuen", "Lee Yuk-ying", "Cheung Pui-shan",
+    "Lam Wai-han", "Ng Siu-fong", "Ho Suk-yee", "Tang Wai-fong",
+    "Leung Kit-ying", "Lau Lai-chu", "Yip Foon-yee", "Tsang Po-chu",
+    "Fung Sau-lan", "Cheng Mei-fong", "Mak Yuet-wah", "Choi Lan-ying",
+    "Yeung Oi-lin", "Hui Wai-chu", "Lo Yim-fong", "Sin Muk-lan",
+]
+_HK_NAMES_MALE = [
+    "Chan Kwok-wah", "Wong Tin-yau", "Leung Ka-ho", "Lee Chi-keung",
+    "Tang Shun-kei", "Cheung Wing-chi", "Ho Kwok-keung", "Lam Chi-ming",
+    "Ng Wai-keung", "Lau Ho-yin", "Yip Kam-fai", "Kwok Siu-ming",
+    "Tsang Yiu-fai", "Tam Cheuk-man", "Yuen Chun-kit", "So Man-tat",
+    "Au Yiu-cheung", "Pang Chun-wah", "Lai Kwok-on", "Tse Wing-hong",
+]
+
+
+def _hk_name(gender: str | None, female_idx: int, male_idx: int) -> str:
+    """An authentic Hong Kong demo name matching the record's gender."""
+    if (gender or "").strip().lower().startswith("f"):
+        return _HK_NAMES_FEMALE[female_idx % len(_HK_NAMES_FEMALE)]
+    return _HK_NAMES_MALE[male_idx % len(_HK_NAMES_MALE)]
 
 
 def _elderly_age(seed: str) -> int:
@@ -193,6 +214,8 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
     slots = [p for p in sorted(patients, key=lambda p: p.id) if p.id != featured_id]
 
     bound = 0
+    female_idx = 0
+    male_idx = 0
     for fhir_id in ids:
         doc = docs.get(fhir_id)
         if doc is None:
@@ -203,8 +226,12 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
         bound += 1
 
         demo = doc.get("demographics") or {}
-        if demo.get("name"):
-            slot.name = _display_name(demo["name"])
+        gender = demo.get("gender")
+        slot.name = _hk_name(gender, female_idx, male_idx)
+        if (gender or "").strip().lower().startswith("f"):
+            female_idx += 1
+        else:
+            male_idx += 1
         # Always assign a random elderly age (>= 65); the synthetic birth dates
         # often make these patients far too young for an elderly-care dashboard.
         age = _elderly_age(fhir_id)

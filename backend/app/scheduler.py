@@ -8,6 +8,8 @@ A single AsyncIOScheduler is started/stopped via the FastAPI lifespan. Each
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
@@ -16,7 +18,13 @@ from . import call_store, checkin_agent, data
 from .models import ScheduledCall
 from .services import telephony
 
-scheduler = AsyncIOScheduler()
+# Hong Kong timezone: the product serves HK patients, so a "daily 9am" check-in must
+# mean 9am Hong Kong, not the server's local time (APScheduler's default).
+scheduler = AsyncIOScheduler(timezone="Asia/Hong_Kong")
+
+# Default time of day for the auto-seeded daily check-in call (Asia/Hong_Kong).
+DAILY_CHECKIN_HOUR = 9
+DAILY_CHECKIN_MINUTE = 0
 
 
 def _job_id(schedule_id: int) -> str:
@@ -67,6 +75,30 @@ def schedule_call(schedule: ScheduledCall) -> None:
         id=_job_id(schedule.id),
         replace_existing=True,
     )
+
+
+def seed_daily_checkins(
+    hour: int = DAILY_CHECKIN_HOUR, minute: int = DAILY_CHECKIN_MINUTE
+) -> int:
+    """Give every patient a recurring daily check-in call (if they don't already
+    have one), so the dashboard shows a scheduled daily call per patient out of the
+    box. The time is interpreted in the scheduler's timezone (Asia/Hong_Kong).
+
+    Idempotent: skips a patient who already has a recurring schedule. Schedules are
+    in-memory, so this re-seeds a clean set on each startup.
+    """
+    seeded = 0
+    for patient in data.PATIENTS:
+        if any(s.recurring for s in call_store.list_schedules(patient.id)):
+            continue
+        when = datetime.now().replace(hour=hour, minute=minute, second=0, microsecond=0)
+        questions = telephony.resolve_questions(patient.id)
+        schedule = call_store.add_schedule(
+            patient.id, when, recurring=True, questions=questions
+        )
+        schedule_call(schedule)
+        seeded += 1
+    return seeded
 
 
 def unschedule_call(schedule_id: int) -> None:

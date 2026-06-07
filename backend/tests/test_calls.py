@@ -125,7 +125,9 @@ def test_recent_summary_unchanged_without_prior_digest(monkeypatch):
 
 def test_is_placeholder_phone():
     assert data.is_placeholder_phone("+10000000001") is True
-    assert data.is_placeholder_phone(data.PATIENTS[1].phone_number) is True
+    # Use the prefix constant, not PATIENTS[1]: when MongoDB is populated the FHIR
+    # overlay replaces featured slots' phones with real ones.
+    assert data.is_placeholder_phone(data.PLACEHOLDER_PHONE_PREFIX + "0099") is True
     assert data.is_placeholder_phone("+85291234567") is False
     assert data.is_placeholder_phone("") is False
 

@@ -2,9 +2,9 @@
 
 How **CareLoop** (the elderly-care platform in this repo) protects patient data and
 how it is designed to comply with the data-protection regimes of the markets it
-targets: the **EU (GDPR)**, **Hong Kong (PDPO)**, and the wider **Greater Bay Area /
-Mainland China (PIPL)** — with first-class alignment to Hong Kong's **eHRSS /
-eHealth+** health-record-sharing ecosystem.
+targets: **Hong Kong (PDPO)** first, the wider **Greater Bay Area / Mainland China
+(PIPL)**, and with **GDPR**-grade controls held as a baseline — with first-class
+alignment to Hong Kong's **eHRSS / eHealth+** health-record-sharing ecosystem.
 
 Data protection is the platform's **number-one design priority**: we handle the
 voice, vitals, and clinical records of vulnerable elderly people, and the trust of
@@ -42,8 +42,8 @@ patients, families, and clinicians depends entirely on getting this right.
 4. **Security in depth.** Encryption in transit and at rest, least-privilege access,
    and auditable trails are the default, not an add-on.
 5. **Locality of data.** Health data should rest in the patient's own jurisdiction
-   (Hong Kong for HK patients; EU for EU patients) and move across borders only under
-   a lawful transfer mechanism.
+   (Hong Kong for HK patients; kept in-region across the Greater Bay Area under PIPL)
+   and move across borders only under a lawful transfer mechanism.
 6. **Transparency & control.** Patients and their authorised caregivers can see what
    we hold, correct it, export it, and ask for its deletion.
 7. **Interoperate, don't hoard.** Where a government health-record system exists
@@ -59,11 +59,11 @@ target jurisdictions, so a single architecture stays compliant everywhere.
 
 | Regime | Jurisdiction | What it governs for us |
 |---|---|---|
-| **PDPO** — Personal Data (Privacy) Ordinance (Cap. 486) | Hong Kong | The six Data Protection Principles (DPPs); the primary regime for HK patients. See §4. |
-| **GDPR** — General Data Protection Regulation | EU / EEA | Lawful basis, special-category (health) data, data-subject rights, DPIA, processor contracts. See §5. |
+| **PDPO** — Personal Data (Privacy) Ordinance (Cap. 486) | Hong Kong | The six Data Protection Principles (DPPs); the **primary** regime for HK patients. See §4. |
 | **PIPL** — Personal Information Protection Law | Mainland China / Greater Bay Area | Cross-border transfer rules, separate consent for sensitive personal information, data localisation. See §5.3. |
 | **eHealth/eHRSS framework** | Hong Kong | The Electronic Health Record Sharing System Ordinance + eHealth+ Connectivity & Accreditation Schemes — the secure-channel and accreditation regime for sharing records. See §6. |
 | **Sector context** | Hong Kong | Chronic Disease Co-Care (CDCC) and the Primary Healthcare Co-care Network — programmes our wearable + check-in feed is designed to serve. |
+| **GDPR** — General Data Protection Regulation | EU / EEA (baseline) | Held as a strict baseline so the same architecture stays export-ready: lawful basis, special-category (health) data, data-subject rights, DPIA, processor contracts. See §5. |
 
 Health data is **special-category data under GDPR (Art. 9)** and **sensitive personal
 information under PIPL** — the highest-protection tier in every regime. We treat *all*
@@ -107,14 +107,14 @@ consent the patient gave cannot be applied to their data.
 
 ---
 
-## 5. GDPR & cross-border alignment
+## 5. Cross-border alignment (PDPO · PIPL, with GDPR as baseline)
 
 ### 5.1 Lawful basis
-For EU patients, processing of health data relies on **explicit consent (Art. 9(2)(a))**
-captured at the start of every call (§7), backed by **provision of healthcare
-(Art. 9(2)(h))** under the care relationship. Consent is **specific, informed, and
-revocable** — a patient may decline at the consent gate and the check-in does not
-proceed.
+Processing of health data relies on **explicit consent** captured at the start of
+every call (§7), backed by the **care relationship** (provision of healthcare). Under
+**PDPO** this satisfies DPP1/3 for HK patients (and maps cleanly onto **GDPR
+Art. 9(2)(a)/(h)** as a baseline). Consent is **specific, informed, and revocable** —
+a patient may decline at the consent gate and the check-in does not proceed.
 
 ### 5.2 Data-subject rights
 The platform honours: **access** & **portability** (`GET /patients/{id}/data-export`

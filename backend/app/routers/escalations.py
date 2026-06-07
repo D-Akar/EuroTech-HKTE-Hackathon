@@ -113,6 +113,7 @@ async def perform_escalation(
                 kind="instant",
                 system_prompt=_nurse_system_prompt(patient, reason),
                 first_message=_nurse_first_message(patient),
+                is_nurse_call=True,
             )
         else:
             # No number configured -> the dial is skipped silently otherwise, which

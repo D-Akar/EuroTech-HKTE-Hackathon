@@ -40,19 +40,25 @@ def test_wrong_api_key_returns_401(client):
 
 
 def test_lookup_by_phone_returns_full_context(client):
+    # Look up by the patient's ACTUAL current phone: when MongoDB is populated the
+    # FHIR overlay (app/fhir_source.py) / phone overrides replace seed placeholders
+    # with real numbers, so a hardcoded number breaks. The lookup mechanism is what
+    # we're testing, regardless of which number the slot currently carries.
+    from app import data
+
+    patient = data.get_patient(1)
     resp = client.get(
         ENDPOINT,
-        params={"phone_number": "+10000000001"},
+        params={"phone_number": patient.phone_number},
         headers={"X-API-Key": TOOL_KEY},
     )
     assert resp.status_code == 200
     body = resp.json()
-    # Don't hardcode the name: when MongoDB is populated, the FHIR overlay
-    # (app/fhir_source.py) can replace a seed patient's name with a real record.
-    # The phone-number binding and the name<->summary consistency are what matter.
+    # Don't hardcode the name: the overlay can replace a seed patient's name with a
+    # real record. The phone-number binding and the name<->summary consistency matter.
     name = body["patient"]["name"]
     assert name
-    assert body["patient"]["phone_number"] == "+10000000001"
+    assert body["patient"]["id"] == patient.id
     assert len(body["checkins"]) > 0
     assert len(body["wearables"]) > 0
     assert "questions" in body["call_config"]
@@ -60,13 +66,16 @@ def test_lookup_by_phone_returns_full_context(client):
 
 
 def test_lookup_without_plus_prefix(client):
+    from app import data
+
+    patient = data.get_patient(1)
     resp = client.get(
         ENDPOINT,
-        params={"phone_number": "10000000001"},
+        params={"phone_number": patient.phone_number.lstrip("+")},
         headers={"X-API-Key": TOOL_KEY},
     )
     assert resp.status_code == 200
-    assert resp.json()["patient"]["id"] == 1
+    assert resp.json()["patient"]["id"] == patient.id
 
 
 def test_unknown_phone_returns_404(client):
@@ -116,14 +125,19 @@ def stub_nurse_call(monkeypatch):
 def test_escalate_by_patient_name_resolves(client, stub_nurse_call):
     # The ElevenLabs agent only knows {{patient_name}}, so it sends the patient's
     # NAME as patient_id. The webhook must resolve it, not reject it with 422.
+    # Resolve a live patient name rather than hardcoding one: the roster name is
+    # mock or FHIR-overlaid depending on whether MongoDB is populated.
+    from app import data
+
+    patient_name = data.get_patient(3).name
     resp = client.post(
         ESCALATE_ENDPOINT,
-        json={"patient_id": "Lavinia Heaney", "reason": "Reports sudden dizziness"},
+        json={"patient_id": patient_name, "reason": "Reports sudden dizziness"},
         headers={"X-API-Key": TOOL_KEY},
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["patient_name"] == "Lavinia Heaney"
+    assert body["patient_name"] == patient_name
     assert body["status"] == "urgent"
     assert body["nurse_call"] is not None
 

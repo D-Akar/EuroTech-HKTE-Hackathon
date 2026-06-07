@@ -44,7 +44,21 @@ def load_guide() -> dict[str, list[str]]:
 
 
 def render_checkins(checkins: list, *, history_days: int = HISTORY_DAYS) -> str:
-    recent = sorted(checkins, key=lambda c: c.date, reverse=True)[:history_days]
+    # Real call-derived check-ins fully dominate the window; synthetic seeds only
+    # backfill the slots left over. Within each group we order by (date, id) newest
+    # first - CheckIn has no time field, so same-day calls tie on date and the
+    # monotonic id (call-derived ids start at CALL_DERIVED_ID_BASE) breaks the tie,
+    # keeping the call placed moments before "Regenerate" at the very front.
+    by_recency = lambda c: (c.date, c.id)
+    real = sorted(
+        (c for c in checkins if c.id >= checkin_store.CALL_DERIVED_ID_BASE),
+        key=by_recency, reverse=True,
+    )
+    synthetic = sorted(
+        (c for c in checkins if c.id < checkin_store.CALL_DERIVED_ID_BASE),
+        key=by_recency, reverse=True,
+    )
+    recent = (real + synthetic)[:history_days]
     if not recent:
         return "(no recent check-ins on record)"
     lines = []
@@ -178,7 +192,9 @@ def _entry_to_model(patient: Patient, entry: dict | None) -> PatientQuestions:
     return PatientQuestions(
         patient_id=patient.id,
         fhir_id=patient.fhir_id,
-        patient_name=entry.get("patient_name") or patient.name,
+        # Always the live patient name (HK), never the name cached at generation
+        # time - cached entries can hold a stale or pre-overlay (Synthea) name.
+        patient_name=patient.name,
         chronic_conditions=entry.get("chronic_conditions") or [],
         questions=[GeneratedQuestion(**q) if isinstance(q, dict) else GeneratedQuestion(text=str(q))
                    for q in (entry.get("questions") or [])],

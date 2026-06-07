@@ -30,8 +30,10 @@ _SENSITIVE = ("notes",)
 _STORE: dict[str, CheckIn] = {}
 
 # Call-derived check-ins use a high id base so they never collide with the mock
-# ids seeded in app/data.py (patient_id * 100 + day, well under this).
-_ID_BASE = 1_000_000
+# ids seeded in app/data.py (patient_id * 100 + day, well under this). Public so
+# readers (e.g. question_gen) can tell a real call-derived check-in from a seed.
+CALL_DERIVED_ID_BASE = 1_000_000
+_ID_BASE = CALL_DERIVED_ID_BASE
 _ids = count(_ID_BASE)
 
 

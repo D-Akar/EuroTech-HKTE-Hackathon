@@ -92,7 +92,11 @@ async def escalate_from_agent(
         "escalate_emergency webhook HIT: client=%s patient_id=%s reason=%r",
         client, body.patient_id, body.reason,
     )
-    patient = data.get_patient(body.patient_id)
+    # resolve_patient (not get_patient): the agent posts the {{patient_id}} dynamic
+    # variable, but in practice often sends the patient's NAME or a numeric string
+    # ("3") instead of the int slot id. Resolve all three so a real mid-call
+    # escalation is never lost to a type mismatch (and the nurse always gets dialled).
+    patient = data.resolve_patient(body.patient_id)
     if patient is None:
         logger.warning("escalate webhook: patient_id=%s not found", body.patient_id)
         raise HTTPException(status_code=404, detail="Patient not found")
@@ -113,11 +117,13 @@ def record_consent_from_agent(
     (``method="voice"``) - the missing link between the live consent gate and the
     consent store. Guarded by the same X-API-Key as the other tools.
     """
-    patient = data.get_patient(body.patient_id)
+    # Same permissive resolution as the escalate webhook: the agent may send a
+    # name or numeric string rather than the int slot id.
+    patient = data.resolve_patient(body.patient_id)
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
     rec = consent_store.record(
-        body.patient_id,
+        patient.id,
         body.granted,
         scope=body.scope,
         method="voice",

@@ -28,9 +28,13 @@ export function CheckInPanel({
     );
   }
 
-  const sorted = [...checkins].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  // Newest first. Several calls land on the same day and CheckIn carries only a
+  // date (no time), so ties on date are broken by id - call-derived ids increment
+  // in creation order, so the most recent check-in sorts to the top.
+  const sorted = [...checkins].sort((a, b) => {
+    const byDate = new Date(b.date).getTime() - new Date(a.date).getTime();
+    return byDate !== 0 ? byDate : b.id - a.id;
+  });
 
   if (sorted.length === 0) {
     return <p className="muted convo-empty">No phone check-ins recorded yet.</p>;

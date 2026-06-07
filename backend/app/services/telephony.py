@@ -226,6 +226,7 @@ async def place_call(
     first_message: str | None = None,
     agent_id: str | None = None,
     watch_for_emergency: bool = False,
+    is_nurse_call: bool = False,
 ) -> CallRecord:
     """Place an outbound call and record the outcome in the call history.
 
@@ -238,6 +239,12 @@ async def place_call(
     never for the nurse-alert call itself (that would loop). It guarantees the
     nurse is dialled if the patient reports an emergency even when the agent fails
     to invoke its ``escalate_emergency`` tool.
+
+    ``is_nurse_call`` marks the outbound nurse-alert call (which dials the nurse and
+    briefs them about the patient). Set it True there so we do NOT materialize that
+    call as a patient check-in - its content is the nurse briefing, not the
+    patient's own check-in. Every other (patient-facing) call materializes its
+    check-in in the background as soon as the analysis is ready.
     """
     triggered_at = datetime.now()
     record_id = call_store.next_record_id()
@@ -321,6 +328,21 @@ async def place_call(
 
         asyncio.create_task(
             escalation_watchdog.watch_conversation(patient, saved.conversation_id)
+        )
+
+    # Materialize this call's check-in in the background the moment ElevenLabs
+    # finishes analysing it, so it lands in the patient's history (and feeds
+    # question regeneration) without anyone opening the transcript first. Skip the
+    # nurse-alert call - its content is the nurse briefing, not a patient check-in.
+    if not is_nurse_call and saved.status == "initiated" and saved.conversation_id:
+        from .. import conversation_store
+
+        # Poll on a tight cadence so the check-in appears within seconds of the
+        # call's analysis completing; attempts keep the ~10 min overall window.
+        asyncio.create_task(
+            conversation_store.ensure_materialized(
+                saved.conversation_id, attempts=120, interval=5.0
+            )
         )
 
     return saved

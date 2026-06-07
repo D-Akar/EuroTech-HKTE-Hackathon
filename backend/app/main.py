@@ -3,6 +3,7 @@
 Run with:  uvicorn app.main:app --reload  (from the backend/ directory)
 """
 
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -45,6 +46,13 @@ async def lifespan(app: FastAPI):
         audit.record("system", "startup.load_consent", "system", detail=f"{loaded} records")
     scheduler.start()
     scheduler.schedule_retention()
+    # Seed a recurring daily check-in call per patient (9am Asia/Hong_Kong) so the
+    # dashboard shows scheduled daily calls out of the box. Disable with
+    # CARELOOP_SEED_DAILY_CHECKINS=0 (e.g. to avoid the 9am dial in a long-running env).
+    if os.getenv("CARELOOP_SEED_DAILY_CHECKINS", "1") != "0":
+        seeded = scheduler.seed_daily_checkins()
+        if seeded:
+            audit.record("system", "startup.seed_daily_checkins", "system", detail=f"{seeded} patients")
     try:
         yield
     finally:

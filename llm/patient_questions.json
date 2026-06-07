@@ -812,24 +812,24 @@
   "7442e18c-ac59-805d-6140-6db8778408b5": {
     "fhir_id": "7442e18c-ac59-805d-6140-6db8778408b5",
     "patient_slot": 28,
-    "patient_name": "Kristeen Paucek",
-    "age": 19,
+    "patient_name": "Choi Lan-ying",
+    "age": 79,
     "chronic_conditions": [],
     "questions": [
       {
-        "text": "You mentioned having some chest discomfort a few days ago — how is your chest feeling today?",
+        "text": "You mentioned feeling a bit unsteady recently. Have you felt any more unsteadiness or dizziness today?",
         "category": "symptom_followup",
         "related_condition": null,
-        "related_symptom": "chest discomfort"
+        "related_symptom": "unsteadiness"
       },
       {
-        "text": "Have you been able to eat anything today?",
-        "category": "wellbeing",
+        "text": "How has your back pain been feeling since we last spoke?",
+        "category": "symptom_followup",
         "related_condition": null,
-        "related_symptom": null
+        "related_symptom": "back pain"
       },
       {
-        "text": "How has your sleep been since we last spoke?",
+        "text": "How have you been feeling emotionally today?",
         "category": "wellbeing",
         "related_condition": null,
         "related_symptom": null

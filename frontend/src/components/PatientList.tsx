@@ -92,8 +92,7 @@ export function PatientList({ patients, selectedId, featuredId, statusFilter, on
                   <div className="patient-row-body">
                     <div className="patient-name">
                       {p.name}
-                      {p.id === featuredId && <span className="you-tag">Demo</span>}
-                      {p.fhir_id != null && (
+                      {(p.fhir_id != null || p.id === featuredId) && (
                         <span className="fhir-tag" title="Real patient record from FHIR / MongoDB">
                           FHIR
                         </span>

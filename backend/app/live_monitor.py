@@ -29,7 +29,7 @@ from datetime import datetime
 
 from . import call_store, checkin_agent, data, events
 from .config import settings
-from .models import CallRecord, Patient, PatientStatus
+from .models import CallRecord, LiveVitalsInput, Patient, PatientStatus
 from .services import telephony
 
 log = logging.getLogger(__name__)
@@ -111,7 +111,9 @@ def _flip_to_urgent(patient: Patient, reason: str, source: str) -> None:
     log.info("Auto-escalation: patient %s -> urgent (%s)", patient.id, reason)
 
 
-async def emergency_call(patient: Patient, reason: str) -> CallRecord | None:
+async def emergency_call(
+    patient: Patient, reason: str, live_vitals: LiveVitalsInput | None = None
+) -> CallRecord | None:
     """Call the patient; if they don't pick up, route the emergency to the nurse.
 
     Used by the Garmin ``/live`` path and the frontend BLE/demo path alike. The
@@ -153,6 +155,7 @@ async def emergency_call(patient: Patient, reason: str) -> CallRecord | None:
         system_prompt=system_prompt,
         first_message=first_message,
         watch_for_emergency=True,
+        live_vitals=live_vitals,
     )
 
     # Persist this episode: poll the call's analysis in the background until it's

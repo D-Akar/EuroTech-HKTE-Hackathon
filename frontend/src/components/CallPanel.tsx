@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../api/client";
-import type { CallRecord, Patient, ScheduledCall } from "../types";
+import { toLiveVitalsInput } from "../lib/liveVitals";
+import type { CallRecord, LiveVitals, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
 import { LiveCallTranscript } from "./LiveCallTranscript";
 
@@ -25,10 +26,12 @@ export function CallPanel({
   patient,
   onPatientUpdate,
   onCallCompleted,
+  live,
 }: {
   patient: Patient;
   onPatientUpdate?: (patient: Patient) => void;
   onCallCompleted?: () => void;
+  live?: LiveVitals | null;
 }) {
   const [toNumber, setToNumber] = useState(patient.phone_number);
   const [questions, setQuestions] = useState<string[]>([]);
@@ -142,7 +145,10 @@ export function CallPanel({
     setStatus(null);
     setError(null);
     try {
-      const record = await api.triggerCall(patient.id, { to_number: toNumber });
+      const record = await api.triggerCall(patient.id, {
+        to_number: toNumber,
+        live_vitals: toLiveVitalsInput(live),
+      });
       if (record.status === "initiated") {
         setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "-"}).`);
         setAnalysing(true); // poll will surface the summary once analysis lands

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
+import { toLiveVitalsInput } from "../lib/liveVitals";
 import type {
   Alert,
   CheckIn,
@@ -88,7 +89,9 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
     setCallBusy(true);
     setCallMessage(null);
     try {
-      const record = await api.triggerCall(patient.id, {});
+      const record = await api.triggerCall(patient.id, {
+        live_vitals: toLiveVitalsInput(live),
+      });
       setCallMessage(
         record.status === "initiated"
           ? { text: "Check-in call initiated.", error: false }
@@ -117,7 +120,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
         setCallBusy(true);
         setCallMessage(null);
         api
-          .emergencyCall(patient.id, reason)
+          .emergencyCall(patient.id, reason, toLiveVitalsInput(live))
           .then((rec) =>
             setCallMessage(
               rec && rec.status === "failed"
@@ -201,6 +204,7 @@ export function PatientDetail({ patient, onClose, featuredId, live, liveLoading,
               patient={patient}
               onPatientUpdate={onPatientUpdate}
               onCallCompleted={reloadCheckins}
+              live={isFeatured ? live : null}
             />
             <ScreeningPanel patient={patient} />
             <CarePlanPanel patient={patient} />

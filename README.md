@@ -214,10 +214,11 @@ How it fits together:
   `WearableReading` model, so `GET /patients/7/wearables` returns real daily vitals with no
   frontend change. The richer per-reading data is at `GET /patients/7/vitals?kind=<kind>`
   (e.g. `stress`, `spo2`, `sleep_stage`), in the same sample-dict shape used for FHIR mapping.
-- Data source: it reads `$GARMIN_SAMPLES` if set, otherwise `backend/data/garmin_samples.json`
-  (the real export, gitignored so the data stays local), otherwise
-  `backend/app/sample_data/garmin_fallback.json` (a committed synthetic file, source
-  "synthetic", so a fresh clone still has data to show).
+- Data source: it reads `$GARMIN_SAMPLES` if set, otherwise
+  `backend/data/garmin_samples.json` - **30 days of real Garmin data, committed to the
+  repo**, so a fresh clone runs on real wearable data out of the box. The committed
+  synthetic file `backend/app/sample_data/garmin_fallback.json` (source "synthetic") is
+  only a last-resort fallback if the real export is ever removed.
 
 Refresh the real data (on the machine with the Garmin login):
 

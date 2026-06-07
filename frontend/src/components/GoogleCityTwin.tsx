@@ -320,7 +320,7 @@ function GeoMarker({ patient, pos, selected, dimmed, reduced, glow, onSelect, on
         </group>
 
         {selected && (
-          <Html position={[0, headTop + 70, 0]} center distanceFactor={4200} zIndexRange={[20, 0]}>
+          <Html position={[0, headTop, 0]} zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
             <div className="marker-tip">
               {patient.name}
               <div className="tip-status">{meta.label}</div>
@@ -482,7 +482,7 @@ function HoverTip({ patient }: { patient: Patient }) {
   const bulb = BULB_R[patient.status] ?? BULB_R.stable;
   const headTop = beamH + bulb * 1.7 + bulb * 2;
   return (
-    <Html position={[pos.x, headTop + 60, pos.z]} center distanceFactor={4600}>
+    <Html position={[pos.x, headTop, pos.z]} zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
       <div className="marker-tip">
         {patient.name}
         <div className="tip-status">

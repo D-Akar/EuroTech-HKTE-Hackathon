@@ -10,6 +10,7 @@ the ElevenLabs dashboard must reference them:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime
 
@@ -224,12 +225,19 @@ async def place_call(
     system_prompt: str | None = None,
     first_message: str | None = None,
     agent_id: str | None = None,
+    watch_for_emergency: bool = False,
 ) -> CallRecord:
     """Place an outbound call and record the outcome in the call history.
 
     ``system_prompt``/``first_message`` override the agent persona for this one
     call (used to brief the nurse instead of speaking as the patient agent).
     ``agent_id`` selects a non-default agent (e.g. the cognitive-screening agent).
+
+    ``watch_for_emergency`` spawns the server-side escalation safety net for this
+    call (see ``app.escalation_watchdog``): set it ONLY for patient-facing calls,
+    never for the nurse-alert call itself (that would loop). It guarantees the
+    nurse is dialled if the patient reports an emergency even when the agent fails
+    to invoke its ``escalate_emergency`` tool.
     """
     triggered_at = datetime.now()
     record_id = call_store.next_record_id()
@@ -304,4 +312,15 @@ async def place_call(
             error=str(exc),
         )
 
-    return call_store.add_call_record(record)
+    saved = call_store.add_call_record(record)
+
+    # Safety net: for a patient-facing call, watch the live transcript and dial the
+    # nurse if an emergency surfaces - independent of the agent calling its tool.
+    if watch_for_emergency and saved.status == "initiated" and saved.conversation_id:
+        from .. import escalation_watchdog
+
+        asyncio.create_task(
+            escalation_watchdog.watch_conversation(patient, saved.conversation_id)
+        )
+
+    return saved

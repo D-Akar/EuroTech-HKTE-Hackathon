@@ -922,5 +922,32 @@
         "related_symptom": null
       }
     ]
+  },
+  "slot-7": {
+    "fhir_id": null,
+    "patient_slot": 7,
+    "patient_name": "Eleanor Pang",
+    "age": 86,
+    "chronic_conditions": [],
+    "questions": [
+      {
+        "text": "You mentioned you went for a short walk recently. Have you been able to get out and move around much today?",
+        "category": "symptom_followup",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "How has your mood been feeling today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      },
+      {
+        "text": "Have you been eating and drinking enough today?",
+        "category": "wellbeing",
+        "related_condition": null,
+        "related_symptom": null
+      }
+    ]
   }
 }

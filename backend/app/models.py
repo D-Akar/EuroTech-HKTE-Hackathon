@@ -216,11 +216,14 @@ class AgentEscalationRequest(BaseModel):
 
     ``patient_id`` is bound to the ``patient_id`` dynamic variable we inject at
     dial time (see ``telephony.build_dynamic_variables``); ``reason`` is filled
-    by the agent from what the patient just said. Strings coerce to int so the
-    dynamic-variable value ("3") resolves cleanly.
+    by the agent from what the patient just said. Accepts an int, a numeric
+    string ("3"), or the patient's name - the agent frequently sends the name it
+    sees in its prompt instead of the injected id - and ``data.resolve_patient``
+    sorts out which. Keeping this permissive (vs ``int``) is what stops a real
+    mid-call escalation from being rejected with a 422 before the nurse is dialed.
     """
 
-    patient_id: int  # which patient the agent is currently calling
+    patient_id: int | str  # patient on the call: slot id, numeric string, or name
     reason: str  # what the patient reported that makes this urgent
     source: str = "ai_phone_call"  # where the urgent info came from
 

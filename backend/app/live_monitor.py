@@ -138,7 +138,9 @@ async def emergency_call(patient: Patient, reason: str) -> CallRecord | None:
         return None
 
     questions = call_store.get_config(patient.id).questions
-    call = await telephony.place_call(patient, to_number, questions, kind="auto")
+    call = await telephony.place_call(
+        patient, to_number, questions, kind="auto", watch_for_emergency=True
+    )
 
     # Persist this episode: poll the call's analysis in the background until it's
     # done so it materializes into a saved check-in summary, even though no one may

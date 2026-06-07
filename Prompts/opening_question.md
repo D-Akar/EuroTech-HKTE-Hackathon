@@ -13,4 +13,4 @@ the next call with no restart needed.
 
 ---
 
-Before we go through today's questions, I require your formal confirmation. Do you comply with and agree to the recording of this conversation, and the processing of your information in accordance with our privacy policy? Please say 'Yes, I agree' or 'No'.
+Do you agree to this call being recorded and your information processed under our privacy policy? Please say 'Yes, I agree' or 'No'.

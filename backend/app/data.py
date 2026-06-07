@@ -238,6 +238,23 @@ def get_patient_by_subject(display: str) -> Patient | None:
     return next((p for p in PATIENTS if p.name.strip().casefold() == target), None)
 
 
+def resolve_patient(identifier: int | str) -> Patient | None:
+    """Resolve a patient by integer slot id, numeric string id, or exact name.
+
+    The ElevenLabs ``escalate_emergency`` tool is meant to send the injected
+    ``{{patient_id}}`` dynamic variable (a numeric slot id), but in practice the
+    agent often fills it with the only identifier it knows from its prompt - the
+    patient's name (``{{patient_name}}``). Accept both so a mid-call escalation is
+    never lost to a type mismatch.
+    """
+    if isinstance(identifier, int):
+        return get_patient(identifier)
+    text = str(identifier).strip()
+    if text.isdigit():
+        return get_patient(int(text))
+    return get_patient_by_subject(text)
+
+
 def get_checkins(patient_id: int) -> list[CheckIn]:
     return [c for c in CHECKINS if c.patient_id == patient_id]
 

@@ -1802,6 +1802,36 @@ textarea.input::placeholder {
   font-weight: 500;
 }
 
+/* Agent tool invocation (e.g. escalate_emergency) — an action, not speech, so it
+   reads as a distinct card with an attention accent rather than a transcript line. */
+.conv-tool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: var(--status-attention-soft);
+  border: 1px solid oklch(0.82 0.08 80);
+  color: oklch(0.42 0.12 60);
+  font-size: 12.5px;
+}
+.conv-tool svg {
+  flex-shrink: 0;
+}
+.conv-tool-name {
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+.conv-tool-detail {
+  color: var(--text-soft);
+  font-weight: 400;
+  /* Keep a long reason on one tidy line; the full text is in the title tooltip. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* =============================================================================
    States - loading, empty, error
    ============================================================================= */

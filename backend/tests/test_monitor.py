@@ -63,6 +63,70 @@ def test_parse_agent_response_correction_is_agent_turn():
     assert turn.message == "Sorry, go on."
 
 
+# --- parse_monitor_event: mood / audio-tag stripping -------------------------
+
+
+def test_parse_strips_leading_audio_tag_from_agent():
+    turn = mon.parse_monitor_event(
+        {"type": "agent_response", "agent_response_event": {"agent_response": "[concerned] I am sorry to hear that."}}
+    )
+    assert turn == ConversationTurn(role="agent", message="I am sorry to hear that.")
+
+
+def test_parse_strips_inline_and_multiple_audio_tags():
+    turn = mon.parse_monitor_event(
+        {"type": "agent_response", "agent_response": "[slow] Wonderful, Devon. [happy] Glad we connected."}
+    )
+    assert turn == ConversationTurn(role="agent", message="Wonderful, Devon. Glad we connected.")
+
+
+def test_parse_keeps_non_tag_brackets():
+    # A bracketed value that isn't an audio tag (digits/slash) must survive.
+    turn = mon.parse_monitor_event(
+        {"type": "agent_response", "agent_response": "Your pain is [2/10] today."}
+    )
+    assert turn == ConversationTurn(role="agent", message="Your pain is [2/10] today.")
+
+
+def test_parse_agent_message_that_is_only_a_tag_is_dropped():
+    assert mon.parse_monitor_event({"type": "agent_response", "agent_response": "[laughs]"}) is None
+
+
+# --- parse_monitor_event: tool calls -----------------------------------------
+
+
+def test_parse_client_tool_call_becomes_tool_turn():
+    turn = mon.parse_monitor_event(
+        {
+            "type": "client_tool_call",
+            "client_tool_call": {
+                "tool_name": "escalate_emergency",
+                "tool_call_id": "tc_1",
+                "parameters": {"patient_id": "20", "reason": "Severe persistent headache."},
+            },
+        }
+    )
+    assert turn is not None
+    assert turn.role == "tool"
+    assert turn.tool_name == "escalate_emergency"
+    # The patient-facing reason is the useful detail; the id is noise.
+    assert turn.message == "Severe persistent headache."
+
+
+def test_parse_client_tool_call_without_reason_has_no_message():
+    turn = mon.parse_monitor_event(
+        {"type": "client_tool_call", "client_tool_call": {"tool_name": "lookup", "parameters": {}}}
+    )
+    assert turn is not None
+    assert turn.role == "tool"
+    assert turn.tool_name == "lookup"
+    assert turn.message is None
+
+
+def test_parse_tool_call_missing_name_is_ignored():
+    assert mon.parse_monitor_event({"type": "client_tool_call", "client_tool_call": {}}) is None
+
+
 # --- parse_monitor_event: events we ignore -----------------------------------
 
 
@@ -100,6 +164,13 @@ def test_format_sse_frames_a_turn():
     data_line = next(l for l in frame.splitlines() if l.startswith("data: "))
     payload = json.loads(data_line[len("data: "):])
     assert payload == {"role": "user", "message": "Hi there."}
+
+
+def test_format_sse_carries_tool_name():
+    frame = mon.format_sse(ConversationTurn(role="tool", tool_name="escalate_emergency", message="Severe headache."))
+    data_line = next(l for l in frame.splitlines() if l.startswith("data: "))
+    payload = json.loads(data_line[len("data: "):])
+    assert payload == {"role": "tool", "message": "Severe headache.", "tool_name": "escalate_emergency"}
 
 
 # --- /live route -------------------------------------------------------------

@@ -73,18 +73,47 @@ export function LiveCallTranscript({
       ) : (
         <div className="conv-transcript">
           {turns
-            .filter((t) => t.message)
-            .map((t, i) => (
-              <div key={i} className={`conv-turn conv-turn-${t.role}`}>
-                <span className="conv-turn-role">
-                  {t.role === "agent" ? "Agent" : "Patient"}
-                </span>
-                <span className="conv-turn-msg">{t.message}</span>
-              </div>
-            ))}
+            // Keep tool turns even with no detail text — the action itself matters.
+            .filter((t) => t.message || t.role === "tool")
+            .map((t, i) =>
+              t.role === "tool" ? (
+                <div key={i} className="conv-tool" title={t.message ?? undefined}>
+                  <ToolIcon />
+                  <span className="conv-tool-name">{formatToolName(t.tool_name)}</span>
+                  {t.message && <span className="conv-tool-detail">{t.message}</span>}
+                </div>
+              ) : (
+                <div key={i} className={`conv-turn conv-turn-${t.role}`}>
+                  <span className="conv-turn-role">
+                    {t.role === "agent" ? "Agent" : "Patient"}
+                  </span>
+                  <span className="conv-turn-msg">{t.message}</span>
+                </div>
+              ),
+            )}
           <div ref={endRef} />
         </div>
       )}
     </div>
+  );
+}
+
+/** "escalate_emergency" -> "Escalate emergency" for a human-readable action label. */
+function formatToolName(name?: string | null): string {
+  if (!name) return "Tool call";
+  const spaced = name.replace(/_/g, " ").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function ToolIcon() {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M14.5 5.5a3.5 3.5 0 0 1-4.6 4.3L5 14.7a1.7 1.7 0 1 0 2.4 2.4l4.9-4.9a3.5 3.5 0 0 0 4.3-4.6l-2 2-2-2 2-2.1Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

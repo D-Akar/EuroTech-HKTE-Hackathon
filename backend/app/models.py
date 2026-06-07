@@ -261,10 +261,17 @@ class EscalationRecord(BaseModel):
 
 
 class ConversationTurn(BaseModel):
-    """One turn in the call transcript."""
+    """One turn in the call transcript.
 
-    role: Literal["user", "agent"]
+    ``tool`` is a live-monitor-only role: an agent tool invocation (e.g.
+    ``escalate_emergency``) surfaced as its own entry so the UI can render it as a
+    distinct action card rather than a speech bubble. ``tool_name`` is set only for
+    that role; ``message`` then carries a short human-readable detail (e.g. reason).
+    """
+
+    role: Literal["user", "agent", "tool"]
     message: str | None = None
+    tool_name: str | None = None
     time_in_call_secs: int | None = None
 
 

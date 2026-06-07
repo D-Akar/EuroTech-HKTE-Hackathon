@@ -143,9 +143,11 @@ export interface PatientStatusEvent {
 }
 
 export interface ConversationTurn {
-  role: "user" | "agent";
+  role: "user" | "agent" | "tool";
   message: string | null;
-  time_in_call_secs: number | null;
+  /** Set only for `role: "tool"` — the invoked tool's name (e.g. escalate_emergency). */
+  tool_name?: string | null;
+  time_in_call_secs?: number | null;
 }
 
 export interface ConversationDataPoint {

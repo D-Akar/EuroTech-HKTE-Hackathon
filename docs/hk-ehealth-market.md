@@ -128,7 +128,7 @@ of what real eHRSS engagement would require, beyond the current scaffold:
 - **Consent / OAuth** and a real auth layer (none today).
 - **PDPO controls, encryption at rest/in transit, HK data residency** (encryption +
   transport hardening are implemented but config-gated/off by default; HK residency is a
-  hosting decision not yet done — see PRODUCT.md §5 and PRIVACY.md).
+  hosting decision not yet done - see PRODUCT.md §5 and PRIVACY.md).
 - **HL7 ↔ FHIR mapping layer** for the eventual eHRSS deposit path.
 
 **Sequencing:** the small, high-credibility demo upgrades (a real `GET /fhir/Patient/{id}`

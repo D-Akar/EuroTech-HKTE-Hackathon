@@ -2,7 +2,7 @@
 
 The check-in agent's behaviour (ask a consent question first, hold a strict gate
 until the patient confirms, speak the privacy response verbatim on request) used
-to live only in ``integrations/OUTBOUND_AGENT_SETUP.md`` — a prompt a human had to
+to live only in ``integrations/OUTBOUND_AGENT_SETUP.md`` - a prompt a human had to
 paste into the ElevenLabs dashboard. If that paste never happened, the agent ran
 on the dashboard's default prompt and skipped consent entirely.
 

@@ -25,16 +25,17 @@ function demoSnapshot(elapsedSeconds: number): LiveVitals {
 }
 
 // A held, operator-set heart rate for demos where the scripted ramp is too slow or
-// you want to land on an exact value on cue (e.g. 110 bpm to trip the urgent line and
-// fire the emergency call). Steps/SpO2/stress shift mildly with HR so the tile stays
-// coherent, but the heart rate is what drives the assessment + escalation.
-function manualSnapshot(hr: number): LiveVitals {
+// you want to land on an exact value on cue (e.g. 85 bpm to trip the urgent line and
+// fire the emergency call). The caller jitters the HR and advances the step count
+// between ticks; SpO2/stress shift mildly with HR so the tile stays coherent, but the
+// heart rate is what drives the assessment + escalation.
+function manualSnapshot(hr: number, steps: number): LiveVitals {
   const at = new Date().toISOString();
   const t = Math.max(0, Math.min(1, (hr - 50) / 100)); // 50 bpm -> 0, 150 bpm -> 1
   const base = {
     source: "demo" as const,
     heart_rate: { value: hr, unit: "/min", at },
-    steps: { value: 2400, unit: "steps", at },
+    steps: { value: steps, unit: "steps", at },
     spo2: { value: Math.round(98 - t * 5), unit: "%", at },
     stress: { value: Math.round(18 + t * 60), unit: "score", at },
   };
@@ -64,8 +65,19 @@ export function useLiveVitals(
       // Operator pinned an exact heart rate -> hold it (re-emitting so the timestamp
       // stays fresh) instead of running the auto-ramp.
       if (manualHr != null) {
-        const emit = () =>
-          setState({ data: manualSnapshot(manualHr), loading: false, error: null });
+        // Hold the pinned heart rate with a small lifelike jitter (-3..+5 bpm) and
+        // let the step count climb steadily (~+1 per tick, sometimes +2) so the tile
+        // reads like a live, moving patient instead of a frozen number.
+        let steps = 2400;
+        const emit = () => {
+          steps += Math.random() < 0.75 ? 1 : 2;
+          const jitter = Math.round(-3 + Math.random() * 8); // -3..+5 bpm
+          setState({
+            data: manualSnapshot(manualHr + jitter, steps),
+            loading: false,
+            error: null,
+          });
+        };
         emit();
         const timer = window.setInterval(emit, DEMO_TICK_MS);
         return () => window.clearInterval(timer);

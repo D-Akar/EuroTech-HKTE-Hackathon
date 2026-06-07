@@ -53,7 +53,7 @@ export function CallPanel({
   const onCallCompletedRef = useRef(onCallCompleted);
   onCallCompletedRef.current = onCallCompleted;
 
-  // Call ids whose live stream has ended this session — flip them to the
+  // Call ids whose live stream has ended this session - flip them to the
   // post-call view even though their record still reads "initiated".
   const [liveEnded, setLiveEnded] = useState<Set<number>>(new Set());
 

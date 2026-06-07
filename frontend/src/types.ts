@@ -145,7 +145,7 @@ export interface PatientStatusEvent {
 export interface ConversationTurn {
   role: "user" | "agent" | "tool";
   message: string | null;
-  /** Set only for `role: "tool"` — the invoked tool's name (e.g. escalate_emergency). */
+  /** Set only for `role: "tool"` - the invoked tool's name (e.g. escalate_emergency). */
   tool_name?: string | null;
   time_in_call_secs?: number | null;
 }

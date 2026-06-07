@@ -73,7 +73,7 @@ export function LiveCallTranscript({
       ) : (
         <div className="conv-transcript">
           {turns
-            // Keep tool turns even with no detail text — the action itself matters.
+            // Keep tool turns even with no detail text - the action itself matters.
             .filter((t) => t.message || t.role === "tool")
             .map((t, i) =>
               t.role === "tool" ? (

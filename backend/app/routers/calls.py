@@ -208,7 +208,7 @@ async def live_call_transcript(patient_id: int, call_id: int, request: Request) 
         # Upstream closed on its own (call ended). Tell the client it's over so
         # EventSource stops reconnecting and the row flips to the post-call view.
         # (Not in a finally: a disconnect closes us via GeneratorExit, during which
-        # yielding is illegal — and the cleanup we need lives in stream_turns.)
+        # yielding is illegal - and the cleanup we need lives in stream_turns.)
         yield "event: end\ndata: {}\n\n"
 
     headers = {

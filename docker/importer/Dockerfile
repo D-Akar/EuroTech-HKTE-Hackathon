@@ -2,7 +2,7 @@
 #
 # Runs backend/scripts/import_fhir_to_mongo.py against the mongo service once the
 # database is healthy, then exits. The script upserts by _id, so re-running on
-# every `docker compose up` is idempotent — no duplicates, latest file wins.
+# every `docker compose up` is idempotent - no duplicates, latest file wins.
 FROM python:3.12-slim
 
 # pymongo is the only dependency the import script needs (version pinned to match

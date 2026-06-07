@@ -197,11 +197,13 @@ restart the backend after editing it. Override its location with `FEATURED_PATIE
 | GET    | `/patients/{id}/summary`          | Vitals summary statistics       |
 | GET    | `/patients/{id}/live`             | Current live vitals + escalation status |
 
-## Real Garmin wearable data (patient 5)
+## Real Garmin wearable data (patient 7)
 
-Patient id 5 ("Dario Monopoli - live Garmin") is backed by real data pulled from a Garmin
-account, not mock seed data. It shows the wearable pipeline working end to end. The four
-elderly patients above stay mock.
+Patient id 7 ("Pang Wai-kuen") is the live-Garmin / demo patient (set by
+`GARMIN_PATIENT_ID`, default `7`): backed by real data pulled from a Garmin account, not
+mock seed data, and skipped by the FHIR overlay so it keeps its own identity. It shows
+the wearable pipeline working end to end and is the patient the live escalation demo
+drives from stable to urgent.
 
 How it fits together:
 
@@ -209,8 +211,8 @@ How it fits together:
   stress, sleep, SpO2, respiration, body battery, steps) and exports them as sample dicts.
   Needs `pip install garminconnect curl_cffi` and the account owner's own login.
 - Serving: `app/wearable_source.py` aggregates those sample dicts per day into the existing
-  `WearableReading` model, so `GET /patients/5/wearables` returns real daily vitals with no
-  frontend change. The richer per-reading data is at `GET /patients/5/vitals?kind=<kind>`
+  `WearableReading` model, so `GET /patients/7/wearables` returns real daily vitals with no
+  frontend change. The richer per-reading data is at `GET /patients/7/vitals?kind=<kind>`
   (e.g. `stress`, `spo2`, `sleep_stage`), in the same sample-dict shape used for FHIR mapping.
 - Data source: it reads `$GARMIN_SAMPLES` if set, otherwise `backend/data/garmin_samples.json`
   (the real export, gitignored so the data stays local), otherwise

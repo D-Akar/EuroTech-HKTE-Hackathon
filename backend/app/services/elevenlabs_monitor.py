@@ -3,7 +3,7 @@
 ``parse_monitor_event`` and ``format_sse`` are pure (no I/O) so they can be tested
 against captured event bodies. ``stream_turns`` wraps them with the upstream
 WebSocket and is the only network seam; it is tolerant of every failure mode
-(not-configured, connect rejected, socket dropped) — any of which simply ends the
+(not-configured, connect rejected, socket dropped) - any of which simply ends the
 stream so the caller falls back to the post-call view.
 
 Real-time monitoring is an ElevenLabs **Enterprise** capability: the API key needs
@@ -45,7 +45,7 @@ _TRANSCRIPT_EVENTS: dict[str, tuple[str, str, tuple[str, ...]]] = {
 }
 
 
-# Inline expressive/audio tags the agent emits to control TTS delivery — e.g.
+# Inline expressive/audio tags the agent emits to control TTS delivery - e.g.
 # ``[concerned]``, ``[slow]``, ``[laughs]``, ``[deep breath]``. They're direction, not
 # speech, so we drop them from what a coordinator reads. Deliberately matches only
 # alphabetic (+ space) bracketed tokens, so real content like ``[2/10]`` survives.
@@ -112,7 +112,7 @@ def parse_monitor_event(raw: object) -> ConversationTurn | None:
         return None
     role, wrapper_key, fields = mapping
     # Look in the known wrapper, the type-derived ``{type}_event`` name (tolerant of
-    # shapes whose wrapper does match the type), then the flat body — first hit wins.
+    # shapes whose wrapper does match the type), then the flat body - first hit wins.
     sources = [
         raw[key]
         for key in (wrapper_key, f"{raw['type']}_event")
@@ -145,7 +145,7 @@ async def stream_turns(conversation_id: str) -> AsyncIterator[ConversationTurn]:
     """Yield transcript turns from the live monitor socket until the call ends.
 
     The upstream socket is closed automatically when the consumer stops iterating
-    (``async with`` — closes on tab disconnect / call end / break), so no upstream
+    (``async with`` - closes on tab disconnect / call end / break), so no upstream
     connection is leaked. Any failure (not configured, connect rejected, drop) just
     ends the iterator.
     """
@@ -172,7 +172,7 @@ async def stream_turns(conversation_id: str) -> AsyncIterator[ConversationTurn]:
         # close usually means the conversation wasn't active to monitor (e.g. still
         # ringing / already over), distinct from a connect rejection below.
         logger.info("Live monitor for %s closed by server after %d turn(s)", conversation_id, turns)
-    except Exception as exc:  # noqa: BLE001 — a monitor failure must never crash the route
+    except Exception as exc:  # noqa: BLE001 - a monitor failure must never crash the route
         logger.warning(
             "Live monitor for %s ended (%s) after %d turn(s): %s",
             conversation_id, type(exc).__name__, turns, exc,

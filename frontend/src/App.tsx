@@ -9,6 +9,9 @@ import { assessLive } from "./lib/liveAssessment";
 import { STATUS, STATUS_ORDER } from "./city";
 import type { LiveVitals, Meta, Patient, PatientStatus, PatientStatusEvent } from "./types";
 
+// Heart rate the "Demo" button pins the featured patient at (stage demo).
+const DEMO_BPM = 85;
+
 export default function App() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -18,8 +21,6 @@ export default function App() {
   const [manualHr, setManualHr] = useState<number | null>(null); // demo: operator-pinned HR
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  // Live 'dementia demo' call state: idle -> calling -> sent | error.
-  const [demoCall, setDemoCall] = useState<"idle" | "calling" | "sent" | "error">("idle");
   // Roster drawer: floats as glass over the full-screen twin; collapsible.
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -92,22 +93,6 @@ export default function App() {
     if (!demo) setManualHr(null); // leaving demo drops any pinned heart rate
   }, [demo, featuredId]);
 
-  // Place the live 'dementia demo' call to the featured patient (the operator's
-  // own phone on stage): the agent asks the day, mentions the high HR, asks again,
-  // and escalates to the nurse if they can't answer.
-  async function handleDementiaDemoCall() {
-    if (featuredId == null || demoCall === "calling") return;
-    setDemoCall("calling");
-    try {
-      await api.dementiaDemoCall(featuredId);
-      setDemoCall("sent");
-      window.setTimeout(() => setDemoCall("idle"), 4000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setDemoCall("error");
-      window.setTimeout(() => setDemoCall("idle"), 4000);
-    }
-  }
 
   const counts = useMemo(() => {
     const c: Record<PatientStatus, number> = { stable: 0, attention: 0, urgent: 0 };
@@ -194,59 +179,23 @@ export default function App() {
         <button
           className={`demo-chip ${demo ? "on" : ""}`}
           aria-pressed={demo}
-          onClick={() => setDemo((d) => !d)}
+          onClick={() => {
+            const next = !demo;
+            setDemo(next);
+            // Demo jumps the featured patient's heart rate straight to a pinned
+            // value; clicking again returns to live device data.
+            setManualHr(next ? DEMO_BPM : null);
+          }}
           title={
             demo
-              ? "Simulated exertion ramp is playing (not live device data). Click to return to live."
-              : "Play a simulated exertion ramp for the featured patient (stage demo)"
+              ? `Holding the featured patient at ${DEMO_BPM} bpm (not live device data). Click to return to live.`
+              : `Pin the featured patient's heart rate at ${DEMO_BPM} bpm (stage demo)`
           }
           disabled={featuredId == null}
         >
           <span className="demo-dot" aria-hidden />
           {demo ? "Simulating" : "Demo"}
         </button>
-
-        {demo && (
-          <div className="hr-presets" role="group" aria-label="Manual heart rate (demo)">
-            {[
-              { hr: 60, label: "Resting" },
-              { hr: 90, label: "Elevated" },
-              { hr: 110, label: "Urgent" },
-            ].map(({ hr, label }) => (
-              <button
-                key={hr}
-                className={`demo-chip hr-preset ${hr >= 110 ? "hr-preset-urgent" : ""} ${manualHr === hr ? "on" : ""}`}
-                aria-pressed={manualHr === hr}
-                onClick={() => setManualHr(hr)}
-                title={`Hold the featured patient's heart rate at ${hr} bpm`}
-              >
-                {label} · {hr}
-              </button>
-            ))}
-            <button
-              className={`demo-chip hr-preset ${manualHr === null ? "on" : ""}`}
-              aria-pressed={manualHr === null}
-              onClick={() => setManualHr(null)}
-              title="Resume the automatic exertion ramp"
-            >
-              Ramp
-            </button>
-            <button
-              className={`demo-chip demo-chip-dementia ${demoCall === "calling" ? "on" : ""}`}
-              onClick={handleDementiaDemoCall}
-              disabled={featuredId == null || demoCall === "calling"}
-              title="Call the featured patient: the agent asks the day, mentions the high heart rate, asks again, and alerts the nurse if they can't answer"
-            >
-              {demoCall === "calling"
-                ? "Calling…"
-                : demoCall === "sent"
-                  ? "Call placed ✓"
-                  : demoCall === "error"
-                    ? "Call failed"
-                    : "Dementia call"}
-            </button>
-          </div>
-        )}
 
         <Clock />
       </header>

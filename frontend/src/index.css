@@ -1844,7 +1844,7 @@ textarea.input::placeholder {
   font-weight: 500;
 }
 
-/* Agent tool invocation (e.g. escalate_emergency) — an action, not speech, so it
+/* Agent tool invocation (e.g. escalate_emergency) - an action, not speech, so it
    reads as a distinct card with an attention accent rather than a transcript line. */
 .conv-tool {
   display: flex;

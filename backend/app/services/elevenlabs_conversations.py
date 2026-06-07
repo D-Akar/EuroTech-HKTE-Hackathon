@@ -165,3 +165,25 @@ async def fetch_conversation_audio(conversation_id: str) -> bytes | None:
     except Exception as exc:  # noqa: BLE001 - never let a fetch failure crash a route
         logger.warning("Failed to fetch audio for conversation %s: %s", conversation_id, exc)
         return None
+
+
+async def delete_conversation(conversation_id: str) -> bool:
+    """Delete a conversation (audio + transcript) at ElevenLabs (right to erasure).
+
+    Best-effort: returns True on success, False if telephony isn't configured or the
+    request fails. Used by the erasure endpoint so a patient's call recordings are
+    removed at the sub-processor, not just from CareLoop's own stores.
+    """
+    if not settings.elevenlabs_api_key:
+        return False
+
+    url = f"{settings.elevenlabs_conversations_url}/{conversation_id}"
+    headers = {"xi-api-key": settings.elevenlabs_api_key}
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.delete(url, headers=headers)
+        resp.raise_for_status()
+        return True
+    except Exception as exc:  # noqa: BLE001 - erasure must not crash on a sub-processor error
+        logger.warning("Failed to delete conversation %s at ElevenLabs: %s", conversation_id, exc)
+        return False

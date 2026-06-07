@@ -97,7 +97,7 @@ patient data, including voice recordings and wearable telemetry, at that tier.
 | **DPP 1 — Purpose & Manner of Collection** | Collect only telemetry relevant to immediate triage and care (heart rate, SpO₂, sleep, check-in answers); do **not** over-collect ambient/environment data. Collection is preceded by an explicit spoken consent gate (§7), and each decision is persisted as a consent record. | ✅ Consent gate + consent records; 🟡 minimisation by design |
 | **DPP 2 — Accuracy & Retention** | Use the *explainable* architecture — clinician-reviewable transcripts and source-cited extracted data — so a clinician can correct a flawed AI assumption **before** it becomes part of the permanent health record. Per-class retention limits, purged daily and on demand (`app/retention.py`). | ✅ Retention engine (config-gated); transcript review ✅ |
 | **DPP 3 — Use of Data** | Strictly restrict use to healthcare provision. **Explicitly bar** use of patient patterns for marketing or insurance profiling without separate opt-in consent. Data-use endpoints are gated on an active consent record for the requested *scope* (`app/security/consent_guard.py`), so a purpose the patient did not consent to is technically refused (451), not just policy-barred. | ✅ Consent-scope enforcement (config-gated `CARELOOP_CONSENT_ENFORCEMENT`) |
-| **DPP 4 — Data Security** | AES-256-GCM at rest, enforced TLS + HSTS in transit, strict Role-Based Access Control (RBAC), a tamper-evident audit log, and automatic session logout on the city-scale dashboard. See §8. | ✅ Encryption, RBAC, audit, transport (config-gated); ⬜ dashboard auto-logout |
+| **DPP 4 — Data Security** | AES-256-GCM at rest, enfordced TLS + HSTS in transit, strict Role-Based Access Control (RBAC), a tamper-evident audit log, and automatic session logout on the city-scale dashboard. See §8. | ✅ Encryption, RBAC, audit, transport (config-gated); ⬜ dashboard auto-logout |
 | **DPP 5 — Openness & Transparency** | Maintain an accessible privacy policy (this document) describing eHRSS integration and local hosting; the voice agent reads the patient a plain-language privacy statement on request (§7). | ✅ This policy + spoken privacy response |
 | **DPP 6 — Access & Correction** | A utility to **export a complete history** of a patient's data on request (`GET /patients/{id}/data-export`), **correct** it (`PATCH /patients/{id}`, audited), plus erasure (`DELETE /patients/{id}/data`) and the clinician PDF. | ✅ Full JSON export + rectification + erasure |
 
@@ -260,9 +260,18 @@ covered by a data-processing agreement before any real patient data flows.
   purge data past its limit (`app/retention.py`). Default `0` = keep forever, so
   retention is a no-op until a practice sets real limits.
 - **Deletion / erasure** ✅ — `DELETE /patients/{id}/data` deletes a patient's
-  derived/stored data across every store (check-ins, calls, care plan, consent,
-  questions, conversations, phone override) and redacts the roster slot. Subject to
-  any statutory retention obligation in production.
+  derived/stored data across every store (check-ins, calls + config + schedules,
+  care plan, consent, generated questions, cached conversations, phone override) from
+  both memory **and** MongoDB. It also **deletes the call recordings/transcripts at
+  ElevenLabs** (the sub-processor) via the conversation API, best-effort. The patient's
+  FHIR-overlaid identity/profile is redacted **and durably tombstoned**
+  (`app/erasure_store.py`) so the overlay keeps the slot redacted across restarts
+  (verified: a re-applied overlay leaves an erased patient as `[erased]` while other
+  patients overlay normally). Subject to any statutory retention obligation in production.
+  - *Honest caveat:* the synthetic record in the read-only `fhir_patients` **source**
+    collection is intentionally left intact — in production the source registry / eHRSS
+    is the system of record for that, not CareLoop, so erasure there is the registry's
+    responsibility. ⬜
 - **Breach response** 🟡 — A documented incident runbook now exists
   ([`docs/breach-runbook.md`](docs/breach-runbook.md)): roles, the **72-hour GDPR /
   PCPD notification clock**, containment (secret rotation, kill-switch), risk

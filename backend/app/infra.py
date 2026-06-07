@@ -26,6 +26,7 @@ from . import (
     care_plan_store,
     checkin_store,
     data,
+    erasure_store,
     fhir_source,
     patient_overrides,
     wearable_source,
@@ -94,6 +95,11 @@ def ensure_mongo_and_overlays() -> None:
                     "MongoDB not reachable after %ss - dashboard may stay on mock data.",
                     settings.mongo_ready_timeout,
                 )
+
+    # Load erasure tombstones first so the overlay keeps erased slots redacted.
+    erased = erasure_store.load_persisted()
+    if erased:
+        log.info("Loaded %d right-to-erasure tombstone(s).", erased)
 
     bound = fhir_source.apply_overlays(data.PATIENTS, wearable_source.REAL_PATIENT_ID)
     if bound:

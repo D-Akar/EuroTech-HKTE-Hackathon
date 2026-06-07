@@ -24,6 +24,7 @@ from .. import (
     consent_store,
     conversation_store,
     data,
+    erasure_store,
     fhir_source,
     patient_overrides,
     retention,
@@ -40,7 +41,7 @@ from ..models import (
 )
 from ..security import consent_guard
 from ..security.auth import Principal, require_role
-from ..services import question_gen
+from ..services import elevenlabs_conversations, question_gen
 
 router = APIRouter(tags=["privacy"])
 
@@ -172,16 +173,31 @@ def export_patient_data(
 
 
 @router.delete("/patients/{patient_id}/data", response_model=ErasureResult)
-def erase_patient_data(
+async def erase_patient_data(
     patient_id: int, principal: Principal = Depends(require_role("admin"))
 ) -> ErasureResult:
     """Right to erasure (GDPR Art.17): delete a patient's data across every store.
 
     Derived/stored data is deleted outright; the in-memory roster slot is **redacted**
     (name/phone removed) rather than dropped, so the demo dashboard does not break.
+    The patient's call recordings are also deleted at ElevenLabs (the sub-processor),
+    and the FHIR-overlaid identity is durably tombstoned so it stays redacted.
     """
     patient = _require_patient(patient_id)
+    # Delete call recordings at ElevenLabs FIRST, while the call history (and thus the
+    # conversation ids) still exists. Best-effort: a sub-processor failure is logged,
+    # not fatal, so the rest of the erasure still proceeds.
+    conversation_ids = [
+        r.conversation_id
+        for r in call_store.list_call_records(patient_id)
+        if r.conversation_id
+    ]
+    recordings_deleted = 0
+    for cid in conversation_ids:
+        if await elevenlabs_conversations.delete_conversation(cid):
+            recordings_deleted += 1
     removed = {
+        "elevenlabs_recordings": recordings_deleted,
         # Resolve conversation ids from the call history BEFORE clearing it.
         "conversations": conversation_store.erase_patient(patient_id),
         "checkins": checkin_store.erase_patient(patient_id),
@@ -193,9 +209,13 @@ def erase_patient_data(
     }
     # Redact the live roster slot + drop the FHIR overlay profile.
     patient.name = "[erased]"
-    patient.phone_number = None
+    patient.phone_number = ""
     patient.fhir_id = None
     fhir_source._PROFILES.pop(patient_id, None)
+    # Durably tombstone the slot so the FHIR overlay keeps it redacted across
+    # restarts (otherwise the name/profile re-appear on the next boot).
+    erasure_store.record(patient_id)
+    removed["identity_tombstoned"] = 1
 
     audit.record(principal.subject, "erase", "patient", patient_id, detail=str(removed))
     return ErasureResult(patient_id=patient_id, erased_at=datetime.now(), removed=removed)

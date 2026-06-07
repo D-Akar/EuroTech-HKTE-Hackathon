@@ -214,6 +214,17 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
         slot.fhir_id = fhir_id
         _PROFILES[slot.id] = _build_profile(slot.id, fhir_id, doc, age)
 
+    # Right-to-erasure: keep tombstoned slots redacted across restarts, even though
+    # the overlay above just re-bound them from the read-only FHIR source.
+    from . import erasure_store  # local import avoids an import cycle
+
+    for slot in slots:
+        if erasure_store.is_erased(slot.id):
+            slot.name = "[erased]"
+            slot.phone_number = ""
+            slot.fhir_id = None
+            _PROFILES.pop(slot.id, None)
+
     return bound
 
 

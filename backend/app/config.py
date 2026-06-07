@@ -51,6 +51,9 @@ class Settings:
     consent_collection: str = os.getenv("CONSENT_COLLECTION", "patient_consent")
     # Tamper-evident access/audit log (PDPO DPP4, GDPR Art.32). See app/audit.py.
     audit_collection: str = os.getenv("AUDIT_COLLECTION", "audit_log")
+    # Durable right-to-erasure tombstones: patient slot ids whose FHIR-overlaid
+    # identity/profile must stay redacted across restarts. See app/erasure_store.py.
+    erasure_collection: str = os.getenv("ERASURE_COLLECTION", "erased_patients")
 
     # ---------------------------------------------------------------------------
     # Privacy & data-protection controls (see PRIVACY.md). Every control is

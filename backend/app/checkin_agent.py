@@ -2,7 +2,7 @@
 
 The check-in agent's behaviour (ask a consent question first, hold a strict gate
 until the patient confirms, speak the privacy response verbatim on request) used
-to live only in ``integrations/OUTBOUND_AGENT_SETUP.md`` — a prompt a human had to
+to live only in ``integrations/OUTBOUND_AGENT_SETUP.md`` - a prompt a human had to
 paste into the ElevenLabs dashboard. If that paste never happened, the agent ran
 on the dashboard's default prompt and skipped consent entirely.
 
@@ -104,6 +104,15 @@ def system_prompt(patient: Patient) -> str:
         "where you left off. If an answer already covers a later question, "
         "acknowledge it and move to the next one still outstanding instead of "
         "repeating it.\n\n"
+        "LIVE WEARABLE READING (after consent only). If the recent context above "
+        "opens with a 'LIVE wearable reading right now' line, those are the values "
+        "the patient's device is reporting this very moment. If the heart rate (or "
+        "another value) looks high or unusual, gently weave it into the check-in "
+        "without alarming them, for example: 'I can see from your watch that your "
+        "heart rate is a little high right now, how are you feeling?' Use it to guide "
+        "your questions; do not read out raw numbers like a machine. This never "
+        "bypasses the consent gate, and a genuinely severe reading still follows the "
+        "EMERGENCY ESCALATION rule above.\n\n"
         "PRIVACY AND DATA QUESTIONS (applies at any point in the call).\n"
         "If the patient asks how their information or this call is stored, who can "
         "see it, whether it is private, safe, secure, or encrypted, or anything "

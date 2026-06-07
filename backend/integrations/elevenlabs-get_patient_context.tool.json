@@ -10,7 +10,7 @@
       {
         "id": "phone_number",
         "type": "string",
-        "description": "The caller's phone number. Supplied automatically from the call — do not ask the patient for it.",
+        "description": "The caller's phone number. Supplied automatically from the call - do not ask the patient for it.",
         "required": true,
         "value_type": "dynamic_variable",
         "dynamic_variable": "system__caller_id"

@@ -156,17 +156,30 @@ class ConfigUpdate(BaseModel):
     system_prompt: str | None = None
 
 
+class LiveVitalsInput(BaseModel):
+    """A live wearable reading captured in the browser (real Bluetooth watch, the
+    demo control, or the Garmin live stream) at the moment a call is placed, so the
+    voice agent can speak to the patient's *current* vitals, not just stored history."""
+
+    heart_rate: int | None = None  # bpm
+    spo2: int | None = None  # %
+    steps: int | None = None
+    source: str | None = None  # "ble" | "demo" | "live" | ...
+
+
 class TriggerRequest(BaseModel):
     """Request body for an instant 'Call now'."""
 
     to_number: str | None = None  # overrides the patient's stored number
     questions: list[str] | None = None  # overrides the stored config
+    live_vitals: LiveVitalsInput | None = None  # current wearable reading, if any
 
 
 class EmergencyCallRequest(BaseModel):
     """Body for the wearable-triggered emergency call (patient -> nurse fallback)."""
 
     reason: str | None = None  # the out-of-range alert that triggered it
+    live_vitals: LiveVitalsInput | None = None  # current wearable reading, if any
 
 
 class ScheduleRequest(BaseModel):

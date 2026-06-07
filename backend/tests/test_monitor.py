@@ -30,7 +30,7 @@ def test_parse_user_transcript_flat():
 
 def test_parse_user_transcript_real_elevenlabs_wrapper():
     # The shape ElevenLabs actually sends: the `user_transcript` event nests its text
-    # under `user_transcription_event` (transcription, not transcript) — asymmetric
+    # under `user_transcription_event` (transcription, not transcript) - asymmetric
     # with `agent_response`/`agent_response_event`. Regression for patient turns that
     # silently dropped while agent turns came through.
     turn = mon.parse_monitor_event(
@@ -290,7 +290,7 @@ def test_live_route_404_unknown_patient():
 # Exercises the actual network seam (real websockets.connect, real JSON frames,
 # real async iteration + clean close) without ElevenLabs. This is the pattern for
 # testing the WS layer: stand up a scripted local ws server and point the URL
-# builder at it. It also guards the `additional_headers` kwarg — the wrong name
+# builder at it. It also guards the `additional_headers` kwarg - the wrong name
 # would raise here, not just in production.
 
 import asyncio  # noqa: E402

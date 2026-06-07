@@ -5,7 +5,7 @@ older than that is purged. A purge runs on a daily APScheduler job (registered i
 app/scheduler.py) and can be triggered on demand via the admin endpoint.
 
 A retention of ``0`` means "keep indefinitely" (the default), so retention is a
-no-op until a practice configures real limits — which keeps the demo unchanged.
+no-op until a practice configures real limits - which keeps the demo unchanged.
 """
 
 from __future__ import annotations

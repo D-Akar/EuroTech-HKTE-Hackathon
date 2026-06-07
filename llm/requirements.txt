@@ -6,7 +6,7 @@
 #
 # Why pinned:
 #  - The local NVIDIA driver (570.x) caps at CUDA 12.8, so torch/vLLM must be
-#    cu128 builds — the latest vLLM (0.22+) targets CUDA 13 and will NOT run here.
+#    cu128 builds - the latest vLLM (0.22+) targets CUDA 13 and will NOT run here.
 #  - vLLM 0.11.2 pins torch==2.9.0 and ships the xformers attention backend
 #    (flashinfer optional), which is what fits this 8 GB Ada GPU.
 #  - On an ecryptfs home, flashinfer's cubin filenames are too long; see README

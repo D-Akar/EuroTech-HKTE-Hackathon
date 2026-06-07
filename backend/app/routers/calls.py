@@ -62,6 +62,7 @@ async def trigger_call(patient_id: int, body: TriggerRequest) -> CallRecord:
         system_prompt=system_prompt,
         first_message=first_message,
         watch_for_emergency=True,
+        live_vitals=body.live_vitals,
     )
 
 
@@ -129,7 +130,7 @@ async def emergency_call(patient_id: int, body: EmergencyCallRequest) -> CallRec
     path; the Garmin /live path calls the same ``live_monitor.emergency_call``."""
     patient = _require_patient(patient_id)
     reason = body.reason or "Live vitals out of range"
-    return await live_monitor.emergency_call(patient, reason)
+    return await live_monitor.emergency_call(patient, reason, live_vitals=body.live_vitals)
 
 
 @router.get("", response_model=list[CallRecord])
@@ -208,7 +209,7 @@ async def live_call_transcript(patient_id: int, call_id: int, request: Request) 
         # Upstream closed on its own (call ended). Tell the client it's over so
         # EventSource stops reconnecting and the row flips to the post-call view.
         # (Not in a finally: a disconnect closes us via GeneratorExit, during which
-        # yielding is illegal — and the cleanup we need lives in stream_turns.)
+        # yielding is illegal - and the cleanup we need lives in stream_turns.)
         yield "event: end\ndata: {}\n\n"
 
     headers = {

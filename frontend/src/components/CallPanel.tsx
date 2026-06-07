@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../api/client";
-import type { CallRecord, Patient, ScheduledCall } from "../types";
+import { toLiveVitalsInput } from "../lib/liveVitals";
+import type { CallRecord, LiveVitals, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
 import { LiveCallModal } from "./LiveCallModal";
 
@@ -24,10 +26,12 @@ export function CallPanel({
   patient,
   onPatientUpdate,
   onCallCompleted,
+  live,
 }: {
   patient: Patient;
   onPatientUpdate?: (patient: Patient) => void;
   onCallCompleted?: () => void;
+  live?: LiveVitals | null;
 }) {
   const [toNumber, setToNumber] = useState(patient.phone_number);
   const [questions, setQuestions] = useState<string[]>([]);
@@ -52,7 +56,7 @@ export function CallPanel({
   const onCallCompletedRef = useRef(onCallCompleted);
   onCallCompletedRef.current = onCallCompleted;
 
-  // Call ids whose live stream has ended this session — flip them to the
+  // Call ids whose live stream has ended this session - flip them to the
   // post-call view even though their record still reads "initiated".
   const [liveEnded, setLiveEnded] = useState<Set<number>>(new Set());
 
@@ -61,8 +65,16 @@ export function CallPanel({
 
   // A just-placed call the coordinator can opt into watching live. We never open
   // the dialog automatically - it would hijack the screen mid-task - so this backs
-  // an optional "Watch live call" button in the confirmation banner instead.
+  // an optional "Watch live call" button instead.
   const [pendingLiveCallId, setPendingLiveCallId] = useState<number | null>(null);
+
+  // Success messages surface as a transient glassy toast at the top of the screen
+  // that fades itself out after a few seconds, rather than a persistent box.
+  useEffect(() => {
+    if (!status) return;
+    const t = window.setTimeout(() => setStatus(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [status]);
 
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
@@ -143,7 +155,10 @@ export function CallPanel({
     setStatus(null);
     setError(null);
     try {
-      const record = await api.triggerCall(patient.id, { to_number: toNumber });
+      const record = await api.triggerCall(patient.id, {
+        to_number: toNumber,
+        live_vitals: toLiveVitalsInput(live),
+      });
       if (record.status === "initiated") {
         setStatus("Check-in call placed.");
         setAnalysing(true); // poll will surface the summary once analysis lands
@@ -242,17 +257,23 @@ export function CallPanel({
         <h3>Check-in call</h3>
       </div>
 
-      {status && (
+      {status &&
+        createPortal(
+          <div className="toast-success" role="status" aria-live="polite">
+            {status}
+          </div>,
+          document.body,
+        )}
+      {/* Opt-in live watch for a just-placed call. Persistent (unlike the toast)
+          so it stays available after the status message fades. */}
+      {pendingLiveCallId !== null && !liveEnded.has(pendingLiveCallId) && (
         <div className="call-status-row">
-          <p className="call-status">{status}</p>
-          {pendingLiveCallId !== null && !liveEnded.has(pendingLiveCallId) && (
-            <button
-              className="watch-live"
-              onClick={() => setLiveModalCallId(pendingLiveCallId)}
-            >
-              <span className="watch-live-dot" aria-hidden /> Watch live call
-            </button>
-          )}
+          <button
+            className="watch-live"
+            onClick={() => setLiveModalCallId(pendingLiveCallId)}
+          >
+            <span className="watch-live-dot" aria-hidden /> Watch live call
+          </button>
         </div>
       )}
       {error && <p className="call-error">{error}</p>}

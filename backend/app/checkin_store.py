@@ -102,6 +102,21 @@ def list_for_patient(patient_id: int) -> list[CheckIn]:
     return [c for c in _STORE.values() if c.patient_id == patient_id]
 
 
+def merged_recent(patient_id: int, limit: int) -> list[CheckIn]:
+    """Recent check-ins for a patient, **real call-derived first** (newest first),
+    then the synthetic seed history as backfill - so the voice agent and its context
+    reflect the patient's actual prior conversations, not just the mock baseline.
+
+    Mirrors the ordering used in question generation (call-derived ids are monotonic
+    from CALL_DERIVED_ID_BASE, so id breaks same-day ties to keep the newest on top).
+    """
+    from . import data  # late import: data does not import checkin_store
+
+    real = sorted(list_for_patient(patient_id), key=lambda c: (c.date, c.id), reverse=True)
+    synthetic = sorted(data.get_checkins(patient_id), key=lambda c: c.date, reverse=True)
+    return (real + synthetic)[:limit]
+
+
 def erase_patient(patient_id: int) -> int:
     """Remove a patient's call-derived check-ins (right to erasure). Returns count."""
     ids = [cid for cid, c in _STORE.items() if c.patient_id == patient_id]

@@ -1,4 +1,4 @@
-# MongoDB for CareLoop — FHIR patient store (db: careloop, collection: fhir_patients).
+# MongoDB for CareLoop - FHIR patient store (db: careloop, collection: fhir_patients).
 #
 # This is a thin wrapper over the official image: MongoDB itself needs no build
 # step, so we just pin the version and declare the port + a healthcheck. The

@@ -1,4 +1,4 @@
-"""Minimal FHIR R4 read surface — the technical bridge to Hong Kong's eHRSS.
+"""Minimal FHIR R4 read surface - the technical bridge to Hong Kong's eHRSS.
 
 eHealth's stated direction is HL7 → FHIR ("Advancing from HL7 to FHIR", 2021), and
 patient-generated / wearable data is the gap the Primary Healthcare Blueprint names.
@@ -7,7 +7,7 @@ resources with proper LOINC codes, so connecting to eHRSS is a conformance exerc
 rather than a re-architecture. See PRIVACY.md §6 and docs/hk-ehealth-market.md.
 
 > Honest scope: this is a **read** surface over our own data for interoperability /
-> portability. It is **not** an eHRSS connection — no third party can connect today
+> portability. It is **not** an eHRSS connection - no third party can connect today
 > (gated behind government accreditation).
 
 Resources: ``GET /fhir/metadata`` (CapabilityStatement), ``GET /fhir/Patient/{id}``,

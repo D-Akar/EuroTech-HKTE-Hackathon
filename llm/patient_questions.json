@@ -10,7 +10,7 @@
     ],
     "questions": [
       {
-        "text": "You mentioned going for a short walk a few days ago — have you been able to get out and move around much today?",
+        "text": "You mentioned going for a short walk a few days ago - have you been able to get out and move around much today?",
         "category": "wellbeing",
         "related_condition": null,
         "related_symptom": null
@@ -41,7 +41,7 @@
     ],
     "questions": [
       {
-        "text": "A couple of days ago you mentioned feeling a bit short of breath — are you still feeling that way today?",
+        "text": "A couple of days ago you mentioned feeling a bit short of breath - are you still feeling that way today?",
         "category": "symptom_followup",
         "related_condition": null,
         "related_symptom": "short of breath"
@@ -72,7 +72,7 @@
     ],
     "questions": [
       {
-        "text": "You mentioned feeling quite low and having a poor appetite over the last few days — how are you feeling today?",
+        "text": "You mentioned feeling quite low and having a poor appetite over the last few days - how are you feeling today?",
         "category": "symptom_followup",
         "related_condition": "Depression",
         "related_symptom": "Significant changes in appetite"
@@ -103,7 +103,7 @@
     ],
     "questions": [
       {
-        "text": "It's great to hear you've been in good spirits and cooking again—how are you feeling today?",
+        "text": "It's great to hear you've been in good spirits and cooking again-how are you feeling today?",
         "category": "wellbeing",
         "related_condition": null,
         "related_symptom": null
@@ -130,7 +130,7 @@
     "chronic_conditions": [],
     "questions": [
       {
-        "text": "You mentioned you've been going for short walks lately — have you been able to get out and move around much today?",
+        "text": "You mentioned you've been going for short walks lately - have you been able to get out and move around much today?",
         "category": "symptom_followup",
         "related_condition": null,
         "related_symptom": null
@@ -162,7 +162,7 @@
     ],
     "questions": [
       {
-        "text": "Yesterday you mentioned feeling a bit short of breath — have you felt that way again today?",
+        "text": "Yesterday you mentioned feeling a bit short of breath - have you felt that way again today?",
         "category": "symptom_followup",
         "related_condition": null,
         "related_symptom": "short of breath"
@@ -226,7 +226,7 @@
     ],
     "questions": [
       {
-        "text": "You mentioned your pain has been getting worse lately — how are you feeling in that regard today?",
+        "text": "You mentioned your pain has been getting worse lately - how are you feeling in that regard today?",
         "category": "symptom_followup",
         "related_condition": "Fibromyalgia (disorder)",
         "related_symptom": "Pain"
@@ -288,7 +288,7 @@
     ],
     "questions": [
       {
-        "text": "This morning you mentioned feeling a bit short of breath — are you still feeling that way now?",
+        "text": "This morning you mentioned feeling a bit short of breath - are you still feeling that way now?",
         "category": "symptom_followup",
         "related_condition": "Essential hypertension",
         "related_symptom": "Shortness of breath"
@@ -379,7 +379,7 @@
     ],
     "questions": [
       {
-        "text": "Yesterday you mentioned feeling a bit short of breath — has that feeling stayed the same or gotten any worse today?",
+        "text": "Yesterday you mentioned feeling a bit short of breath - has that feeling stayed the same or gotten any worse today?",
         "category": "symptom_followup",
         "related_condition": "COPD",
         "related_symptom": "Increased shortness of breath"
@@ -411,7 +411,7 @@
     ],
     "questions": [
       {
-        "text": "You mentioned having quite a bit of back pain over the last few days — how is that feeling today?",
+        "text": "You mentioned having quite a bit of back pain over the last few days - how is that feeling today?",
         "category": "symptom_followup",
         "related_condition": "Malignant tumor of colon",
         "related_symptom": "Back pain"
@@ -475,7 +475,7 @@
     ],
     "questions": [
       {
-        "text": "It's wonderful to hear you've been cooking again—how have you been feeling today?",
+        "text": "It's wonderful to hear you've been cooking again-how have you been feeling today?",
         "category": "wellbeing",
         "related_condition": null,
         "related_symptom": null
@@ -567,7 +567,7 @@
     ],
     "questions": [
       {
-        "text": "Yesterday you mentioned having a mild headache — has that headache stayed the same or has it gone away?",
+        "text": "Yesterday you mentioned having a mild headache - has that headache stayed the same or has it gone away?",
         "category": "symptom_followup",
         "related_condition": "Hypertension",
         "related_symptom": "Headache"
@@ -597,7 +597,7 @@
     ],
     "questions": [
       {
-        "text": "You mentioned having a little bit of pain recently — has that pain stayed about the same or has it changed today?",
+        "text": "You mentioned having a little bit of pain recently - has that pain stayed about the same or has it changed today?",
         "category": "symptom_followup",
         "related_condition": "Chronic low back pain",
         "related_symptom": "Pain"
@@ -692,7 +692,7 @@
     ],
     "questions": [
       {
-        "text": "You mentioned having a mild headache a couple of days ago — has that headache stayed the same or has it changed at all today?",
+        "text": "You mentioned having a mild headache a couple of days ago - has that headache stayed the same or has it changed at all today?",
         "category": "symptom_followup",
         "related_condition": "Chronic intractable migraine without aura",
         "related_symptom": "Headache"
@@ -766,7 +766,7 @@
         "related_symptom": null
       },
       {
-        "text": "You mentioned you were in good spirits and cooking the other day — have you been able to do much of that today?",
+        "text": "You mentioned you were in good spirits and cooking the other day - have you been able to do much of that today?",
         "category": "wellbeing",
         "related_condition": null,
         "related_symptom": null
@@ -877,7 +877,7 @@
     ],
     "questions": [
       {
-        "text": "Yesterday you mentioned feeling dizzy when standing up — has that happened again today?",
+        "text": "Yesterday you mentioned feeling dizzy when standing up - has that happened again today?",
         "category": "symptom_followup",
         "related_condition": "Atrial Fibrillation",
         "related_symptom": "Dizziness or lightheadedness"

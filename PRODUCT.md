@@ -1,4 +1,4 @@
-# Product — Project LotusCare / CareLoop
+# Product - Project LotusCare / CareLoop
 
 ## Next-Generation AI-Driven Elderly Tele-Health Platform
 
@@ -42,7 +42,7 @@ moment anyone looks past the wow factor.
 
 ## 2. Product Purpose & Signature Surface
 
-The platform fuses two patient streams — AI voice check-ins and wearable telemetry —
+The platform fuses two patient streams - AI voice check-ins and wearable telemetry -
 into a live, city-scale overview of every patient's wellbeing. The signature surface is
 a **digital twin of the city (Hong Kong)**: a stylized 3D cityscape where patients live
 as points of light, status ripples across the map in real time, and emergencies surface
@@ -58,14 +58,14 @@ the whole product.
 
 To maximize accessibility, the patient interface requires **zero smartphone literacy**.
 
-* **Outbound automated proactive calling ✅** — the platform places a **real phone call**
+* **Outbound automated proactive calling ✅** - the platform places a **real phone call**
   (ElevenLabs + Twilio, EU data-residency endpoint) where the AI agent speaks with the
   patient and runs their check-in.
-* **Inbound daily check-ups 🟡** — an ElevenLabs inbound agent can be configured to answer
+* **Inbound daily check-ups 🟡** - an ElevenLabs inbound agent can be configured to answer
   patient call-backs to a dedicated number (setup in
   `backend/integrations/INBOUND_AGENT_SETUP.md`); it is configured at the provider, not yet
   a built-in app feature with its own logic.
-* **Localized, multi-lingual speech ⬜ (vision)** — the goal is **Cantonese (with localized
+* **Localized, multi-lingual speech ⬜ (vision)** - the goal is **Cantonese (with localized
   Hong Kong idioms), Mandarin, and English** STT/TTS tuned for elderly speech patterns
   (slower cadence, tremor, repetition). Today the agent uses stock ElevenLabs voices;
   there is **no custom Cantonese fine-tuning**.
@@ -74,34 +74,34 @@ To maximize accessibility, the patient interface requires **zero smartphone lite
 
 The AI assistant functions as a contextual clinical-intake tool, not a linear chatbot.
 
-* **FHIR ingestion + read surface ✅ / eHRSS integration ⬜** — the backend ingests
+* **FHIR ingestion + read surface ✅ / eHRSS integration ⬜** - the backend ingests
   **HL7 FHIR** patient records (JSON; XML for care plans) into MongoDB and exposes a
   **FHIR R4 read API** (`/fhir/metadata`, `/fhir/Patient`, `/fhir/Observation`). It is
-  **FHIR-native and accreditation-ready**, but **not** integrated with Hong Kong's eHRSS —
+  **FHIR-native and accreditation-ready**, but **not** integrated with Hong Kong's eHRSS -
   connection is gated behind a government accreditation scheme (see
   [`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md)).
-* **Wearable / IoT telemetry ✅** — ingests biometric streams from a consumer wearable
+* **Wearable / IoT telemetry ✅** - ingests biometric streams from a consumer wearable
   (Garmin): heart rate, resting HR, SpO₂, stress, sleep, respiration, body battery, and
-  steps. **No blood pressure** — consumer watches have no BP sensor.
-* **Long-term contextual memory 🟡** — structured long-term context (check-in history,
+  steps. **No blood pressure** - consumer watches have no BP sensor.
+* **Long-term contextual memory 🟡** - structured long-term context (check-in history,
   active alerts, and the FHIR-ingested CarePlan + profile) is injected into each call so
   the agent can relate today's readings to past events. This is **structured context, not
-  a vector-database memory** — semantic/vector recall is a ⬜ roadmap item.
+  a vector-database memory** - semantic/vector recall is a ⬜ roadmap item.
 
 ### C. Clinician & Caregiver Portal
 
 The frontend is built for elderly-care homes, community nurses, and clinicians. It turns
 raw voice check-ins into structured, reviewable data:
 
-* **Daily input summaries ✅** — LLM-generated clinical notes from the call (via the
+* **Daily input summaries ✅** - LLM-generated clinical notes from the call (via the
   Gemma/Gemini API; best-effort, needs a key) highlighting symptoms, adherence, and mood.
-* **Real-time triage & alerting dashboard ✅** — rule-based alerts combine wearable
+* **Real-time triage & alerting dashboard ✅** - rule-based alerts combine wearable
   readings and vitals into severity-tagged risk flags; a React Hong Kong digital-twin map
   + roster updates live over **Server-Sent Events**, recoloring patients the instant a
   status changes.
-* **Live mid-call escalation ✅** — the agent's "escalate" tool-call flips a patient to
+* **Live mid-call escalation ✅** - the agent's "escalate" tool-call flips a patient to
   *urgent*, recolors every open dashboard over SSE, and places a nurse-alert call.
-* **Explainable review 🟡 → ⬜** — call transcripts and the structured check-in are pulled
+* **Explainable review 🟡 → ⬜** - call transcripts and the structured check-in are pulled
   from ElevenLabs and are **clinician-reviewable** today. **Clickable citations linking a
   summary line to the specific transcript timestamp** are a ⬜ roadmap item.
 
@@ -124,14 +124,14 @@ regional frameworks. The controls below are **implemented but config-gated and O
 default** in the demo (see [`PRIVACY.md`](PRIVACY.md) §8/§11); they enforce for real when
 the `CARELOOP_*` env flags are set.
 
-* **PDPO alignment** — designed against the **Personal Data (Privacy) Ordinance
+* **PDPO alignment** - designed against the **Personal Data (Privacy) Ordinance
   (Cap. 486)**. **AES-256-GCM encryption at rest** and **enforced HTTPS/HSTS in transit**
   are implemented and config-gated (TLS itself is terminated by the deployment proxy).
   🟡 Implemented, default OFF.
-* **Local data residency** — the target is HK-region hosting so health data does not cross
+* **Local data residency** - the target is HK-region hosting so health data does not cross
   unauthorized borders; the code is region-agnostic via `CARELOOP_DATA_RESIDENCY`, but
   today it runs locally via Docker. ⬜ Hosting decision, not yet done.
-* **eHRSS compatibility** — designed to align with the eHRSS Technical Standards for
+* **eHRSS compatibility** - designed to align with the eHRSS Technical Standards for
   Interoperability (FHIR-native, accreditation-ready). ⬜ Not integrated.
 
 ---
@@ -140,13 +140,13 @@ the `CARELOOP_*` env flags are set.
 
 A frictionless onboarding blueprint for fragmented care homes and public-health sectors:
 
-1. **For the elderly (zero setup) — partly built.** No app to download and the AI works
+1. **For the elderly (zero setup) - partly built.** No app to download and the AI works
    over a standard phone line ✅. The vision of wearables shipping **pre-configured with
    cellular IoT e-SIMs** (no Bluetooth pairing by the senior) is ⬜ roadmap.
-2. **For care facilities (modular, API-first) — vision.** A modular frontend that runs
+2. **For care facilities (modular, API-first) - vision.** A modular frontend that runs
    standalone or embeds into existing Care Home Management Systems via webhooks / iframe
    micro-frontends. ⬜ Roadmap.
-3. **Clinician trust (explainable AI) — partly built.** Clinician-reviewable transcripts
+3. **Clinician trust (explainable AI) - partly built.** Clinician-reviewable transcripts
    and source-cited extracted data exist today ✅; **clickable per-line citations to the
    exact transcript timestamp** are ⬜ roadmap.
 

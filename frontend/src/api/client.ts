@@ -1,3 +1,4 @@
+import type { LiveVitalsInput } from "../lib/liveVitals";
 import type {
   Alert,
   CallConfig,
@@ -110,12 +111,15 @@ export const api = {
   // --- Calls ---
   triggerCall: (
     patientId: number,
-    body: { to_number?: string; questions?: string[] },
+    body: { to_number?: string; questions?: string[]; live_vitals?: LiveVitalsInput },
   ) => sendJSON<CallRecord>("POST", `/patients/${patientId}/calls/trigger`, body),
   // Wearable-triggered emergency call: dials the patient, falls back to the nurse
   // if they don't answer. Used by the BLE/demo auto-escalation path.
-  emergencyCall: (patientId: number, reason?: string) =>
-    sendJSON<CallRecord | null>("POST", `/patients/${patientId}/calls/emergency`, { reason }),
+  emergencyCall: (patientId: number, reason?: string, liveVitals?: LiveVitalsInput) =>
+    sendJSON<CallRecord | null>("POST", `/patients/${patientId}/calls/emergency`, {
+      reason,
+      live_vitals: liveVitals,
+    }),
   // Cognitive-screening call: dials the patient with the dedicated screening agent
   // that runs the dementia voice-biomarker protocol.
   screeningCall: (patientId: number, to_number?: string) =>

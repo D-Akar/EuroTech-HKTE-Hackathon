@@ -23,7 +23,7 @@ data/*
 !data/fhir_processed.tar.gz
 
 # Real wearable exports: backend/data/garmin_samples.json is a large real Garmin
-# export (see app/wearable_source.py) — keep it out of git; the committed
+# export (see app/wearable_source.py) - keep it out of git; the committed
 # synthetic fallback in app/sample_data/ is used when it's absent.
 backend/data/
 

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from .. import alerts, call_store, care_plan_store, data, summary, wearable_source
+from .. import alerts, call_store, care_plan_store, checkin_store, data, summary, wearable_source
 from ..models import CarePlanContext, Patient, PatientContextResponse
+
+# How many recent check-ins to hand the agent (real call-derived first, then seed).
+_CONTEXT_CHECKINS = 12
 
 
 def build_context_summary(
@@ -62,7 +65,9 @@ def build_context_summary(
 def build_patient_context(patient: Patient) -> PatientContextResponse:
     """Collect all patient data from the mock layer into one response."""
     patient_id = patient.id
-    checkins = data.get_checkins(patient_id)
+    # Real call-derived check-ins first (newest), synthetic seed backfills, so the
+    # agent's context reflects the patient's actual prior conversations.
+    checkins = checkin_store.merged_recent(patient_id, _CONTEXT_CHECKINS)
     wearables = data.get_wearables(patient_id)
     vitals = (
         wearable_source.raw_samples()

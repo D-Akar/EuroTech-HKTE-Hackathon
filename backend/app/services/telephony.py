@@ -17,9 +17,9 @@ from datetime import datetime
 import httpx
 
 from . import question_gen
-from .. import call_store, care_plan_store, conversation_store, data, fhir_source
+from .. import call_store, care_plan_store, checkin_store, conversation_store, data, fhir_source
 from ..config import settings
-from ..models import CallConfig, CallRecord, Patient
+from ..models import CallConfig, CallRecord, LiveVitalsInput, Patient
 
 logger = logging.getLogger(__name__)
 
@@ -108,20 +108,39 @@ def build_overrides(
     return {"agent": agent} if agent else None
 
 
-async def build_recent_summary(patient_id: int) -> str:
+def _render_live_vitals(live: LiveVitalsInput | None) -> str | None:
+    """One line describing a just-captured live wearable reading, or None."""
+    if live is None or live.heart_rate is None:
+        return None
+    parts = [f"heart rate {live.heart_rate} bpm"]
+    if live.spo2 is not None:
+        parts.append(f"SpO2 {live.spo2}%")
+    if live.steps is not None:
+        parts.append(f"{live.steps} steps")
+    src = f" (from the patient's {'connected watch' if live.source == 'ble' else 'wearable'})" if live.source else ""
+    return f"LIVE wearable reading right now{src}: " + ", ".join(parts) + "."
+
+
+async def build_recent_summary(
+    patient_id: int, live_vitals: LiveVitalsInput | None = None
+) -> str:
     """Human-readable summary of recent phone check-ins and latest wearables.
 
-    Opens with a digest of the patient's most recent completed AI call (pulled
-    from ElevenLabs, best-effort) so the agent knows what was said last time.
+    Opens with the **live** wearable reading (if the call was placed with one
+    attached, e.g. a connected Bluetooth watch) and a digest of the patient's most
+    recent completed AI call, so the agent can speak to the patient's current state.
     """
-    checkins = sorted(
-        data.get_checkins(patient_id), key=lambda c: c.date, reverse=True
-    )[:_RECENT_CHECKINS]
+    lines_live = _render_live_vitals(live_vitals)
+    # Real call-derived check-ins dominate (newest first), synthetic seed backfills,
+    # so the agent hears what the patient actually said on prior calls.
+    checkins = checkin_store.merged_recent(patient_id, _RECENT_CHECKINS)
     wearables = sorted(
         data.get_wearables(patient_id), key=lambda w: w.timestamp, reverse=True
     )
 
     lines: list[str] = []
+    if lines_live:
+        lines.append(lines_live)
     prior_call = await conversation_store.latest_digest(patient_id)
     if prior_call:
         lines.append(prior_call)
@@ -169,7 +188,7 @@ def _read_markdown_body(path: str) -> str:
 
 
 async def build_dynamic_variables(
-    patient: Patient, questions: list[str]
+    patient: Patient, questions: list[str], live_vitals: LiveVitalsInput | None = None
 ) -> dict[str, str]:
     """Build the ElevenLabs dynamic-variable map injected into the call."""
     numbered = "\n".join(f"{i}. {q}" for i, q in enumerate(questions, start=1))
@@ -179,7 +198,7 @@ async def build_dynamic_variables(
         "patient_id": str(patient.id),
         "patient_name": patient.name,
         "patient_age": str(patient.age),
-        "recent_summary": await build_recent_summary(patient.id),
+        "recent_summary": await build_recent_summary(patient.id, live_vitals),
         "questions": numbered,
         # Fixed opening question (asked first) and the verbatim privacy response,
         # both editable in their markdown files and read fresh on every call.
@@ -196,6 +215,7 @@ async def build_call_payload(
     system_prompt: str | None = None,
     first_message: str | None = None,
     agent_id: str | None = None,
+    live_vitals: LiveVitalsInput | None = None,
 ) -> dict:
     """Assemble the ElevenLabs outbound-call request body.
 
@@ -204,7 +224,7 @@ async def build_call_payload(
     the same registered phone number.
     """
     client_data: dict = {
-        "dynamic_variables": await build_dynamic_variables(patient, questions),
+        "dynamic_variables": await build_dynamic_variables(patient, questions, live_vitals),
     }
     overrides = build_overrides(config, system_prompt, first_message)
     if overrides:
@@ -227,6 +247,7 @@ async def place_call(
     agent_id: str | None = None,
     watch_for_emergency: bool = False,
     is_nurse_call: bool = False,
+    live_vitals: LiveVitalsInput | None = None,
 ) -> CallRecord:
     """Place an outbound call and record the outcome in the call history.
 
@@ -285,7 +306,8 @@ async def place_call(
 
     config = call_store.get_config(patient.id)
     payload = await build_call_payload(
-        patient, to_number, questions, config, system_prompt, first_message, agent_id
+        patient, to_number, questions, config, system_prompt, first_message, agent_id,
+        live_vitals=live_vitals,
     )
     headers = {"xi-api-key": settings.elevenlabs_api_key}
 

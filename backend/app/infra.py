@@ -106,6 +106,9 @@ def ensure_mongo_and_overlays() -> None:
         log.info("Overlaid %d real FHIR patient(s) onto dashboard slots.", bound)
     else:
         log.info("No FHIR overlays applied - dashboard running on mock data.")
+    # apply_overlays clears the profile cache, so (re)apply the live-Garmin patient's
+    # synthetic profile after it, exactly as data.py does at import time.
+    fhir_source.apply_featured_profile(data.PATIENTS, wearable_source.REAL_PATIENT_ID)
 
     # Re-apply dashboard-edited phone numbers last, so they win over seed and FHIR.
     applied = patient_overrides.apply(data.PATIENTS)

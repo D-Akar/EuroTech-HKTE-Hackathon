@@ -177,6 +177,11 @@ _apply_featured_status()
 # still shows the full mock roster. The live Garmin patient keeps its own data.
 fhir_source.apply_overlays(PATIENTS, wearable_source.REAL_PATIENT_ID)
 
+# The live-Garmin / demo patient is skipped by the overlay above; give it a synthetic
+# medical profile so it reads like a full FHIR-backed patient (medical tab, FHIR tag,
+# condition-tailored questions) instead of an empty record.
+fhir_source.apply_featured_profile(PATIENTS, wearable_source.REAL_PATIENT_ID)
+
 
 def _apply_real_patient_phone() -> None:
     """Point the featured (real-watch) patient at the configured demo phone, so the

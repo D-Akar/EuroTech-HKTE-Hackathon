@@ -255,6 +255,57 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
     return bound
 
 
+# Synthetic clinical record for the live-Garmin / demo patient (Pang Wai-kuen),
+# who is skipped by the MongoDB overlay but should still read like a full FHIR-backed
+# patient on the dashboard. Conditions are drawn from the worsening-symptom guide so
+# the tailored-question generator has real material to cross-reference.
+_FEATURED_FHIR_ID = "live-garmin-pang-wai-kuen"
+
+
+def apply_featured_profile(patients: list[Patient], featured_id: int) -> None:
+    """Give the featured (live-Garmin) patient a believable medical profile so it
+    matches the other patients (medical tab + FHIR tag + condition-tailored questions),
+    even though it is skipped by the MongoDB overlay. Best-effort, in place."""
+    from . import erasure_store  # local import avoids an import cycle
+
+    if erasure_store.is_erased(featured_id):
+        return
+    slot = next((p for p in patients if p.id == featured_id), None)
+    if slot is None:
+        return
+
+    profile = MedicalProfile(
+        patient_id=featured_id,
+        fhir_id=_FEATURED_FHIR_ID,
+        gender="male",
+        birth_date=_birth_date_for_age(slot.age, "1940-03-12"),
+        preferred_language="Cantonese",
+        chronic_conditions=[
+            Condition(name="Essential hypertension", onset_date="2014-06-18"),
+            Condition(name="Type 2 diabetes mellitus", onset_date="2017-03-09"),
+            Condition(name="Osteoarthritis", onset_date="2019-11-22"),
+        ],
+        allergies=[
+            Allergy(substance="Penicillin", type="medication", criticality="high"),
+        ],
+        active_medications=[
+            Medication(name="Amlodipine 5mg", frequency="Once daily"),
+            Medication(name="Metformin 500mg", frequency="Twice daily"),
+            Medication(name="Paracetamol 500mg", frequency="As needed for pain"),
+        ],
+        past_medications=[
+            Medication(name="Lisinopril 10mg", prescribed_date="2012-05-01"),
+            Medication(name="Ibuprofen 400mg", prescribed_date="2018-08-14"),
+        ],
+        recent_procedures=[
+            Procedure(name="Cataract surgery (right eye)", date="2024-02-15"),
+            Procedure(name="Influenza vaccination", date="2025-10-03"),
+        ],
+    )
+    slot.fhir_id = _FEATURED_FHIR_ID
+    _PROFILES[featured_id] = profile
+
+
 def get_profile(patient_id: int) -> MedicalProfile | None:
     """The real clinical record for an FHIR-backed slot, or None if it's mock."""
     return _PROFILES.get(patient_id)

@@ -12,8 +12,7 @@ router = APIRouter(prefix="/meta", tags=["meta"])
 @router.get("")
 def get_meta() -> dict:
     """Tell the dashboard which patient carries the live device, the FHIR patient id
-    the vitals are stamped with, and whether real data (rather than the synthetic
-    fallback) is loaded."""
+    the vitals are stamped with, and whether real wearable data is loaded."""
     return {
         "featured_patient_id": wearable_source.REAL_PATIENT_ID,
         "featured_patient_uuid": os.environ.get("GARMIN_PATIENT_UUID") or None,

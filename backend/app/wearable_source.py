@@ -12,8 +12,7 @@ from pathlib import Path
 from .models import WearableReading
 
 _BACKEND = Path(__file__).resolve().parent.parent
-_REAL = _BACKEND / "data" / "garmin_samples.json"           # real export (gitignored)
-_FALLBACK = Path(__file__).resolve().parent / "sample_data" / "garmin_fallback.json"  # committed synthetic
+_REAL = _BACKEND / "data" / "garmin_samples.json"  # real 30-day export, committed to the repo
 
 # The one featured patient whose wearables come from the real Garmin device.
 # Configurable via GARMIN_PATIENT_ID; defaults to 7 (patient 1 stays seeded so the
@@ -22,7 +21,7 @@ REAL_PATIENT_ID = int(os.environ.get("GARMIN_PATIENT_ID", "7"))
 
 
 # Where the loaded samples actually came from, resolved on first _load().
-_loaded_source = "none"  # one of: mongo | real | fallback | none
+_loaded_source = "none"  # one of: mongo | real | none
 
 
 def _samples_path() -> Path | None:
@@ -31,8 +30,6 @@ def _samples_path() -> Path | None:
         return Path(env)
     if _REAL.is_file():
         return _REAL
-    if _FALLBACK.is_file():
-        return _FALLBACK
     return None
 
 
@@ -94,12 +91,12 @@ def _load() -> list[dict]:
         _loaded_source = "none"
         return []
     rows = data if isinstance(data, list) else []
-    _loaded_source = "real" if path == _REAL else "fallback"
+    _loaded_source = "real"  # any loaded export (env path or the committed file) is real
     return rows
 
 
 def is_real() -> bool:
-    """True when backed by MongoDB or the real Garmin export, not the synthetic fallback."""
+    """True when backed by MongoDB or the real Garmin export."""
     _load()  # resolves _loaded_source on first call
     return _loaded_source in ("mongo", "real")
 

@@ -216,9 +216,9 @@ How it fits together:
   (e.g. `stress`, `spo2`, `sleep_stage`), in the same sample-dict shape used for FHIR mapping.
 - Data source: it reads `$GARMIN_SAMPLES` if set, otherwise
   `backend/data/garmin_samples.json` - **30 days of real Garmin data, committed to the
-  repo**, so a fresh clone runs on real wearable data out of the box. The committed
-  synthetic file `backend/app/sample_data/garmin_fallback.json` (source "synthetic") is
-  only a last-resort fallback if the real export is ever removed.
+  repo**, so a fresh clone runs on real wearable data out of the box. (A MongoDB
+  `garmin_samples` collection is also supported via `MONGODB_URI`.) There is no
+  synthetic wearable fallback - the vitals are always real.
 
 Refresh the real data (on the machine with the Garmin login):
 

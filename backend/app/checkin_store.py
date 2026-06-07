@@ -19,8 +19,12 @@ from itertools import count
 
 from .config import settings
 from .models import CheckIn, ConversationDetail
+from .security import crypto
 
 log = logging.getLogger("careloop.checkin_store")
+
+# Free-text health notes are encrypted at rest when encryption is enabled.
+_SENSITIVE = ("notes",)
 
 # conversation_id -> CheckIn derived from that call.
 _STORE: dict[str, CheckIn] = {}
@@ -96,6 +100,40 @@ def list_for_patient(patient_id: int) -> list[CheckIn]:
     return [c for c in _STORE.values() if c.patient_id == patient_id]
 
 
+def erase_patient(patient_id: int) -> int:
+    """Remove a patient's call-derived check-ins (right to erasure). Returns count."""
+    ids = [cid for cid, c in _STORE.items() if c.patient_id == patient_id]
+    for cid in ids:
+        _STORE.pop(cid, None)
+    handle = _collection()
+    if handle is not None:
+        client, col = handle
+        try:
+            col.delete_many({"patient_id": patient_id})
+        except Exception:  # noqa: BLE001
+            pass
+        finally:
+            client.close()
+    return len(ids)
+
+
+def purge_older_than(cutoff: date) -> int:
+    """Retention: drop call-derived check-ins dated before ``cutoff``. Returns count."""
+    ids = [cid for cid, c in _STORE.items() if c.date < cutoff]
+    for cid in ids:
+        _STORE.pop(cid, None)
+    handle = _collection()
+    if handle is not None:
+        client, col = handle
+        try:
+            col.delete_many({"date": {"$lt": cutoff.isoformat()}})
+        except Exception:  # noqa: BLE001
+            pass
+        finally:
+            client.close()
+    return len(ids)
+
+
 # --- MongoDB persistence (best-effort) ---------------------------------------
 
 
@@ -123,11 +161,8 @@ def _persist(conversation_id: str, checkin: CheckIn) -> None:
         return
     client, col = handle
     try:
-        col.update_one(
-            {"_id": conversation_id},
-            {"$set": checkin.model_dump(mode="json")},
-            upsert=True,
-        )
+        doc = crypto.encrypt_fields(checkin.model_dump(mode="json"), _SENSITIVE)
+        col.update_one({"_id": conversation_id}, {"$set": doc}, upsert=True)
     except Exception:
         log.warning("Check-in for conversation %s not persisted (write failed).", conversation_id)
     finally:
@@ -156,6 +191,7 @@ def load_persisted() -> int:
     max_id = _ID_BASE - 1
     for d in docs:
         conversation_id = d.pop("_id")
+        d = crypto.decrypt_fields(d, _SENSITIVE)
         checkin = CheckIn.model_validate(d)
         _STORE[conversation_id] = checkin
         max_id = max(max_id, checkin.id)

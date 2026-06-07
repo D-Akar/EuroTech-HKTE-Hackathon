@@ -193,6 +193,19 @@ def get_for_patient(patient: Patient) -> PatientQuestions:
     return _entry_to_model(patient, entry)
 
 
+def delete_for_patient(patient: Patient) -> bool:
+    """Remove a patient's stored questions (right to erasure). True if one existed."""
+    with _LOCK:
+        store = load_store()
+        if _store_key(patient) not in store:
+            return False
+        del store[_store_key(patient)]
+        QUESTIONS_FILE.write_text(
+            json.dumps(store, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        return True
+
+
 # --------------------------------------------------------------------------
 # Generation
 # --------------------------------------------------------------------------

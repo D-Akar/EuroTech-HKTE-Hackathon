@@ -266,6 +266,26 @@ invisible to the patient; the agent never speaks or requests it.
 > doesn't have, so it narrates the action instead. Open the agent → **Tools** and
 > confirm `escalate_emergency` is in the list before blaming the wording.
 
+## 6. Consent-record tool (`record_consent`) — optional
+
+The consent gate (§ system prompt, `app/checkin_agent.py`) already *enforces*
+consent live on every call. To also **persist** the patient's spoken decision as a
+durable consent record, wire one more tool so the agent reports the answer back:
+
+1. Add a tool `record_consent` (a webhook POST), same `X-API-Key` header as the
+   other tools, to:
+   `https://<your-public-host>/integrations/elevenlabs/consent`
+2. Body parameters: `patient_id` (use the `{{patient_id}}` dynamic variable),
+   `granted` (boolean — true on a clear yes, false on a decline), and optionally a
+   short `note` paraphrasing what the patient said.
+3. In the consent step of the prompt, instruct the agent: *the moment the patient
+   gives a clear yes or no to the consent question, call `record_consent` with that
+   decision, then continue.*
+
+→ The backend stores a `method="voice"` `ConsentRecord` (policy-versioned) and
+audits it. Without this tool the consent gate still works; you just won't have the
+verbal grant written to the consent store automatically.
+
 ## Verify end to end
 
 1. Run the backend (`uvicorn app.main:app --reload`) with the `ELEVENLABS_*`

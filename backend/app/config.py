@@ -47,6 +47,111 @@ class Settings:
     checkins_collection: str = os.getenv(
         "CHECKINS_COLLECTION", "patient_checkins"
     )
+    # Per-call/patient consent records (PDPO DPP1/3, GDPR Art.9, PIPL). See app/consent_store.py.
+    consent_collection: str = os.getenv("CONSENT_COLLECTION", "patient_consent")
+    # Tamper-evident access/audit log (PDPO DPP4, GDPR Art.32). See app/audit.py.
+    audit_collection: str = os.getenv("AUDIT_COLLECTION", "audit_log")
+
+    # ---------------------------------------------------------------------------
+    # Privacy & data-protection controls (see PRIVACY.md). Every control is
+    # config-gated and OFF by default so the demo runs unchanged; switch them on in
+    # backend/.env to get the real, enforced behaviour.
+    # ---------------------------------------------------------------------------
+
+    # --- Encryption at rest (AES-256-GCM) ---
+    # When enabled, sensitive fields are encrypted before they touch MongoDB and
+    # decrypted on read. Needs a 32-byte key (base64 or hex) and the `cryptography`
+    # package; the app fails closed at startup if enabled without them.
+    encrypt_at_rest: bool = os.getenv("CARELOOP_ENCRYPT_AT_REST", "0").lower() not in (
+        "0", "false", "no", ""
+    )
+    data_encryption_key: str = os.getenv("CARELOOP_DATA_KEY", "")
+
+    # --- Authentication + RBAC ---
+    # When enabled, protected endpoints require a bearer token / X-API-Key mapped to
+    # a role. Tokens are configured as "token:role,token:role" (roles: admin,
+    # clinician, coordinator). Default OFF -> a synthetic admin principal, so the
+    # open demo keeps working.
+    auth_enabled: bool = os.getenv("CARELOOP_AUTH_ENABLED", "0").lower() not in (
+        "0", "false", "no", ""
+    )
+    _auth_tokens_raw: str = os.getenv("CARELOOP_AUTH_TOKENS", "")
+
+    # --- Consent enforcement (PDPO DPP1/3, GDPR Art.9) ---
+    # When enabled, data-use endpoints (the patient-context handed to the voice
+    # agent, the data export) refuse to release a patient's data unless an active
+    # granted consent record exists. Default OFF so the demo runs without consent
+    # capture; the voice consent gate (checkin_agent.py) still runs regardless.
+    consent_enforcement: bool = os.getenv("CARELOOP_CONSENT_ENFORCEMENT", "0").lower() not in (
+        "0", "false", "no", ""
+    )
+
+    # --- Per-client integration keys (ElevenLabs server-tool callbacks) ---
+    # The callback auth accepts EITHER the single shared `elevenlabs_tool_api_key`
+    # (back-compat) OR a per-client keyset configured as "key:client,key:client",
+    # so each caller has its own rotatable key and the audit log records which one
+    # called. See routers/integrations.py.
+    _tool_api_keys_raw: str = os.getenv("CARELOOP_TOOL_API_KEYS", "")
+
+    # --- Transport security ---
+    # Redirect HTTP->HTTPS and emit HSTS + hardening headers. TLS itself is
+    # terminated by the deployment (reverse proxy / platform); this enforces its use.
+    force_https: bool = os.getenv("CARELOOP_FORCE_HTTPS", "0").lower() not in (
+        "0", "false", "no", ""
+    )
+    security_headers: bool = os.getenv("CARELOOP_SECURITY_HEADERS", "1").lower() not in (
+        "0", "false", "no", ""
+    )
+
+    # --- Data residency (declared region for HK/EU/local) ---
+    data_residency: str = os.getenv("CARELOOP_DATA_RESIDENCY", "local")
+
+    # --- Retention (days). 0 = keep forever. Purged daily + on demand. ---
+    retention_checkins_days: int = int(os.getenv("CARELOOP_RETENTION_CHECKINS_DAYS", "0"))
+    retention_calls_days: int = int(os.getenv("CARELOOP_RETENTION_CALLS_DAYS", "0"))
+    retention_conversations_days: int = int(
+        os.getenv("CARELOOP_RETENTION_CONVERSATIONS_DAYS", "0")
+    )
+    retention_audit_days: int = int(os.getenv("CARELOOP_RETENTION_AUDIT_DAYS", "0"))
+    retention_consent_days: int = int(os.getenv("CARELOOP_RETENTION_CONSENT_DAYS", "0"))
+
+    # Policy version stamped onto consent records, so a consent is tied to the exact
+    # privacy terms the patient agreed to.
+    privacy_policy_version: str = os.getenv("CARELOOP_PRIVACY_POLICY_VERSION", "2026-06-07")
+
+    @property
+    def auth_tokens(self) -> dict[str, str]:
+        """Parse CARELOOP_AUTH_TOKENS ("tok:role,tok:role") into {token: role}."""
+        out: dict[str, str] = {}
+        for pair in self._auth_tokens_raw.split(","):
+            pair = pair.strip()
+            if not pair or ":" not in pair:
+                continue
+            token, role = pair.split(":", 1)
+            token, role = token.strip(), role.strip().lower()
+            if token and role:
+                out[token] = role
+        return out
+
+    @property
+    def tool_api_keys(self) -> dict[str, str]:
+        """Parse CARELOOP_TOOL_API_KEYS ("key:client,...") into {key: client}.
+
+        The single shared ``elevenlabs_tool_api_key`` is folded in (as client
+        ``"shared"``) so existing single-key setups keep working.
+        """
+        out: dict[str, str] = {}
+        for pair in self._tool_api_keys_raw.split(","):
+            pair = pair.strip()
+            if not pair or ":" not in pair:
+                continue
+            key, client = pair.split(":", 1)
+            key, client = key.strip(), client.strip()
+            if key and client:
+                out[key] = client
+        if self.elevenlabs_tool_api_key:
+            out.setdefault(self.elevenlabs_tool_api_key, "shared")
+        return out
     # Markdown file listing the patient UUIDs to surface as real data on the dashboard.
     featured_patients_file: str = os.getenv(
         "FEATURED_PATIENTS_FILE", str(_REPO_ROOT / "featured_patients.md")

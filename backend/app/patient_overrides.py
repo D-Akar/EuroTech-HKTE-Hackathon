@@ -18,6 +18,7 @@ import logging
 from . import data
 from .config import settings
 from .models import Patient
+from .security import crypto
 
 log = logging.getLogger("careloop.patient_overrides")
 
@@ -33,7 +34,7 @@ def read_overrides() -> dict[int, str]:
         client = MongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=1500)
         col = client[settings.mongodb_db][settings.phone_overrides_collection]
         out = {
-            d["_id"]: d["phone_number"]
+            d["_id"]: crypto.decrypt_str(d["phone_number"])
             for d in col.find({}, {"phone_number": 1})
             if d.get("phone_number")
         }
@@ -57,7 +58,7 @@ def _persist(patient_id: int, phone_number: str) -> bool:
         col = client[settings.mongodb_db][settings.phone_overrides_collection]
         col.update_one(
             {"_id": patient_id},
-            {"$set": {"phone_number": phone_number}},
+            {"$set": {"phone_number": crypto.encrypt_str(phone_number)}},
             upsert=True,
         )
         client.close()
@@ -83,6 +84,22 @@ def set_phone(patient_id: int, phone_number: str) -> str:
             patient_id,
         )
     return cleaned
+
+
+def erase(patient_id: int) -> int:
+    """Delete a patient's saved phone override (right to erasure). Returns count."""
+    try:
+        from pymongo import MongoClient
+    except ImportError:
+        return 0
+    try:
+        client = MongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=1500)
+        col = client[settings.mongodb_db][settings.phone_overrides_collection]
+        result = col.delete_one({"_id": patient_id})
+        client.close()
+        return int(result.deleted_count)
+    except Exception:  # noqa: BLE001
+        return 0
 
 
 def apply(patients: list[Patient]) -> int:

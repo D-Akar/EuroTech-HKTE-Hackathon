@@ -38,6 +38,20 @@ class PhoneUpdate(BaseModel):
     phone_number: str
 
 
+class PatientCorrection(BaseModel):
+    """Body for a data-subject rectification (DPP6 / GDPR Art.16).
+
+    Every field is optional; only the ones provided are changed, so a caller can
+    correct just a name or just a district. Identity/clinical-overlay fields are
+    out of scope here (those come from the FHIR source).
+    """
+
+    name: str | None = None
+    age: int | None = None
+    district: str | None = None
+    phone_number: str | None = None
+
+
 # --- Real FHIR medical profile (MongoDB-backed patients) ---------------------
 
 
@@ -211,6 +225,21 @@ class AgentEscalationRequest(BaseModel):
     source: str = "ai_phone_call"  # where the urgent info came from
 
 
+class AgentConsentRequest(BaseModel):
+    """Webhook body the voice agent posts to persist the patient's spoken consent.
+
+    Captured by the consent gate in ``checkin_agent.py``: once the patient answers
+    the opening consent question, the agent calls this with their decision so the
+    verbal grant becomes a durable :class:`ConsentRecord` (``method="voice"``).
+    ``patient_id`` is the dynamic variable injected at dial time.
+    """
+
+    patient_id: int
+    granted: bool
+    scope: str = "care_provision"
+    note: str | None = None  # e.g. a short paraphrase of what the patient said
+
+
 class EscalationRecord(BaseModel):
     """The outcome of an escalation: status flip + the nurse alert call."""
 
@@ -324,6 +353,70 @@ class StoredCarePlan(BaseModel):
     care_plan: CarePlanContext
     raw: str  # original uploaded document
     uploaded_at: datetime
+
+
+class ConsentRecord(BaseModel):
+    """A patient's consent decision (PDPO DPP1/3, GDPR Art.9, PIPL sensitive PI).
+
+    Captured at the start of a voice check-in (the spoken consent gate) or via the
+    caregiver portal. ``policy_version`` ties the consent to the exact privacy terms
+    the patient agreed to.
+    """
+
+    id: str
+    patient_id: int
+    granted: bool
+    scope: str = "care_provision"  # what the data may be used for
+    method: str = "voice"  # voice | portal | api
+    policy_version: str
+    recorded_at: datetime
+    actor: str = "patient"
+    note: str | None = None
+
+
+class ConsentRequest(BaseModel):
+    """Body to record or revoke a consent decision."""
+
+    granted: bool
+    scope: str = "care_provision"
+    method: str = "portal"
+    note: str | None = None
+
+
+class AuditEvent(BaseModel):
+    """One access/modification of patient data (PDPO DPP4 / GDPR Art.32)."""
+
+    id: str
+    at: datetime
+    actor: str
+    action: str  # e.g. read, export, erase, consent.record
+    resource_type: str  # e.g. patient, checkins, audit
+    resource_id: str | None = None
+    detail: str | None = None
+
+
+class DataExport(BaseModel):
+    """Full machine-readable export of everything held about a patient (DPP6/portability)."""
+
+    patient_id: int
+    generated_at: datetime
+    policy_version: str
+    patient: Patient
+    profile: MedicalProfile | None = None
+    checkins: list[CheckIn] = []
+    wearables: list[WearableReading] = []
+    questions: PatientQuestions | None = None
+    calls: list[CallRecord] = []
+    care_plan: StoredCarePlan | None = None
+    consent: list[ConsentRecord] = []
+
+
+class ErasureResult(BaseModel):
+    """Summary of a right-to-erasure operation."""
+
+    patient_id: int
+    erased_at: datetime
+    removed: dict[str, int] = {}
 
 
 # Resolve forward reference in PatientContextResponse now that CarePlanContext is defined.

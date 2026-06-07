@@ -13,8 +13,12 @@ from itertools import count
 
 from .config import settings
 from .models import CallConfig, CallRecord, ScheduledCall
+from .security import crypto
 
 log = logging.getLogger("careloop.call_store")
+
+# Phone number + any error text are encrypted at rest when encryption is enabled.
+_SENSITIVE = ("to_number", "error")
 
 # Default questions every patient starts with; the practice can edit these.
 _DEFAULT_QUESTIONS: list[str] = [
@@ -127,11 +131,8 @@ def _persist_record(record: CallRecord) -> None:
         return
     client, col = handle
     try:
-        col.update_one(
-            {"_id": record.id},
-            {"$set": record.model_dump(mode="json")},
-            upsert=True,
-        )
+        doc = crypto.encrypt_fields(record.model_dump(mode="json"), _SENSITIVE)
+        col.update_one({"_id": record.id}, {"$set": doc}, upsert=True)
     except Exception:
         log.warning("Call record %s not persisted (Mongo write failed).", record.id)
     finally:
@@ -157,7 +158,7 @@ def load_persisted() -> int:
     client.close()
     if not docs:
         return 0
-    records = [CallRecord.model_validate(d) for d in docs]
+    records = [CallRecord.model_validate(crypto.decrypt_fields(d, _SENSITIVE)) for d in docs]
     records.sort(key=lambda r: r.triggered_at, reverse=True)  # most-recent first
     CALL_HISTORY[:] = records
     _record_ids = count(max(r.id for r in records) + 1)
@@ -183,3 +184,33 @@ def get_call_record(patient_id: int, call_id: int) -> CallRecord | None:
         (r for r in CALL_HISTORY if r.id == call_id and r.patient_id == patient_id),
         None,
     )
+
+
+def _delete_records(predicate) -> int:
+    """Remove call records matching ``predicate`` from memory and Mongo."""
+    removing = [r for r in CALL_HISTORY if predicate(r)]
+    if not removing:
+        return 0
+    CALL_HISTORY[:] = [r for r in CALL_HISTORY if not predicate(r)]
+    handle = _history_collection()
+    if handle is not None:
+        client, col = handle
+        try:
+            col.delete_many({"_id": {"$in": [r.id for r in removing]}})
+        except Exception:  # noqa: BLE001
+            pass
+        finally:
+            client.close()
+    return len(removing)
+
+
+def erase_patient(patient_id: int) -> int:
+    """Remove a patient's call history + config + schedules (right to erasure)."""
+    CALL_CONFIGS.pop(patient_id, None)
+    SCHEDULES[:] = [s for s in SCHEDULES if s.patient_id != patient_id]
+    return _delete_records(lambda r: r.patient_id == patient_id)
+
+
+def purge_older_than(cutoff) -> int:
+    """Retention: drop call records triggered before ``cutoff`` (a datetime)."""
+    return _delete_records(lambda r: r.triggered_at < cutoff)

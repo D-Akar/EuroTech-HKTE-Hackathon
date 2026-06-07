@@ -20,3 +20,7 @@ reportlab==4.2.5
 # LLM-generated tailored check-in questions (Gemma via the Gemini API; see llm/).
 # Powers the "Questions to ask" panel's Regenerate button.
 openai>=1.40
+# AES-256-GCM encryption at rest for sensitive patient data (PRIVACY.md / DPP4).
+# Only needed when CARELOOP_ENCRYPT_AT_REST is enabled; the app fails closed at
+# startup if it is on without this installed.
+cryptography>=42

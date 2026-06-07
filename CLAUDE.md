@@ -76,8 +76,8 @@ docker compose down -v          # stop AND wipe the database
 - Manual re-import: `cd backend; python -m scripts.import_fhir_to_mongo` (`--drop` for clean
   reload). Needs `pymongo` (in `backend/requirements.txt`).
 
-**Real patients on the dashboard:** list MongoDB `_id`s in `featured_patients.md` (repo
-root). At startup `app/fhir_source.py` binds each, in order, to a dashboard patient slot
+**Real patients on the dashboard:** list MongoDB `_id`s in `Prompts/featured_patients.md`
+(in the repo-root `Prompts/` folder). At startup `app/fhir_source.py` binds each, in order, to a dashboard patient slot
 (skipping the live Garmin patient) and overlays the real name/age + a medical profile
 (`GET /patients/{id}/profile`). Best-effort: Mongo down / id missing → that slot stays
 mock. Read **at startup**, so restart the backend after editing the file. Mongo settings
@@ -108,7 +108,7 @@ pytest
 - Backend FastAPI app object is `app.main:app`. Mock data lives in `app/data.py`;
   Pydantic models in `app/models.py`. Most endpoints read the mock layer; the FHIR
   read-path (`app/fhir_source.py` → patient demographics + `/profile`) overlays real
-  MongoDB data onto the slots listed in `featured_patients.md`. Keep new endpoints on the
+  MongoDB data onto the slots listed in `Prompts/featured_patients.md`. Keep new endpoints on the
   mock layer unless you're extending the Mongo-backed path.
 - Frontend points at the backend via `VITE_API_URL` (default `http://localhost:8000`);
   see `frontend/.env.example`.

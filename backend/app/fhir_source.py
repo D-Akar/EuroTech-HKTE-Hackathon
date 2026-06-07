@@ -1,6 +1,6 @@
 """Bind real FHIR patient records (MongoDB) onto dashboard patient slots.
 
-A markdown file (``FEATURED_PATIENTS_FILE``, default ``<repo>/featured_patients.md``)
+A markdown file (``FEATURED_PATIENTS_FILE``, default ``<repo>/Prompts/featured_patients.md``)
 lists MongoDB patient ``_id``s. Each listed id is bound, in listing order, to a
 dashboard patient slot (skipping the live Garmin patient), so that slot shows the
 real person's demographics + medical profile pulled from Mongo. Everything not
@@ -213,6 +213,17 @@ def apply_overlays(patients: list[Patient], featured_id: int | None = None) -> i
             slot.phone_number = demo["phone_number"]
         slot.fhir_id = fhir_id
         _PROFILES[slot.id] = _build_profile(slot.id, fhir_id, doc, age)
+
+    # Right-to-erasure: keep tombstoned slots redacted across restarts, even though
+    # the overlay above just re-bound them from the read-only FHIR source.
+    from . import erasure_store  # local import avoids an import cycle
+
+    for slot in slots:
+        if erasure_store.is_erased(slot.id):
+            slot.name = "[erased]"
+            slot.phone_number = ""
+            slot.fhir_id = None
+            _PROFILES.pop(slot.id, None)
 
     return bound
 

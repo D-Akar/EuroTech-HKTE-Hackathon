@@ -14,8 +14,12 @@ from datetime import datetime, timezone
 from .config import settings
 from .fhir_careplan import extract_care_plan, locate_care_plan, parse_document
 from .models import CarePlanContext, StoredCarePlan
+from .security import crypto
 
 log = logging.getLogger("careloop.care_plan_store")
+
+# The original uploaded clinical document is encrypted at rest when enabled.
+_SENSITIVE = ("raw",)
 
 # patient_id -> latest uploaded plan
 _STORE: dict[int, StoredCarePlan] = {}
@@ -45,11 +49,8 @@ def _persist(patient_id: int, stored: StoredCarePlan) -> None:
         return
     client, col = handle
     try:
-        col.update_one(
-            {"_id": patient_id},
-            {"$set": stored.model_dump(mode="json")},
-            upsert=True,
-        )
+        doc = crypto.encrypt_fields(stored.model_dump(mode="json"), _SENSITIVE)
+        col.update_one({"_id": patient_id}, {"$set": doc}, upsert=True)
     except Exception:
         log.warning("Care plan for patient %s not persisted (Mongo write failed).", patient_id)
     finally:
@@ -86,6 +87,7 @@ def load_persisted() -> int:
     client.close()
     for d in docs:
         patient_id = d.pop("_id")
+        d = crypto.decrypt_fields(d, _SENSITIVE)
         _STORE[patient_id] = StoredCarePlan.model_validate(d)
     return len(docs)
 

@@ -4,8 +4,8 @@ The per-patient context (recent check-ins + wearables) and the practice's
 questions are passed as ElevenLabs *dynamic variables*. The agent's prompt in
 the ElevenLabs dashboard must reference them:
 ``{{patient_name}}``, ``{{patient_age}}``, ``{{recent_summary}}``, ``{{questions}}``,
-``{{opening_question}}`` (fixed first question, from opening_question.md), and
-``{{privacy_response}}`` (verbatim data-privacy reply, from privacy_response.md).
+``{{opening_question}}`` (fixed first question, from Prompts/opening_question.md), and
+``{{privacy_response}}`` (verbatim data-privacy reply, from Prompts/privacy_response.md).
 """
 
 from __future__ import annotations
@@ -151,7 +151,7 @@ async def build_recent_summary(patient_id: int) -> str:
 def _read_markdown_body(path: str) -> str:
     """Read an editable markdown file, returning just the spoken text.
 
-    Convention (shared with patient_questions_prompt.md): everything above the
+    Convention (shared with Prompts/patient_questions_prompt.md): everything above the
     first ``---`` separator line is an editing note for humans and is ignored; the
     body below it is what the agent uses. Falls back to the whole file when there
     is no separator, and to an empty string if the file is missing. Read on demand

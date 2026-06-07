@@ -25,7 +25,7 @@ from ..models import GeneratedQuestion, Patient, PatientQuestions
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 QUESTIONS_FILE = _REPO_ROOT / "llm" / "patient_questions.json"
 SYMPTOMS_FILE = _REPO_ROOT / "llm" / "worsening_symptoms.json"
-PROMPT_FILE = "patient_questions_prompt.md"  # resolved against repo root by llm.config
+PROMPT_FILE = "Prompts/patient_questions_prompt.md"  # resolved against repo root by llm.config
 HISTORY_DAYS = 4
 
 # Writes to the JSON store are serialised so the batch CLI and a regenerate request
@@ -191,6 +191,19 @@ def get_for_patient(patient: Patient) -> PatientQuestions:
     store = load_store()
     entry = store.get(_store_key(patient))
     return _entry_to_model(patient, entry)
+
+
+def delete_for_patient(patient: Patient) -> bool:
+    """Remove a patient's stored questions (right to erasure). True if one existed."""
+    with _LOCK:
+        store = load_store()
+        if _store_key(patient) not in store:
+            return False
+        del store[_store_key(patient)]
+        QUESTIONS_FILE.write_text(
+            json.dumps(store, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        return True
 
 
 # --------------------------------------------------------------------------

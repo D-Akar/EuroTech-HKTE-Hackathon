@@ -45,7 +45,7 @@ Every shortcut. **Undisclosed mocks carry a small penalty each. Anything listed 
 | Call schedules + call history are an in-memory store (reset on backend restart) | `backend/app/call_store.py` | No persistent DB layer built yet | Persist to a real database |
 | Check-in, conversation and care-plan stores are in-memory | `backend/app/checkin_store.py`, `conversation_store.py`, `care_plan_store.py` | Same — no DB layer yet | DB-backed persistence with history |
 | Synthetic Garmin fallback so a fresh clone shows vitals without the live login | `backend/app/sample_data/garmin_fallback.json` | Keep the demo populated when the real Garmin export isn't present | Always use live per-patient device data |
-| No user authentication; ElevenLabs callbacks use a single shared API key | app-wide (`backend/app/routers/integrations.py` key check) | Auth/consent out of scope for the hackathon window | Full login + consent + audit trail |
+| Auth/RBAC + encryption + consent (+ scope enforcement) + audit + rectification + per-client callback keys exist but default OFF in the demo | `backend/app/security/`, `app/audit.py`, `app/consent_store.py`, `routers/privacy.py`, `routers/integrations.py`; gated by `CARELOOP_*` env flags | Keep the open demo working without tokens/keys; controls are real when enabled | Enabled in production via env; managed KMS + HK residency |
 
 ---
 
@@ -77,9 +77,9 @@ Clarifications, for full transparency:
 Naming these honestly is a strength, not a flaw.
 
 - **No live eHRSS / eHealth integration.** No third party can connect to eHRSS today — it is gated behind a HK government accreditation scheme. We are *FHIR-native and accreditation-ready*, not integrated. Full background and engagement plan: [`docs/hk-ehealth-market.md`](docs/hk-ehealth-market.md).
-- **No PDPO controls / AES-256 at rest / TLS 1.3 / HK data residency yet** — stated compliance intent, not yet implemented.
-- **No authentication / consent layer** — the ElevenLabs callbacks are API-key secured, but there's no user login.
-- **Persistence is in-memory** for calls, check-ins, conversations and care plans — these reset on backend restart.
-- **Wearable readings aren't emitted as FHIR `Observation` resources yet** — mapping them to LOINC-coded Observations is the next interoperability step.
+- **PDPO/GDPR/PIPL controls are implemented but config-gated and OFF by default** — AES-256-GCM encryption at rest, RBAC auth, a tamper-evident audit log, a retention engine, consent records + consent-scope enforcement + a verbal-consent webhook, data export/rectification/erasure, per-client integration keys, and HTTPS/HSTS hardening all exist (`app/security/`, `app/audit.py`, `app/consent_store.py`, `app/retention.py`, `app/routers/privacy.py`, `app/routers/integrations.py`), default off so the demo runs unchanged, and tested when enabled. A breach-response runbook is documented ([`docs/breach-runbook.md`](docs/breach-runbook.md)) and the LLM can be kept in-region (`LLM_PROVIDER=vllm`). See [`PRIVACY.md`](PRIVACY.md). **Still not done (needs hosting/cloud/front-end/government, not code):** HK data residency, a managed KMS, dashboard auto-logout, and eHRSS accreditation.
+- **Auth/consent default to OFF in the demo** — RBAC and consent records are implemented (above) but disabled unless the env flags are set; the ElevenLabs callbacks support a per-client rotatable keyset (`CARELOOP_TOOL_API_KEYS`) but default to a single shared key.
+- **Persistence is in-memory** for calls, check-ins, conversations and care plans — these reset on backend restart (MongoDB backing is best-effort where wired).
+- **Wearable readings are exposed as LOINC-coded FHIR `Observation`s** via the read surface (`GET /fhir/Observation?patient=`), but there is **no FHIR write surface and no eHRSS deposit** yet (see the eHRSS item above).
 - **No Cantonese LLM fine-tuning and no vector-database memory** — structured long-term context *is* injected into calls (history + alerts + FHIR CarePlan), but it isn't a fine-tuned Cantonese model or a vector store.
 - **No real blood pressure** — Garmin watches have no BP sensor, so no BP reading exists in the system.

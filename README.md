@@ -152,8 +152,8 @@ python scripts/import_fhir_to_mongo.py --drop   # clean reload
 ### Surfacing real patients on the dashboard
 
 The dashboard roster is mostly seeded mock patients, but you can promote specific
-records to **real data** by listing their MongoDB `_id`s in **`featured_patients.md`**
-(repo root):
+records to **real data** by listing their MongoDB `_id`s in **`Prompts/featured_patients.md`**
+(in the repo-root `Prompts/` folder):
 
 ```markdown
 - 0ae08855-8e6c-5308-3ab5-da0080b36425

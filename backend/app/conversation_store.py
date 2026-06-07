@@ -59,6 +59,24 @@ def prime(detail: ConversationDetail) -> None:
     _remember(detail)
 
 
+def erase_patient(patient_id: int) -> int:
+    """Drop cached conversation detail for a patient (right to erasure).
+
+    Resolves the patient's conversation ids from the call history, so call it
+    *before* the call records are erased. Returns the number of cache entries removed.
+    """
+    ids = {
+        r.conversation_id
+        for r in call_store.CALL_HISTORY
+        if r.patient_id == patient_id and r.conversation_id
+    }
+    removed = 0
+    for cid in ids:
+        if _CACHE.pop(cid, None) is not None:
+            removed += 1
+    return removed
+
+
 async def get_detail(conversation_id: str) -> ConversationDetail | None:
     """Return conversation detail, fetching from ElevenLabs on a cache miss.
 

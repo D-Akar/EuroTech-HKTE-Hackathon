@@ -75,6 +75,19 @@ def unschedule_call(schedule_id: int) -> None:
         scheduler.remove_job(_job_id(schedule_id))
 
 
+def schedule_retention() -> None:
+    """Register a daily data-retention purge (PRIVACY.md §10). No-op work when all
+    retention periods are 0 (the default), so it is safe to always schedule."""
+    from . import retention
+
+    scheduler.add_job(
+        retention.run,
+        trigger=CronTrigger(hour=3, minute=30),  # quiet hour
+        id="data-retention",
+        replace_existing=True,
+    )
+
+
 def start() -> None:
     if not scheduler.running:
         scheduler.start()

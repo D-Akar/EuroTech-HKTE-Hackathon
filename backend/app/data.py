@@ -179,7 +179,7 @@ def _apply_featured_status() -> None:
 
 _apply_featured_status()
 
-# Overlay real FHIR records (MongoDB) onto the slots listed in featured_patients.md.
+# Overlay real FHIR records (MongoDB) onto the slots listed in Prompts/featured_patients.md.
 # Best-effort: a no-op if Mongo is unreachable or the file is empty, so the dashboard
 # still shows the full mock roster. The live Garmin patient keeps its own data.
 fhir_source.apply_overlays(PATIENTS, wearable_source.REAL_PATIENT_ID)

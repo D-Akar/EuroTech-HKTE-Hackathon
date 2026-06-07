@@ -44,7 +44,7 @@ async def escalate_from_agent(body: AgentEscalationRequest) -> EscalationRecord:
     same X-API-Key as the other ElevenLabs tools. Flips status -> urgent,
     recolors every dashboard over SSE, and places the nurse alert call.
     """
-    patient = data.get_patient(body.patient_id)
+    patient = data.resolve_patient(body.patient_id)
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
     return await perform_escalation(patient, reason=body.reason, source=body.source)

@@ -61,6 +61,7 @@ async def trigger_call(patient_id: int, body: TriggerRequest) -> CallRecord:
         kind="instant",
         system_prompt=system_prompt,
         first_message=first_message,
+        watch_for_emergency=True,
     )
 
 
@@ -93,6 +94,7 @@ async def screening_call(patient_id: int, body: TriggerRequest) -> CallRecord:
         agent_id=settings.elevenlabs_screening_agent_id,
         system_prompt=screening.system_prompt(patient),
         first_message=screening.first_message(patient),
+        watch_for_emergency=True,
     )
 
 
@@ -116,6 +118,7 @@ async def dementia_demo_call(patient_id: int, body: TriggerRequest) -> CallRecor
         kind="instant",
         system_prompt=cognitive_demo.system_prompt(patient),
         first_message=cognitive_demo.first_message(patient),
+        watch_for_emergency=True,
     )
 
 

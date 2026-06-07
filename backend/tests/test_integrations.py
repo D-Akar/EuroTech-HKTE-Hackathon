@@ -81,3 +81,68 @@ def test_unknown_phone_returns_404(client):
 def test_missing_phone_number_returns_422(client):
     resp = client.get(ENDPOINT, headers={"X-API-Key": TOOL_KEY})
     assert resp.status_code == 422
+
+
+# --- escalate_emergency webhook (POST /integrations/elevenlabs/escalate) ---
+
+ESCALATE_ENDPOINT = "/integrations/elevenlabs/escalate"
+
+
+@pytest.fixture
+def stub_nurse_call(monkeypatch):
+    """Stub the outbound nurse call so escalate tests never place a real call.
+
+    The bug under test is patient *resolution* in the webhook, which runs before
+    any call is placed; stubbing telephony keeps the test fast and side-effect free.
+    """
+    import app.routers.escalations as escalations
+    from datetime import datetime
+
+    from app.models import CallRecord
+
+    async def fake_place_call(patient, to_number, *args, **kwargs):
+        return CallRecord(
+            id=999,
+            patient_id=patient.id,
+            triggered_at=datetime.now(),
+            kind="instant",
+            to_number=to_number,
+            status="initiated",
+        )
+
+    monkeypatch.setattr(escalations.telephony, "place_call", fake_place_call)
+
+
+def test_escalate_by_patient_name_resolves(client, stub_nurse_call):
+    # The ElevenLabs agent only knows {{patient_name}}, so it sends the patient's
+    # NAME as patient_id. The webhook must resolve it, not reject it with 422.
+    resp = client.post(
+        ESCALATE_ENDPOINT,
+        json={"patient_id": "Lavinia Heaney", "reason": "Reports sudden dizziness"},
+        headers={"X-API-Key": TOOL_KEY},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["patient_name"] == "Lavinia Heaney"
+    assert body["status"] == "urgent"
+    assert body["nurse_call"] is not None
+
+
+def test_escalate_by_numeric_id_still_works(client, stub_nurse_call):
+    # The injected {{patient_id}} dynamic variable arrives as a numeric string.
+    resp = client.post(
+        ESCALATE_ENDPOINT,
+        json={"patient_id": "3", "reason": "Chest pain"},
+        headers={"X-API-Key": TOOL_KEY},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["patient_id"] == 3
+
+
+def test_escalate_unknown_patient_returns_404(client, stub_nurse_call):
+    resp = client.post(
+        ESCALATE_ENDPOINT,
+        json={"patient_id": "Nobody McGhost", "reason": "x"},
+        headers={"X-API-Key": TOOL_KEY},
+    )
+    assert resp.status_code == 404

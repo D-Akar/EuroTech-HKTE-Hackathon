@@ -27,7 +27,7 @@ import logging
 import time
 from datetime import datetime
 
-from . import call_store, data, events
+from . import call_store, checkin_agent, data, events
 from .config import settings
 from .models import CallRecord, Patient, PatientStatus
 from .services import telephony
@@ -137,9 +137,22 @@ async def emergency_call(patient: Patient, reason: str) -> CallRecord | None:
         await _route_to_nurse(patient, reason)
         return None
 
-    questions = call_store.get_config(patient.id).questions
+    config = call_store.get_config(patient.id)
+    questions = config.questions
+    # Use the consent-gated check-in persona (same as the manual "Call now") so the
+    # auto call still asks for recording/data consent first; the persona's emergency
+    # escalation still overrides the gate the moment the patient reports something
+    # acute. A patient-specific custom prompt/greeting in the call config still wins.
+    system_prompt = None if config.system_prompt else checkin_agent.system_prompt(patient)
+    first_message = None if config.greeting else checkin_agent.first_message(patient)
     call = await telephony.place_call(
-        patient, to_number, questions, kind="auto", watch_for_emergency=True
+        patient,
+        to_number,
+        questions,
+        kind="auto",
+        system_prompt=system_prompt,
+        first_message=first_message,
+        watch_for_emergency=True,
     )
 
     # Persist this episode: poll the call's analysis in the background until it's

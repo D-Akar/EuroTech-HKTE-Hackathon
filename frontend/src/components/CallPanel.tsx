@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
@@ -55,6 +56,14 @@ export function CallPanel({
   // Call ids whose live stream has ended this session — flip them to the
   // post-call view even though their record still reads "initiated".
   const [liveEnded, setLiveEnded] = useState<Set<number>>(new Set());
+
+  // Success messages surface as a transient glassy toast at the top of the screen
+  // that fades itself out after a few seconds, rather than a persistent box.
+  useEffect(() => {
+    if (!status) return;
+    const t = window.setTimeout(() => setStatus(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [status]);
 
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
@@ -232,7 +241,13 @@ export function CallPanel({
         <h3>Check-in call</h3>
       </div>
 
-      {status && <p className="call-status">{status}</p>}
+      {status &&
+        createPortal(
+          <div className="toast-success" role="status" aria-live="polite">
+            {status}
+          </div>,
+          document.body,
+        )}
       {error && <p className="call-error">{error}</p>}
 
       {/* Call now */}

@@ -9,7 +9,7 @@ and its status is derived from real alerts.
 import random
 from datetime import date, datetime, timedelta
 
-from . import alerts, fhir_source, wearable_source
+from . import fhir_source, wearable_source
 from .models import CheckIn, Patient, PatientStatus, WearableReading
 
 _TODAY = date(2026, 6, 6)
@@ -161,19 +161,12 @@ CHECKINS, WEARABLES = _build_history()
 
 
 def _apply_featured_status() -> None:
-    """Drive the featured patient's status flag from its real alerts."""
-    fid = wearable_source.REAL_PATIENT_ID
-    readings = wearable_source.daily_readings(fid)
-    if not readings:
-        return
-    severity = alerts.worst_severity(alerts.alerts_for(fid, readings, wearable_source.raw_samples()))
-    mapping = {"critical": PatientStatus.urgent, "warning": PatientStatus.attention}
-    new_status = mapping.get(severity)
-    if new_status is None:
-        return
+    """Start the featured (demo) patient as STABLE so the live escalation is visible
+    on stage: the demo drives it from stable -> urgent in real time (a wearable spike
+    or the Demo button), instead of it already being red at startup."""
     for p in PATIENTS:
-        if p.id == fid:
-            p.status = new_status
+        if p.id == wearable_source.REAL_PATIENT_ID:
+            p.status = PatientStatus.stable
             break
 
 

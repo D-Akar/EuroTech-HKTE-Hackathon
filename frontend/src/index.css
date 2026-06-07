@@ -203,7 +203,9 @@ button {
 .brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  /* Match the command-bar's 18px gap so the logo has equal space on its left
+     (the toggle) and its right (the tagline) - i.e. it reads as centred. */
+  gap: 18px;
 }
 
 /* The Careloop wordmark, recoloured to near-white text on a transparent ground so
@@ -212,6 +214,9 @@ button {
   height: 30px;
   width: auto;
   object-fit: contain;
+  /* Optical centring: the "p" descender weights the image box low, so box-centring
+     leaves the wordmark looking a touch high - nudge it down ~2px to compensate. */
+  transform: translateY(2px);
 }
 
 .brand-text {
@@ -1207,9 +1212,46 @@ textarea.input::placeholder {
   background: var(--status-stable-soft);
   color: oklch(0.4 0.1 168);
 }
+/* Glassy translucent error - reads on the dark glass panel without an opaque blob. */
 .call-error {
-  background: var(--status-urgent-soft);
-  color: oklch(0.46 0.16 28);
+  background: oklch(0.62 0.19 25 / 0.16);
+  color: oklch(0.88 0.1 25);
+  border: 1px solid oklch(0.66 0.19 25 / 0.34);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Transient success toast: glassy translucent green, pinned below the command bar,
+   fades in then auto-dismisses (cleared by CallPanel after ~5s). */
+.toast-success {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  max-width: min(90vw, 560px);
+  padding: 11px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: oklch(0.96 0.06 158);
+  background: oklch(0.62 0.15 158 / 0.18);
+  border: 1px solid oklch(0.72 0.17 158 / 0.4);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow: 0 10px 34px -10px oklch(0.5 0.12 158 / 0.55);
+  animation: toast-in 0.28s var(--ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .call-row {
@@ -2934,6 +2976,8 @@ textarea.input::placeholder {
   gap: 8px;
   margin-top: 7px;
 }
+/* Glassy translucent category pills - light-theme "soft" fills turned into opaque
+   blobs on the dark glass panels, so use alpha colours that read on any backdrop. */
 .qpanel-cat {
   font-size: 11px;
   font-weight: 650;
@@ -2941,16 +2985,19 @@ textarea.input::placeholder {
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--surface-sunken);
+  background: oklch(1 0 0 / 0.08);
   color: var(--muted);
+  border: 1px solid oklch(1 0 0 / 0.14);
 }
 .qpanel-cat.cat-symptom_followup {
-  background: var(--status-urgent-soft);
-  color: oklch(0.5 0.16 28);
+  background: oklch(0.65 0.19 25 / 0.16);
+  color: oklch(0.86 0.11 25);
+  border-color: oklch(0.68 0.19 25 / 0.34);
 }
 .qpanel-cat.cat-proactive_monitoring {
-  background: var(--accent-ring);
-  color: var(--accent-strong);
+  background: oklch(0.64 0.15 240 / 0.16);
+  color: oklch(0.85 0.1 240);
+  border-color: oklch(0.66 0.15 240 / 0.34);
 }
 .qpanel-target {
   font-size: 12px;

@@ -92,10 +92,6 @@ export default function App() {
     if (!demo) setManualHr(null); // leaving demo drops any pinned heart rate
   }, [demo, featuredId]);
 
-  // The "Connect watch" and "Demo" top-bar buttons are commented out in the header
-  // JSX below (kept for later). Reference setDemo here so noUnusedLocals stays happy.
-  void setDemo;
-
   // Place the live 'dementia demo' call to the featured patient (the operator's
   // own phone on stage): the agent asks the day, mentions the high HR, asks again,
   // and escalates to the nurse if they can't answer.
@@ -172,7 +168,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* Connect-watch (Bluetooth HR) button - commented out per request, kept for later.
         {ble.supported && (
           <button
             className={`demo-chip watch-chip-ble ${ble.status === "connected" ? "on" : ""}`}
@@ -195,9 +190,7 @@ export default function App() {
                   : "Connect watch"}
           </button>
         )}
-        */}
 
-        {/* Demo (simulated exertion ramp) button - commented out per request, kept for later.
         <button
           className={`demo-chip ${demo ? "on" : ""}`}
           aria-pressed={demo}
@@ -212,7 +205,6 @@ export default function App() {
           <span className="demo-dot" aria-hidden />
           {demo ? "Simulating" : "Demo"}
         </button>
-        */}
 
         {demo && (
           <div className="hr-presets" role="group" aria-label="Manual heart rate (demo)">

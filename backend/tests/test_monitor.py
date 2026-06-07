@@ -28,6 +28,17 @@ def test_parse_user_transcript_flat():
     assert turn == ConversationTurn(role="user", message="Hello.")
 
 
+def test_parse_user_transcript_real_elevenlabs_wrapper():
+    # The shape ElevenLabs actually sends: the `user_transcript` event nests its text
+    # under `user_transcription_event` (transcription, not transcript) — asymmetric
+    # with `agent_response`/`agent_response_event`. Regression for patient turns that
+    # silently dropped while agent turns came through.
+    turn = mon.parse_monitor_event(
+        {"type": "user_transcript", "user_transcription_event": {"user_transcript": "My head hurts."}}
+    )
+    assert turn == ConversationTurn(role="user", message="My head hurts.")
+
+
 def test_parse_agent_response_wrapped():
     turn = mon.parse_monitor_event(
         {"type": "agent_response", "agent_response_event": {"agent_response": "Good morning Mary."}}
@@ -176,7 +187,7 @@ from app.config import settings  # noqa: E402
 def test_stream_turns_parses_live_server_frames(monkeypatch):
     frames = [
         json.dumps({"type": "agent_response", "agent_response_event": {"agent_response": "Hello Mary."}}),
-        json.dumps({"type": "user_transcript", "user_transcript_event": {"user_transcript": "Hi doctor."}}),
+        json.dumps({"type": "user_transcript", "user_transcription_event": {"user_transcript": "Hi doctor."}}),
         json.dumps({"type": "audio", "audio_event": {"audio_base_64": "..."}}),  # ignored
         json.dumps({"type": "ping", "ping_event": {"event_id": 1}}),  # ignored
     ]

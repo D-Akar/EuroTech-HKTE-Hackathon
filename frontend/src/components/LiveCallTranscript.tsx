@@ -57,9 +57,13 @@ export function LiveCallTranscript({
   return (
     <div className="conv-detail">
       <div className="conv-detail-head">
-        <span className={`tag ${live ? "tag-ok" : "tag-missed"}`}>
-          {live ? "● live" : "ended"}
-        </span>
+        {live ? (
+          <span className="live-tag">
+            <span className="analysing-dot" aria-hidden /> Live transcript
+          </span>
+        ) : (
+          <span className="tag tag-missed">Ended</span>
+        )}
       </div>
 
       {turns.length === 0 ? (

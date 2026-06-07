@@ -28,12 +28,19 @@ logger = logging.getLogger(__name__)
 # rest of the ElevenLabs integration uses, but over wss.
 _MONITOR_BASE = "wss://api.eu.residency.elevenlabs.io/v1/convai/conversations"
 
-# Monitor client events that carry transcript text, mapped to a turn role and the
-# field(s) the spoken text may live under (flat or nested in a ``*_event`` object).
-_TRANSCRIPT_EVENTS: dict[str, tuple[str, tuple[str, ...]]] = {
-    "user_transcript": ("user", ("user_transcript",)),
-    "agent_response": ("agent", ("agent_response",)),
-    "agent_response_correction": ("agent", ("corrected_agent_response", "agent_response")),
+# Monitor client events that carry transcript text, mapped to (turn role, the
+# ``*_event`` wrapper key ElevenLabs nests the text under, the field name(s) the
+# text may live under). The wrapper key is asymmetric and does NOT always equal
+# ``{type}_event``: user speech arrives under ``user_transcription_event`` (note:
+# transcription, not transcript) while agent text uses ``agent_response_event``.
+_TRANSCRIPT_EVENTS: dict[str, tuple[str, str, tuple[str, ...]]] = {
+    "user_transcript": ("user", "user_transcription_event", ("user_transcript",)),
+    "agent_response": ("agent", "agent_response_event", ("agent_response",)),
+    "agent_response_correction": (
+        "agent",
+        "agent_response_correction_event",
+        ("corrected_agent_response", "agent_response"),
+    ),
 }
 
 
@@ -42,9 +49,9 @@ def monitor_url(conversation_id: str) -> str:
     return f"{_MONITOR_BASE}/{conversation_id}/monitor"
 
 
-def _text(event: dict, raw: dict, fields: tuple[str, ...]) -> str | None:
-    """Pull the first non-empty text field, trying the nested event then the raw body."""
-    for source in (event, raw):
+def _first_text(sources: tuple[dict, ...], fields: tuple[str, ...]) -> str | None:
+    """Pull the first non-empty string under any of ``fields`` across ``sources``."""
+    for source in sources:
         for field in fields:
             value = source.get(field)
             if isinstance(value, str) and value.strip():
@@ -65,10 +72,16 @@ def parse_monitor_event(raw: object) -> ConversationTurn | None:
     mapping = _TRANSCRIPT_EVENTS.get(raw.get("type"))
     if mapping is None:
         return None
-    role, fields = mapping
-    event = raw.get(f"{raw['type']}_event")
-    event = event if isinstance(event, dict) else {}
-    message = _text(event, raw, fields)
+    role, wrapper_key, fields = mapping
+    # Look in the known wrapper, the type-derived ``{type}_event`` name (tolerant of
+    # shapes whose wrapper does match the type), then the flat body — first hit wins.
+    sources = [
+        raw[key]
+        for key in (wrapper_key, f"{raw['type']}_event")
+        if isinstance(raw.get(key), dict)
+    ]
+    sources.append(raw)
+    message = _first_text(tuple(sources), fields)
     if message is None:
         return None
     return ConversationTurn(role=role, message=message)
@@ -89,12 +102,15 @@ async def stream_turns(conversation_id: str) -> AsyncIterator[ConversationTurn]:
     ends the iterator.
     """
     if not settings.elevenlabs_api_key:
+        logger.warning("Live monitor for %s skipped: ELEVENLABS_API_KEY not set", conversation_id)
         return
     headers = {"xi-api-key": settings.elevenlabs_api_key}
+    url = monitor_url(conversation_id)
+    turns = 0
     try:
-        async with websockets.connect(
-            monitor_url(conversation_id), additional_headers=headers
-        ) as ws:
+        logger.info("Live monitor connecting: %s", url)
+        async with websockets.connect(url, additional_headers=headers) as ws:
+            logger.info("Live monitor connected: %s", conversation_id)
             async for message in ws:
                 try:
                     raw = json.loads(message)
@@ -102,6 +118,14 @@ async def stream_turns(conversation_id: str) -> AsyncIterator[ConversationTurn]:
                     continue
                 turn = parse_monitor_event(raw)
                 if turn is not None:
+                    turns += 1
                     yield turn
+        # Reached only when the upstream closes cleanly (call ended). A 0-turn clean
+        # close usually means the conversation wasn't active to monitor (e.g. still
+        # ringing / already over), distinct from a connect rejection below.
+        logger.info("Live monitor for %s closed by server after %d turn(s)", conversation_id, turns)
     except Exception as exc:  # noqa: BLE001 — a monitor failure must never crash the route
-        logger.warning("Live monitor for %s ended: %s", conversation_id, exc)
+        logger.warning(
+            "Live monitor for %s ended (%s) after %d turn(s): %s",
+            conversation_id, type(exc).__name__, turns, exc,
+        )

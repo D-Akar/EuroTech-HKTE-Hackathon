@@ -1273,6 +1273,19 @@ textarea.input::placeholder {
   color: var(--accent-strong);
 }
 
+/* Live-call transcript header: same motion language as .analysing-tag, but green
+   to read as "connected / streaming now" rather than "still processing". */
+.live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--status-stable);
+}
+
 .analysing-dot {
   display: inline-block;
   width: 7px;

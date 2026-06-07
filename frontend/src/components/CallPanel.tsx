@@ -137,6 +137,10 @@ export function CallPanel({
       if (record.status === "initiated") {
         setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "-"}).`);
         setAnalysing(true); // poll will surface the summary once analysis lands
+        // Open the row straight away so the live transcript streams in without the
+        // coordinator having to hunt for the just-placed call (it's within the live
+        // window by definition). Falls back to the post-call view when the stream ends.
+        if (record.conversation_id) setOpenCallId(record.id);
       } else {
         setError(record.error ?? "Call failed.");
       }

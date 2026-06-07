@@ -127,6 +127,51 @@ def test_parse_tool_call_missing_name_is_ignored():
     assert mon.parse_monitor_event({"type": "client_tool_call", "client_tool_call": {}}) is None
 
 
+def test_parse_agent_tool_response_becomes_tool_turn():
+    # Server/webhook tools (our `escalate_emergency` is `"type": "webhook"`) never
+    # emit `client_tool_call`; ElevenLabs reports them as `agent_tool_response`.
+    # Regression for webhook tool calls that silently never reached the live UI.
+    turn = mon.parse_monitor_event(
+        {
+            "type": "agent_tool_response",
+            "agent_tool_response": {
+                "tool_name": "escalate_emergency",
+                "tool_call_id": "tc_9",
+                "tool_type": "webhook",
+                "is_error": False,
+            },
+        }
+    )
+    assert turn is not None
+    assert turn.role == "tool"
+    assert turn.tool_name == "escalate_emergency"
+
+
+def test_parse_agent_tool_response_with_detail():
+    # When the response event does echo the call detail, surface it as the message.
+    turn = mon.parse_monitor_event(
+        {
+            "type": "agent_tool_response",
+            "agent_tool_response": {
+                "tool_name": "escalate_emergency",
+                "parameters": {"reason": "Sudden chest pain."},
+            },
+        }
+    )
+    assert turn == ConversationTurn(
+        role="tool", tool_name="escalate_emergency", message="Sudden chest pain."
+    )
+
+
+def test_parse_agent_tool_response_missing_name_is_ignored():
+    assert (
+        mon.parse_monitor_event(
+            {"type": "agent_tool_response", "agent_tool_response": {"is_error": True}}
+        )
+        is None
+    )
+
+
 # --- parse_monitor_event: events we ignore -----------------------------------
 
 

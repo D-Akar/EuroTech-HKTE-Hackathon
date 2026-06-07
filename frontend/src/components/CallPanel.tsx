@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { CallRecord, Patient, ScheduledCall } from "../types";
 import { CallConversation } from "./CallConversation";
-import { LiveCallTranscript } from "./LiveCallTranscript";
+import { LiveCallModal } from "./LiveCallModal";
 
 // A call is worth watching live only if it was just placed: an "initiated" call
 // triggered within this window. Older "initiated" records are stale (no webhook
@@ -56,6 +56,14 @@ export function CallPanel({
   // post-call view even though their record still reads "initiated".
   const [liveEnded, setLiveEnded] = useState<Set<number>>(new Set());
 
+  // The call currently being watched live in the centered dialog, if any.
+  const [liveModalCallId, setLiveModalCallId] = useState<number | null>(null);
+
+  // A just-placed call the coordinator can opt into watching live. We never open
+  // the dialog automatically - it would hijack the screen mid-task - so this backs
+  // an optional "Watch live call" button in the confirmation banner instead.
+  const [pendingLiveCallId, setPendingLiveCallId] = useState<number | null>(null);
+
   // (Re)load everything when the selected patient changes.
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +71,8 @@ export function CallPanel({
     setStatus(null);
     setError(null);
     setOpenCallId(null);
+    setLiveModalCallId(null); // don't keep a prior patient's call open in the dialog
+    setPendingLiveCallId(null);
     setAnalysing(false);
     Promise.all([
       api.getCallConfig(patient.id),
@@ -135,12 +145,12 @@ export function CallPanel({
     try {
       const record = await api.triggerCall(patient.id, { to_number: toNumber });
       if (record.status === "initiated") {
-        setStatus(`Check-in call initiated (conversation ${record.conversation_id ?? "-"}).`);
+        setStatus("Check-in call placed.");
         setAnalysing(true); // poll will surface the summary once analysis lands
-        // Open the row straight away so the live transcript streams in without the
-        // coordinator having to hunt for the just-placed call (it's within the live
-        // window by definition). Falls back to the post-call view when the stream ends.
-        if (record.conversation_id) setOpenCallId(record.id);
+        // Offer (don't force) a live watch: the call is within the live window by
+        // definition, so surface a "Watch live call" button in the banner. The
+        // coordinator opens the dialog only if they want it.
+        if (record.conversation_id) setPendingLiveCallId(record.id);
       } else {
         setError(record.error ?? "Call failed.");
       }
@@ -232,7 +242,19 @@ export function CallPanel({
         <h3>Check-in call</h3>
       </div>
 
-      {status && <p className="call-status">{status}</p>}
+      {status && (
+        <div className="call-status-row">
+          <p className="call-status">{status}</p>
+          {pendingLiveCallId !== null && !liveEnded.has(pendingLiveCallId) && (
+            <button
+              className="watch-live"
+              onClick={() => setLiveModalCallId(pendingLiveCallId)}
+            >
+              <span className="watch-live-dot" aria-hidden /> Watch live call
+            </button>
+          )}
+        </div>
+      )}
       {error && <p className="call-error">{error}</p>}
 
       {/* Call now */}
@@ -375,20 +397,19 @@ export function CallPanel({
           <ul className="schedule-list">
             {history.slice(0, 5).map((r) => {
               const hasConversation = Boolean(r.conversation_id);
+              // A live call opens the watch dialog; a finished one expands inline.
+              const live = hasConversation && isPotentiallyLive(r) && !liveEnded.has(r.id);
+              const expandable = hasConversation && !live;
               const open = openCallId === r.id;
               return (
                 <li key={r.id} className="call-history-item">
                   <div
-                    className={`schedule-item ${hasConversation ? "call-history-row" : ""}`}
-                    role={hasConversation ? "button" : undefined}
-                    tabIndex={hasConversation ? 0 : undefined}
-                    onClick={
-                      hasConversation
-                        ? () => setOpenCallId(open ? null : r.id)
-                        : undefined
-                    }
+                    className={`schedule-item ${expandable ? "call-history-row" : ""}`}
+                    role={expandable ? "button" : undefined}
+                    tabIndex={expandable ? 0 : undefined}
+                    onClick={expandable ? () => setOpenCallId(open ? null : r.id) : undefined}
                     onKeyDown={
-                      hasConversation
+                      expandable
                         ? (e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
@@ -399,35 +420,47 @@ export function CallPanel({
                     }
                   >
                     <span className="num">
-                      {hasConversation && (
+                      {expandable && (
                         <span className={`disclosure ${open ? "on" : ""}`} aria-hidden>
                           ▸
                         </span>
                       )}
                       {new Date(r.triggered_at).toLocaleString()} · {r.kind}
                     </span>
-                    <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
-                      {r.status}
-                    </span>
-                  </div>
-                  {open && hasConversation &&
-                    (isPotentiallyLive(r) && !liveEnded.has(r.id) ? (
-                      <LiveCallTranscript
-                        patientId={patient.id}
-                        callId={r.id}
-                        onEnded={() =>
-                          setLiveEnded((prev) => new Set(prev).add(r.id))
-                        }
-                      />
+                    {live ? (
+                      <button
+                        className="watch-live"
+                        onClick={() => setLiveModalCallId(r.id)}
+                      >
+                        <span className="watch-live-dot" aria-hidden /> Watch live
+                      </button>
                     ) : (
-                      <CallConversation patientId={patient.id} callId={r.id} />
-                    ))}
+                      <span className={`tag ${r.status === "initiated" ? "tag-ok" : "tag-missed"}`}>
+                        {r.status}
+                      </span>
+                    )}
+                  </div>
+                  {open && expandable && (
+                    <CallConversation patientId={patient.id} callId={r.id} />
+                  )}
                 </li>
               );
             })}
           </ul>
         )}
       </div>
+
+      {liveModalCallId !== null && (
+        <LiveCallModal
+          patientId={patient.id}
+          callId={liveModalCallId}
+          patientName={patient.name}
+          onClose={() => setLiveModalCallId(null)}
+          onEnded={() =>
+            setLiveEnded((prev) => new Set(prev).add(liveModalCallId))
+          }
+        />
+      )}
     </section>
   );
 }

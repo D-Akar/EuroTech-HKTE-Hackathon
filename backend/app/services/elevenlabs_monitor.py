@@ -55,6 +55,22 @@ _AUDIO_TAG = re.compile(r"\[[A-Za-z][A-Za-z ]*\]")
 # (ids, internal flags) are noise for a watching clinician.
 _TOOL_DETAIL_FIELDS = ("reason", "message", "summary", "note")
 
+# Monitor events that represent a tool invocation, mapped to the wrapper key each
+# nests its tool payload under. `client_tool_call` fires for *client-side* tools the
+# SDK runs locally; `agent_tool_response` fires for *server/webhook* tools that
+# ElevenLabs runs itself (e.g. our `escalate_emergency`, configured as a webhook) —
+# those never emit a `client_tool_call`, which is why webhook tool calls were
+# silently dropped from the live transcript. We surface both as a `tool` turn.
+_TOOL_EVENTS: dict[str, str] = {
+    "client_tool_call": "client_tool_call",
+    "agent_tool_response": "agent_tool_response",
+}
+
+# Where a tool event may carry its human-relevant detail (the escalation reason,
+# a note). The call event nests it under `parameters`; a server-tool *response*
+# event may instead echo it under one of the others. First hit wins.
+_TOOL_DETAIL_SOURCES = ("parameters", "tool_details", "result", "request")
+
 
 def monitor_url(conversation_id: str) -> str:
     """The monitor WebSocket URL for one conversation."""
@@ -66,21 +82,21 @@ def _strip_audio_tags(text: str) -> str:
     return re.sub(r"\s{2,}", " ", _AUDIO_TAG.sub("", text)).strip()
 
 
-def _parse_tool_call(raw: dict) -> ConversationTurn | None:
-    """Map a ``client_tool_call`` event to a distinct ``tool`` turn, or None.
+def _parse_tool_call(raw: dict, wrapper_key: str) -> ConversationTurn | None:
+    """Map a tool event (client call or server-tool response) to a ``tool`` turn.
 
     Surfaces the tool name plus the most human-relevant parameter (e.g. the
-    escalation ``reason``) so the UI can render it as an action card. Events with no
+    escalation ``reason``) so the UI can render it as an action row. Events with no
     tool name aren't actionable and are dropped.
     """
-    event = raw.get("client_tool_call")
+    event = raw.get(wrapper_key)
     event = event if isinstance(event, dict) else raw
     name = event.get("tool_name")
     if not isinstance(name, str) or not name.strip():
         return None
-    params = event.get("parameters")
-    params = params if isinstance(params, dict) else {}
-    detail = _first_text((params,), _TOOL_DETAIL_FIELDS)
+    sources = [event[k] for k in _TOOL_DETAIL_SOURCES if isinstance(event.get(k), dict)]
+    sources.append(event)  # some shapes carry the detail flat on the event itself
+    detail = _first_text(tuple(sources), _TOOL_DETAIL_FIELDS)
     return ConversationTurn(role="tool", tool_name=name, message=detail)
 
 
@@ -100,13 +116,15 @@ def parse_monitor_event(raw: object) -> ConversationTurn | None:
     Tolerant of both the flat (``{"user_transcript": ...}``) and the nested
     (``{"user_transcript_event": {"user_transcript": ...}}``) shapes, since the
     exact framing isn't pinned in the docs. Agent speech has its inline expressive
-    tags stripped; ``client_tool_call`` becomes a distinct ``tool`` turn. Everything
-    else (audio, ping, vad_score) and empty-text events return None.
+    tags stripped; a tool event (``client_tool_call`` for client tools,
+    ``agent_tool_response`` for server/webhook tools) becomes a distinct ``tool``
+    turn. Everything else (audio, ping, vad_score) and empty-text events return None.
     """
     if not isinstance(raw, dict):
         return None
-    if raw.get("type") == "client_tool_call":
-        return _parse_tool_call(raw)
+    tool_wrapper = _TOOL_EVENTS.get(raw.get("type"))
+    if tool_wrapper is not None:
+        return _parse_tool_call(raw, tool_wrapper)
     mapping = _TRANSCRIPT_EVENTS.get(raw.get("type"))
     if mapping is None:
         return None

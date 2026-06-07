@@ -1212,6 +1212,21 @@ textarea.input::placeholder {
   color: oklch(0.46 0.16 28);
 }
 
+/* Confirmation banner: the status note plus an optional "Watch live call" button.
+   Wraps so the button drops below the note on a narrow panel. */
+.call-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+}
+.call-status-row .call-status {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
 .call-row {
   display: flex;
   gap: 10px;
@@ -1271,19 +1286,6 @@ textarea.input::placeholder {
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--accent-strong);
-}
-
-/* Live-call transcript header: same motion language as .analysing-tag, but green
-   to read as "connected / streaming now" rather than "still processing". */
-.live-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--status-stable);
 }
 
 .analysing-dot {
@@ -1802,34 +1804,273 @@ textarea.input::placeholder {
   font-weight: 500;
 }
 
-/* Agent tool invocation (e.g. escalate_emergency) — an action, not speech, so it
-   reads as a distinct card with an attention accent rather than a transcript line. */
+/* Agent action (tool call) — not speech. A quiet, discrete pill that sits left,
+   set apart from the transcript turns. Routine actions stay calm and neutral; only
+   a genuine escalation (.is-urgent) earns color. Theme tokens, not hardcoded hues,
+   so it stays legible on the glass dialog in both light and dark. */
 .conv-tool {
-  display: flex;
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
   align-items: center;
   gap: 8px;
-  padding: 7px 11px;
-  border-radius: 8px;
-  background: var(--status-attention-soft);
-  border: 1px solid oklch(0.82 0.08 80);
-  color: oklch(0.42 0.12 60);
-  font-size: 12.5px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--surface-raised) 60%, transparent);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
 }
 .conv-tool svg {
   flex-shrink: 0;
+  color: var(--faint);
 }
 .conv-tool-name {
   font-weight: 650;
   letter-spacing: 0.01em;
   flex-shrink: 0;
+  color: var(--text-soft);
 }
 .conv-tool-detail {
+  min-width: 0;
   color: var(--text-soft);
   font-weight: 400;
   /* Keep a long reason on one tidy line; the full text is in the title tooltip. */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Escalation: the one action that warrants weight. An urgent accent, never an
+   alarm-red fill - calm until it counts. */
+.conv-tool.is-urgent {
+  background: var(--status-urgent-soft);
+  border-color: color-mix(in oklch, var(--status-urgent) 50%, var(--border));
+}
+.conv-tool.is-urgent svg,
+.conv-tool.is-urgent .conv-tool-name {
+  color: var(--status-urgent);
+}
+.conv-tool.is-urgent .conv-tool-detail {
+  color: var(--text);
+}
+
+/* =============================================================================
+   Live call - "Watch live" affordance + centered watch dialog
+   ============================================================================= */
+
+/* In the call history, a live call offers watching rather than expanding. Reads as
+   an action (green, pulsing) so it stands apart from the static status pills. */
+.watch-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--status-stable) 45%, var(--border));
+  background: var(--status-stable-soft);
+  color: var(--status-stable);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), filter 160ms var(--ease);
+}
+.watch-live:hover {
+  border-color: var(--status-stable);
+  filter: brightness(1.04);
+}
+.watch-live:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+.watch-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-stable);
+  animation: live-pulse 1.5s var(--ease) infinite;
+}
+
+/* Scrim: the dashboard recedes so the live call holds focus. A light blur, not a
+   decorative glass effect - it signals "everything else is paused". */
+.live-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: oklch(0.13 0.02 256 / 0.62);
+  backdrop-filter: blur(3px);
+  animation: scrim-in 140ms var(--ease);
+}
+
+/* Liquid glass, matching the command bar + roster rail: a live call is a floating
+   surface over the paused dashboard, so the glass is doing real depth work, not
+   decoration. The theme-aware text tokens keep full contrast over the blur. */
+.live-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(78vh, 760px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+  animation: dialog-in 200ms var(--ease);
+}
+
+.live-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 16px 13px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.live-dialog-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.live-dialog-titles h2 {
+  margin: 3px 0 0;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.live-dialog-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.live-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.live-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.live-state.is-live {
+  color: var(--status-stable);
+}
+.live-state.is-live .live-state-dot {
+  animation: live-pulse 1.5s var(--ease) infinite;
+}
+.live-state.is-ended {
+  color: var(--muted);
+}
+
+.live-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.live-dialog-close:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+.live-dialog-close:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
+.live-dialog-body {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+.live-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Empty state teaches what's about to happen rather than showing a void. */
+.live-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 96px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+.live-empty p {
+  margin: 0;
+  max-width: 42ch;
+  line-height: 1.5;
+}
+.live-empty-dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--status-stable);
+  animation: live-pulse 1.5s var(--ease) infinite;
+}
+
+.live-dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+}
+.live-dialog-hint {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--status-stable) 55%, transparent); }
+  70% { box-shadow: 0 0 0 5px color-mix(in oklch, var(--status-stable) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--status-stable) 0%, transparent); }
+}
+@keyframes scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .watch-live-dot,
+  .live-state.is-live .live-state-dot,
+  .live-empty-dot {
+    animation: none;
+  }
+  .live-scrim,
+  .live-dialog {
+    animation: none;
+  }
 }
 
 /* =============================================================================
